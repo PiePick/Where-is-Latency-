@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class AIConfig : MonoBehaviour
 {
     public static string GeminiKey;
+    
 
     void Awake()
     {

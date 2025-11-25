@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Text;
 using System;
+using System.Diagnostics;
 
 public class GeminiTextTest : MonoBehaviour
 {
@@ -11,6 +12,9 @@ public class GeminiTextTest : MonoBehaviour
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
 
     private string userText = "";
+
+    // 응답 시간 측정용
+    private Stopwatch stopwatch;
 
     void OnGUI()
     {
@@ -21,9 +25,14 @@ public class GeminiTextTest : MonoBehaviour
         if (GUI.Button(new Rect(10, 80, 150, 30), "Send to Gemini"))
         {
             if (string.IsNullOrEmpty(userText))
-                Debug.LogWarning("EMPTY input!");
+            {
+                UnityEngine.Debug.LogWarning("EMPTY input!");
+            }
             else
+            {
+                stopwatch = Stopwatch.StartNew();    // ★ 타이머 시작
                 StartCoroutine(SendText(userText));
+            }
         }
     }
 
@@ -31,7 +40,7 @@ public class GeminiTextTest : MonoBehaviour
     {
         if (string.IsNullOrEmpty(AIConfig.GeminiKey))
         {
-            Debug.LogError("Gemini API KEY is missing!");
+            UnityEngine.Debug.LogError("Gemini API KEY is missing!");
             yield break;
         }
 
@@ -48,25 +57,37 @@ public class GeminiTextTest : MonoBehaviour
         req.downloadHandler = new DownloadHandlerBuffer();
         req.SetRequestHeader("Content-Type", "application/json");
 
+        // 네트워크 요청 시점
         yield return req.SendWebRequest();
+
+        // 타이머 종료
+        stopwatch.Stop();
+        double elapsedSeconds = stopwatch.Elapsed.TotalSeconds;
+        double elapsedMs = stopwatch.Elapsed.TotalMilliseconds;
 
         if (req.result != UnityWebRequest.Result.Success)
         {
-            Debug.LogError("Gemini error: " + req.error);
-            Debug.LogError("Raw: " + req.downloadHandler.text);
+            UnityEngine.Debug.LogError("Gemini error: " + req.error);
+            UnityEngine.Debug.LogError("Raw: " + req.downloadHandler.text);
+            UnityEngine.Debug.Log($"⏱ Total Time: {elapsedSeconds:F4} sec  ({elapsedMs:F2} ms)");
             yield break;
         }
 
-        Debug.Log("Raw Response: " + req.downloadHandler.text);
+        UnityEngine.Debug.Log("Raw Response: " + req.downloadHandler.text);
 
         try
         {
             GeminiResponse parsed = JsonUtility.FromJson<GeminiResponse>(req.downloadHandler.text);
-            Debug.Log("Gemini Reply: " + parsed.candidates[0].content.parts[0].text);
+            string reply = parsed.candidates[0].content.parts[0].text;
+
+            UnityEngine.Debug.Log("Gemini Reply: " + reply);
+
+            // ★ 최종 응답 시간 출력
+            UnityEngine.Debug.Log($"⏱ Total Time: {elapsedSeconds:F4} sec  ({elapsedMs:F2} ms)");
         }
         catch
         {
-            Debug.LogError("PARSE ERROR");
+            UnityEngine.Debug.LogError("PARSE ERROR");
         }
     }
 
