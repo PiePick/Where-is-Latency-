@@ -18,11 +18,11 @@ public class GeminiTextTest : MonoBehaviour
 
     void OnGUI()
     {
-        GUI.Label(new Rect(10, 10, 300, 25), "Type your message below:");
+        GUI.Label(new Rect(10, 10, 300, 60), "Type your message below:");
 
-        userText = GUI.TextField(new Rect(10, 40, 400, 25), userText, 200);
+        userText = GUI.TextField(new Rect(10, 70, 800, 100), userText, 400);
 
-        if (GUI.Button(new Rect(10, 80, 150, 30), "Send to Gemini"))
+        if (GUI.Button(new Rect(10, 180, 150, 30), "Send to Gemini"))
         {
             if (string.IsNullOrEmpty(userText))
             {
