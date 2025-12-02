@@ -33,23 +33,29 @@ async def handle_client(reader, writer):
             # ==================================================
             start_time = time.time()
             
-            # 1. Fast Lane 로직 수행 (즉시 완료됨)
+            # analyze_and_react 안에서 BERT/SpaCy 시간을 재서 옴
             fast_result = fast_lane.analyze_and_react(user_text)
-            latency_fast = time.time() - start_time
             
-            # 2. Fast Lane 패킷 생성
+            total_latency = time.time() - start_time
+            
             fast_packet = {
                 "type": "fast",
                 "emotion": fast_result['emotion_label'],
                 "reaction": fast_result['reaction'],
                 "keyword": fast_result['keyword'],
-                "latency": f"{latency_fast:.4f}s"
+                "bert_time": fast_result['bert_time'],   # Unity로 보냄
+                "spacy_time": fast_result['spacy_time'], # Unity로 보냄
+                "latency": f"{total_latency:.4f}s"
             }
             
             # 3. ★ Unity로 즉시 발송 (Flush) ★
             # LLM이 생각하기 전에 먼저 보내서 Unity가 움직이게 함
             await send_json(writer, fast_packet)
-            print(f"[Fast Sent] {fast_result['reaction']} ({latency_fast:.4f}s)")
+            print(f"   [Fast Log]")
+            print(f"   ├─ Total: {total_latency:.4f}s")
+            print(f"   ├─ BERT:  {fast_result['bert_time']}")
+            print(f"   └─ SpaCy: {fast_result['spacy_time']}")
+            print(f"   >> Reaction: {fast_result['reaction']}")
             
             # ==================================================
             #[Slow Track] LLM 심층 사고 (Network I/O)

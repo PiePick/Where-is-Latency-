@@ -270,7 +270,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1f482c487dc6844f818c98a6fba9f5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stt: {fileID: 313033780}
+  whisper: {fileID: 0}
   gpt: {fileID: 313033779}
   gemini: {fileID: 313033775}
 --- !u!114 &313033777
@@ -309,6 +309,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff0c42dea35c9034787b886f5a52ddf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  whisperTextFilePath: C:\Users\max47\Desktop\whisper_output.txt
 --- !u!1 &423986941
 GameObject:
   m_ObjectHideFlags: 0
@@ -645,50 +646,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1614329200
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1614329201}
-  - component: {fileID: 1614329202}
-  m_Layer: 0
-  m_Name: Check_Connect_Gemini
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1614329201
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1614329200}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 26.517618, y: 1.3802505, z: 5.001677}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1614329202
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1614329200}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 526630279ff9a874c996c5fb2569f380, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -698,4 +655,3 @@ SceneRoots:
   - {fileID: 423986945}
   - {fileID: 313033772}
   - {fileID: 990890186}
-  - {fileID: 1614329201}

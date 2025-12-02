@@ -3,6 +3,7 @@ import random
 import spacy
 from transformers import pipeline
 import config
+import time
 
 print("⚡ [Fast Lane] 모델 로딩 중... (잠시만 기다려주세요)")
 
@@ -167,22 +168,28 @@ REACTION_DB = {
 DEFAULT_REACTIONS = ["I see.", "I hear you.", "Please go on."]
 
 def analyze_and_react(text):
-    # 1. 감정 분석
+    # 1. DistilBERT 시간 측정
+    t0 = time.time()
     raw_emotion = emotion_pipeline(text)[0][0]['label']
+    bert_time = time.time() - t0  # BERT 소요 시간
     
-    # 2. 키워드 추출
+    # 2. SpaCy 시간 측정
+    t1 = time.time()
     doc = nlp(text)
     keywords = [t.text for t in doc if t.pos_ in ["NOUN", "PROPN"]]
     keyword = keywords[-1] if keywords else None
+    spacy_time = time.time() - t1 # SpaCy 소요 시간
     
-    # 3. 리액션 선택 (질문 없음)
+    # 3. 리액션 선택
     possible_reactions = REACTION_DB.get(raw_emotion, DEFAULT_REACTIONS)
     reaction = random.choice(possible_reactions)
     
     return {
         "emotion_label": raw_emotion,
         "reaction": reaction,
-        "keyword": keyword
+        "keyword": keyword,
+        "bert_time": f"{bert_time:.4f}s",   
+        "spacy_time": f"{spacy_time:.4f}s" 
     }
 
 if __name__ == "__main__":
