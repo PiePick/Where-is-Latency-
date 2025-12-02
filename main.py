@@ -11,11 +11,11 @@ import slow_lane
 def listen_from_mic():
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        print("\n🎤 [대기 중] 말씀하세요... (영어)")
+        print("\n[대기 중] 말씀하세요... (영어)")
         r.adjust_for_ambient_noise(source, duration=0.5)
         try:
             audio = r.listen(source, timeout=5, phrase_time_limit=10)
-            print("⏳ 변환 중...")
+            print("변환 중...")
             text = r.recognize_google(audio, language='en-US')
             return text
         except:
@@ -44,7 +44,9 @@ async def run_cycle():
         
         # 3. [시각화] Fast Lane 결과 즉시 출력 (스피커 재생 시점)
         latency = time.time() - start_time
-        print(f"⚡ [Fast Lane] ({latency:.2f}s) 감정: {fast_result['emotion_detail']}")
+        
+        # [수정] fast_lane.py에서 반환하는 키 이름은 'emotion_label' 입니다.
+        print(f"⚡ [Fast Lane] ({latency:.2f}s) 감정: {fast_result['emotion_label']}")
         print(f"   🔊 오디오 재생: \"{reaction}\"")
         if keyword:
             print(f"   🦜 에코잉 재생: \"{keyword}?\"")
@@ -52,15 +54,14 @@ async def run_cycle():
         # 4. Slow Lane 요청 (Fast Lane 리액션을 정보로 넘김)
         # 여기서 create_task를 쓰거나 바로 await를 해도 되지만,
         # 이미 Fast Lane이 끝났으므로 순차적으로 요청합니다.
-        # (만약 Fast Lane 오디오가 길다면, 오디오 재생과 동시에 요청해야 함)
         
-        print(f"🐢 [Slow Lane] GPT 생각 중...")
+        print(f"[Slow Lane] GPT 생각 중...")
         llm_answer = await slow_lane.generate_response(user_input, reaction)
         
         # 5. Slow Lane 결과 출력
         total_time = time.time() - start_time
-        print(f"🐢 [Slow Lane] ({total_time:.2f}s) 도착!")
-        print(f"   💬 NPC 답변: \"{llm_answer}\"")
+        print(f"[Slow Lane] ({total_time:.2f}s) 도착!")
+        print(f"   NPC 답변: \"{llm_answer}\"")
         
         print("=" * 40)
 
