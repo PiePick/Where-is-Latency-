@@ -140,7 +140,7 @@ GameObject:
   - component: {fileID: 313033776}
   - component: {fileID: 313033777}
   - component: {fileID: 313033779}
-  - component: {fileID: 313033778}
+  - component: {fileID: 313033780}
   m_Layer: 0
   m_Name: NPC
   m_TagString: Untagged
@@ -270,8 +270,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1f482c487dc6844f818c98a6fba9f5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  recorder: {fileID: 313033774}
-  vosk: {fileID: 313033778}
+  stt: {fileID: 313033780}
   gpt: {fileID: 313033779}
   gemini: {fileID: 313033775}
 --- !u!114 &313033777
@@ -286,18 +285,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61d160cb04c47544dac30f372474b2b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &313033778
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 313033768}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e77ebb521cd885d4a9aee721d865b9db, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &313033779
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -308,6 +295,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c75031de7cb281642923321adeb48eac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &313033780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 313033768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff0c42dea35c9034787b886f5a52ddf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &423986941
