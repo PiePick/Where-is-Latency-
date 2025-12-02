@@ -15,7 +15,7 @@ using Vosk;
 public class VoskSpeechToText : MonoBehaviour
 {
 	[Tooltip("Location of the model, relative to the Streaming Assets folder.")]
-	public string ModelPath = "vosk-model-small-en-us-0.15.zip";
+	public string ModelPath = "vosk-model-small-ru-0.22.zip";
 
 	[Tooltip("The source of the microphone input.")]
 
