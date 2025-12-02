@@ -39,3 +39,24 @@ Install the required Python dependencies:
 
 ```bash
 pip install torch transformers spacy google-generativeai
+```
+
+### Usage
+Note: The Python server must be running before starting the Unity client.
+
+##Step 1: Start the Python Server
+Run the following command in your terminal:
+```bash
+python server.py
+```
+* Expected Output: [Pipeline Server] Running... (127.0.0.1:5000)
+
+##Step 2: Start the Unity Client
+Press the Play button in the Unity Editor. Expected Output in Terminal: [Server] Client connected: ...
+
+##Step 3: Interaction
+Input text through the Unity UI. The system will process the input in parallel:
+
+* Fast Track: Returns an immediate emotional reaction (displayed first).
+
+* Slow Track: Returns a follow-up response from the LLM (displayed shortly after).
