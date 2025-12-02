@@ -28,7 +28,7 @@ MonoBehaviour:
     width: 2560
     height: 1357
   m_ShowMode: 4
-  m_Title: Project
+  m_Title: Console
   m_RootView: {fileID: 4}
 >>>>>>> DistillBERT
   m_MinSize: {x: 875, y: 300}
@@ -84,7 +84,11 @@ MonoBehaviour:
   m_MinSize: {x: 200, y: 50}
   m_MaxSize: {x: 16192, y: 8096}
   vertical: 0
+<<<<<<< HEAD
   controlID: 146
+=======
+  controlID: 94
+>>>>>>> DistillBERT
 --- !u!114 &4
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -428,6 +432,7 @@ MonoBehaviour:
 <<<<<<< HEAD
     x: 950
     y: 0
+<<<<<<< HEAD
     width: 328
     height: 1290
 =======
@@ -435,6 +440,10 @@ MonoBehaviour:
     y: 0
     width: 657
     height: 1307
+>>>>>>> DistillBERT
+=======
+    width: 525.6
+    height: 1058.8
 >>>>>>> DistillBERT
   m_MinSize: {x: 275, y: 50}
   m_MaxSize: {x: 4000, y: 4000}
@@ -618,7 +627,11 @@ MonoBehaviour:
 =======
       m_SelectedIDs: 
       m_LastClickedID: 0
+<<<<<<< HEAD
       m_ExpandedIDs: 121fffffa424ffff9426ffff
+>>>>>>> DistillBERT
+=======
+      m_ExpandedIDs: 0cfaffff18fbffff
 >>>>>>> DistillBERT
       m_RenameOverlay:
         m_UserAcceptedRename: 0
@@ -1146,9 +1159,13 @@ MonoBehaviour:
     m_SearchArea: 1
     m_Folders:
 <<<<<<< HEAD
+<<<<<<< HEAD
     - Assets/Scripts
 =======
     - Assets/data
+>>>>>>> DistillBERT
+=======
+    - Assets/Scripts
 >>>>>>> DistillBERT
     m_Globs: []
     m_OriginalText: 
@@ -1158,9 +1175,13 @@ MonoBehaviour:
   m_StartGridSize: 64
   m_LastFolders:
 <<<<<<< HEAD
+<<<<<<< HEAD
   - Assets/Scripts
 =======
   - Assets/data
+>>>>>>> DistillBERT
+=======
+  - Assets/Scripts
 >>>>>>> DistillBERT
   m_LastFoldersGridSize: -1
   m_LastProjectPath: C:\Users\my coms\Desktop\WhereIsLat\Slow_Track
@@ -1169,6 +1190,7 @@ MonoBehaviour:
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
 <<<<<<< HEAD
+<<<<<<< HEAD
     m_SelectedIDs: d45b0000
     m_LastClickedID: 23508
     m_ExpandedIDs: 000000000a5b00005c5b0000d45b000000ca9a3bffffff7f
@@ -1176,6 +1198,11 @@ MonoBehaviour:
     m_SelectedIDs: da060000
     m_LastClickedID: 1754
     m_ExpandedIDs: 00000000fa05000000ca9a3b
+>>>>>>> DistillBERT
+=======
+    m_SelectedIDs: 6c4a0000
+    m_LastClickedID: 19052
+    m_ExpandedIDs: 00000000604a00006c4a000000ca9a3b
 >>>>>>> DistillBERT
     m_RenameOverlay:
       m_UserAcceptedRename: 0
@@ -1204,7 +1231,11 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
+<<<<<<< HEAD
     m_ExpandedIDs: 
+=======
+    m_ExpandedIDs: 00000000604a0000
+>>>>>>> DistillBERT
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 

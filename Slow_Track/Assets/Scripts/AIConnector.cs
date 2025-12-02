@@ -6,36 +6,36 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-// 서버에서 받을 JSON 데이터 구조
+// 서버 패킷 구조체
 [Serializable]
 public class ServerPacket
 {
-    public string type;      // "fast" or "slow"
-    public string emotion;   // 감정 라벨
-    public string reaction;  // Fast Lane 반응
-    public string keyword;   // 키워드 (옵션)
+    public string type;      // fast or slow
+    public string emotion;   // 감정 (Fast)
+    public string reaction;  // 리액션 대사 (Fast)
+    public string keyword;   // 키워드 (Fast)
+    public string npc_reply; // LLM 답변 (Slow)
     public string latency;   // 처리 시간
-    public string npc_reply; // Slow Lane 답변
 }
 
 public class AIConnector : MonoBehaviour
 {
-    [Header("Network Settings")]
+    [Header("Connection")]
     public string serverIP = "127.0.0.1";
     public int serverPort = 5000;
+
+    [Header("Debug UI")]
+    [TextArea] public string logText = "";
+    public string userInput = "";
 
     private TcpClient client;
     private NetworkStream stream;
     private Thread receiveThread;
     private bool isRunning = false;
+    private Queue<string> packetQueue = new Queue<string>();
 
-    // UI 표시용 변수
-    private string logText = "";
-    private string userInput = "";
-    private Vector2 scrollPos;
-
-    // 메인 쓰레드에서 UI 업데이트를 위한 큐
-    private Queue<string> messageQueue = new Queue<string>();
+    // 화면 스크롤 위치
+    private Vector2 scrollPosition;
 
     void Start()
     {
@@ -50,40 +50,39 @@ public class AIConnector : MonoBehaviour
             stream = client.GetStream();
             isRunning = true;
 
-            // 수신은 별도 쓰레드에서 계속 대기
             receiveThread = new Thread(ReceiveData);
             receiveThread.IsBackground = true;
             receiveThread.Start();
 
-            AddLog("서버에 접속되었습니다.");
+            AddLog("[System] Connected to Server.");
         }
         catch (Exception e)
         {
-            AddLog("서버 접속 실패. Python 서버를 먼저 켜주세요.\n" + e.Message);
+            AddLog("[Error] Connection Failed: " + e.Message);
         }
     }
 
-    // 데이터 전송 함수
+    // 1. 데이터 전송 (Input -> Python)
     public void SendData(string text)
     {
         if (client == null || !client.Connected) return;
-
-        try
+        
+        try 
         {
             byte[] data = Encoding.UTF8.GetBytes(text);
             stream.Write(data, 0, data.Length);
-            AddLog($"\n👤 User: {text}");
+            AddLog($"\n[User] {text}");
         }
         catch (Exception e)
         {
-            AddLog("전송 에러: " + e.Message);
+            AddLog("[Error] Send Failed: " + e.Message);
         }
     }
 
-    // 데이터 수신 쓰레드 함수
+    // 2. 데이터 수신 (Python -> Output Queue)
     void ReceiveData()
     {
-        byte[] buffer = new byte[4096];
+        byte[] buffer = new byte[8192];
         while (isRunning)
         {
             try
@@ -93,43 +92,36 @@ public class AIConnector : MonoBehaviour
                     int bytesRead = stream.Read(buffer, 0, buffer.Length);
                     if (bytesRead > 0)
                     {
-                        string jsonStr = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                        // 패킷이 여러 개 붙어 올 수 있으므로 줄바꿈으로 분리
-                        string[] packets = jsonStr.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        string raw = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                        string[] packets = raw.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
                         
-                        foreach(string packet in packets)
+                        foreach(string p in packets)
                         {
-                            // UI 업데이트는 메인 쓰레드에서 해야 하므로 큐에 넣음
-                            lock (messageQueue)
+                            lock(packetQueue)
                             {
-                                messageQueue.Enqueue(packet);
+                                packetQueue.Enqueue(p);
                             }
                         }
                     }
                 }
             }
-            catch (Exception)
-            {
-                // 소켓 종료 등 예외 처리
-                isRunning = false;
-            }
+            catch (Exception) { isRunning = false; }
         }
     }
 
+    // 3. 메인 쓰레드 처리 (Queue -> Action)
     void Update()
     {
-        // 큐에 쌓인 메시지를 메인 쓰레드에서 처리
-        lock (messageQueue)
+        lock(packetQueue)
         {
-            while (messageQueue.Count > 0)
+            while (packetQueue.Count > 0)
             {
-                string json = messageQueue.Dequeue();
+                string json = packetQueue.Dequeue();
                 ProcessPacket(json);
             }
         }
     }
 
-    // 수신된 JSON 처리 및 행동 지시
     void ProcessPacket(string json)
     {
         try
@@ -138,61 +130,82 @@ public class AIConnector : MonoBehaviour
 
             if (packet.type == "fast")
             {
-                AddLog($"[Fast] 감정: {packet.emotion} | 반응: \"{packet.reaction}\" ({packet.latency})");
-                // TODO: 여기서 캐릭터 표정 변화 및 짧은 오디오 재생 함수 호출
+                // Fast Track 결과
+                AddLog($"[Fast Track] Emotion: {packet.emotion} | Reaction: \"{packet.reaction}\"");
             }
             else if (packet.type == "slow")
             {
-                AddLog($"[Slow] NPC: \"{packet.npc_reply}\"");
-                // TODO: 여기서 LLM 생성 문장 TTS 재생 및 입모양 싱크 호출
+                // Slow Track 결과
+                AddLog($"[Slow Track] NPC: \"{packet.npc_reply}\"");
             }
         }
         catch (Exception e)
         {
-            AddLog("패킷 파싱 에러: " + e.Message);
-            Debug.LogWarning("JSON: " + json);
+            Debug.LogError("JSON Parse Error: " + e.Message);
         }
     }
 
-    void AddLog(string msg)
-    {
+    void AddLog(string msg) 
+    { 
         logText += msg + "\n";
-        // 로그가 너무 길어지면 자르기
-        if (logText.Length > 2000) logText = logText.Substring(logText.Length - 2000);
+        // 로그가 너무 길어지면 자름
+        if (logText.Length > 5000)
+        {
+            logText = logText.Substring(logText.Length - 5000);
+        }
+        // 로그 추가 시 스크롤을 맨 아래로 이동
+        scrollPosition.y = float.MaxValue;
     }
 
-    void OnApplicationQuit()
-    {
-        isRunning = false;
-        if (stream != null) stream.Close();
-        if (client != null) client.Close();
-        if (receiveThread != null && receiveThread.IsAlive) receiveThread.Abort();
-    }
-
-    // GUI for Testing
     void OnGUI()
     {
-        GUILayout.BeginArea(new Rect(10, 10, 600, 800));
+        // UI 스타일 크기 설정 (가독성을 위해 크게 변경)
+        GUI.skin.label.fontSize = 28;
+        GUI.skin.button.fontSize = 28;
+        GUI.skin.textArea.fontSize = 28;
+        GUI.skin.textField.fontSize = 28;
+        GUI.skin.box.fontSize = 30;
+
+        float padding = 40f;
+        float areaWidth = Screen.width - (padding * 2);
+        float areaHeight = Screen.height - (padding * 2);
+
+        // 화면 전체 영역 잡기
+        GUILayout.BeginArea(new Rect(padding, padding, areaWidth, areaHeight));
         
-        GUILayout.Label("== AI NPC Chat Interface ==", GUI.skin.box);
+        GUILayout.Label("== Dual Pipeline Test Interface ==", GUI.skin.box, GUILayout.Height(60));
         
-        scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.Height(600), GUILayout.Width(580));
-        GUILayout.TextArea(logText, GUILayout.ExpandHeight(true));
+        // 로그 출력 영역 (스크롤뷰 적용)
+        scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
+        GUILayout.TextArea(logText);
         GUILayout.EndScrollView();
 
-        GUILayout.Space(10);
+        GUILayout.Space(20);
         
-        userInput = GUILayout.TextField(userInput, GUILayout.Height(30));
+        // 입력창 및 전송 버튼
+        userInput = GUILayout.TextField(userInput, GUILayout.Height(60)); // 높이 60으로 확대
+        
+        GUILayout.Space(10);
 
-        if (GUILayout.Button("Send (Enter)", GUILayout.Height(40)) || (Event.current.isKey && Event.current.keyCode == KeyCode.Return))
+        if (GUILayout.Button("Send Message (Enter)", GUILayout.Height(80)) || // 높이 80으로 확대
+           (Event.current.isKey && Event.current.keyCode == KeyCode.Return && Event.current.type == EventType.KeyUp))
         {
             if (!string.IsNullOrEmpty(userInput))
             {
                 SendData(userInput);
                 userInput = "";
+                // 입력 후 포커스 유지 (편의성)
+                GUI.FocusControl(""); 
             }
         }
 
         GUILayout.EndArea();
+    }
+
+    void OnApplicationQuit()
+    {
+        isRunning = false;
+        if(client != null) client.Close();
+        if(receiveThread != null) receiveThread.Abort();
     }
 }

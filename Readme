@@ -1,0 +1,62 @@
+# Empathic AI NPC Project (Dual Pipeline Architecture)
+
+## Project Overview
+This project implements an AI NPC system designed to provide deep empathy using **Carl Rogers' Reflective Listening** technique. The core architecture mimics human cognitive processes through a **Dual Pipeline System** consisting of a Fast Track (Reflexive) and a Slow Track (Rational).
+
+This architecture allows the NPC to react immediately to the user's emotions while simultaneously processing a context-aware, intellectual response, solving the latency issue common in LLM-based interactions.
+
+## System Architecture
+
+The system operates on a client-server model using TCP sockets between Unity and Python.
+
+### 1. Fast Track (Reflexive System)
+* **Latency:** < 0.1s
+* **Function:** Immediate emotional analysis and keyword extraction.
+* **Model:** `DistilBERT` (fine-tuned on GoEmotions dataset) + `Spacy`.
+* **Output:** Facial expressions, short interjections, and empathetic keyword mirroring.
+
+### 2. Slow Track (Rational System)
+* **Latency:** 1.0s ~ 3.0s
+* **Function:** Context understanding and dialogue generation.
+* **Model:** Google `Gemini 2.5 Flash` (via API).
+* **Output:** Coherent, meaningful verbal responses that deepen the conversation.
+
+## Tech Stack
+
+* **Server (Brain):** Python 3.8+, Asyncio, Transformers, Spacy, Google Generative AI
+* **Client (Body):** Unity 2021.3+, C# (TCP Network Stream)
+* **Communication:** TCP/IP Socket (JSON Packet)
+
+## Installation
+
+### Prerequisites
+* Python 3.8 or higher installed.
+* Unity Editor (2021.3 LTS or higher recommended).
+* A valid Google Gemini API Key.
+
+### 1. Python Environment Setup
+Install the required Python dependencies:
+
+```bash
+pip install torch transformers spacy google-generativeai
+```
+
+### Usage
+Note: The Python server must be running before starting the Unity client.
+
+##Step 1: Start the Python Server
+Run the following command in your terminal:
+```bash
+python server.py
+```
+* Expected Output: [Pipeline Server] Running... (127.0.0.1:5000)
+
+##Step 2: Start the Unity Client
+Press the Play button in the Unity Editor. Expected Output in Terminal: [Server] Client connected: ...
+
+##Step 3: Interaction
+Input text through the Unity UI. The system will process the input in parallel:
+
+* Fast Track: Returns an immediate emotional reaction (displayed first).
+
+* Slow Track: Returns a follow-up response from the LLM (displayed shortly after).
