@@ -11,11 +11,10 @@ using System.Collections.Generic;
 public class ServerPacket
 {
     public string type;      // fast or slow
-    public string emotion;   // 감정 (Fast)
-    public string reaction;  // 리액션 대사 (Fast)
-    public string keyword;   // 키워드 (Fast)
-    public string npc_reply; // LLM 답변 (Slow)
-    public string latency;   // 처리 시간
+    public string emotion;
+    public string reaction;
+    public string echo_text; // 에코잉 대사
+    public string npc_reply; // LLM 대사
 }
 
 public class AIConnector : MonoBehaviour
@@ -24,18 +23,20 @@ public class AIConnector : MonoBehaviour
     public string serverIP = "127.0.0.1";
     public int serverPort = 5000;
 
-    [Header("Debug UI")]
-    [TextArea] public string logText = "";
+    [Header("Chat UI")]
     public string userInput = "";
+    
+    // 대화 기록을 저장할 리스트 (로그 X, 채팅 O)
+    private List<string> chatHistory = new List<string>();
+    private Vector2 scrollPosition;
 
     private TcpClient client;
     private NetworkStream stream;
     private Thread receiveThread;
     private bool isRunning = false;
+    
+    // 메인 쓰레드 처리를 위한 큐
     private Queue<string> packetQueue = new Queue<string>();
-
-    // 화면 스크롤 위치
-    private Vector2 scrollPosition;
 
     void Start()
     {
@@ -54,15 +55,14 @@ public class AIConnector : MonoBehaviour
             receiveThread.IsBackground = true;
             receiveThread.Start();
 
-            AddLog("[System] Connected to Server.");
+            AddToChat("[System] NPC와 연결되었습니다.");
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            AddLog("[Error] Connection Failed: " + e.Message);
+            AddToChat("[System] 서버 접속 실패. Python을 먼저 켜주세요.");
         }
     }
 
-    // 1. 데이터 전송 (Input -> Python)
     public void SendData(string text)
     {
         if (client == null || !client.Connected) return;
@@ -71,15 +71,16 @@ public class AIConnector : MonoBehaviour
         {
             byte[] data = Encoding.UTF8.GetBytes(text);
             stream.Write(data, 0, data.Length);
-            AddLog($"\n[User] {text}");
+            
+            // 보낸 내용 채팅창에 표시
+            AddToChat($"User: {text}");
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            AddLog("[Error] Send Failed: " + e.Message);
+            AddToChat("[System] 전송 실패");
         }
     }
 
-    // 2. 데이터 수신 (Python -> Output Queue)
     void ReceiveData()
     {
         byte[] buffer = new byte[8192];
@@ -109,7 +110,6 @@ public class AIConnector : MonoBehaviour
         }
     }
 
-    // 3. 메인 쓰레드 처리 (Queue -> Action)
     void Update()
     {
         lock(packetQueue)
@@ -122,6 +122,7 @@ public class AIConnector : MonoBehaviour
         }
     }
 
+    // ★ 핵심 수정: 로그가 아니라 대화로 처리
     void ProcessPacket(string json)
     {
         try
@@ -130,71 +131,89 @@ public class AIConnector : MonoBehaviour
 
             if (packet.type == "fast")
             {
-                // Fast Track 결과
-                AddLog($"[Fast Track] Emotion: {packet.emotion} | Reaction: \"{packet.reaction}\"");
+                // [Fast Lane] 에코잉 + 리액션 합치기
+                string finalLine = packet.reaction;
+
+                // 에코잉이 있다면 앞에 붙여서 자연스럽게 만들기
+                // 예: "Wallet?" + " " + "That sounds terrible."
+                if (!string.IsNullOrEmpty(packet.echo_text))
+                {
+                    finalLine = $"{packet.echo_text} {packet.reaction}";
+                }
+
+                // NPC 대사로 출력 (로그 정보 제외)
+                AddToChat($"NPC: {finalLine}");
+                
+                // TODO: 여기서 TTS로 finalLine 재생
             }
             else if (packet.type == "slow")
             {
-                // Slow Track 결과
-                AddLog($"[Slow Track] NPC: \"{packet.npc_reply}\"");
+                // [Slow Lane] LLM 답변 출력
+                AddToChat($"NPC: {packet.npc_reply}");
+                
+                // TODO: 이어서 TTS로 packet.npc_reply 재생
             }
         }
         catch (Exception e)
         {
-            Debug.LogError("JSON Parse Error: " + e.Message);
+            Debug.LogError("Packet Error: " + e.Message);
         }
     }
 
-    void AddLog(string msg) 
+    void AddToChat(string msg) 
     { 
-        logText += msg + "\n";
-        // 로그가 너무 길어지면 자름
-        if (logText.Length > 5000)
+        chatHistory.Add(msg);
+        // 채팅이 너무 많아지면 오래된 것 삭제 (최근 20개만 유지)
+        if (chatHistory.Count > 20)
         {
-            logText = logText.Substring(logText.Length - 5000);
+            chatHistory.RemoveAt(0);
         }
-        // 로그 추가 시 스크롤을 맨 아래로 이동
+        // 스크롤 맨 아래로
         scrollPosition.y = float.MaxValue;
     }
 
+    // 깔끔해진 채팅 UI
     void OnGUI()
     {
-        // UI 스타일 크기 설정 (가독성을 위해 크게 변경)
-        GUI.skin.label.fontSize = 28;
-        GUI.skin.button.fontSize = 28;
-        GUI.skin.textArea.fontSize = 28;
-        GUI.skin.textField.fontSize = 28;
-        GUI.skin.box.fontSize = 30;
+        // 폰트 크기 키움
+        GUI.skin.label.fontSize = 24;
+        GUI.skin.textField.fontSize = 24;
+        GUI.skin.button.fontSize = 24;
+        GUI.skin.box.fontSize = 24;
 
-        float padding = 40f;
-        float areaWidth = Screen.width - (padding * 2);
-        float areaHeight = Screen.height - (padding * 2);
-
-        // 화면 전체 영역 잡기
-        GUILayout.BeginArea(new Rect(padding, padding, areaWidth, areaHeight));
+        float padding = 20f;
+        GUILayout.BeginArea(new Rect(padding, padding, Screen.width - padding*2, Screen.height - padding*2));
         
-        GUILayout.Label("== Dual Pipeline Test Interface ==", GUI.skin.box, GUILayout.Height(60));
+        // 1. 대화 내용 표시 영역
+        GUILayout.Label("== Chat with AI NPC ==", GUI.skin.box, GUILayout.Height(50));
         
-        // 로그 출력 영역 (스크롤뷰 적용)
         scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
-        GUILayout.TextArea(logText);
+        
+        foreach (string msg in chatHistory)
+        {
+            // 말한 사람에 따라 색상이나 스타일을 다르게 줄 수도 있음
+            if (msg.StartsWith("User:")) GUI.color = Color.yellow;
+            else if (msg.StartsWith("NPC:")) GUI.color = Color.white;
+            else GUI.color = Color.gray; // 시스템 메시지
+
+            GUILayout.Label(msg);
+        }
+        GUI.color = Color.white; // 색상 복구
+
         GUILayout.EndScrollView();
 
-        GUILayout.Space(20);
-        
-        // 입력창 및 전송 버튼
-        userInput = GUILayout.TextField(userInput, GUILayout.Height(60)); // 높이 60으로 확대
-        
         GUILayout.Space(10);
-
-        if (GUILayout.Button("Send Message (Enter)", GUILayout.Height(80)) || // 높이 80으로 확대
+        
+        // 2. 입력 영역
+        userInput = GUILayout.TextField(userInput, GUILayout.Height(50));
+        
+        if (GUILayout.Button("Send", GUILayout.Height(60)) || 
            (Event.current.isKey && Event.current.keyCode == KeyCode.Return && Event.current.type == EventType.KeyUp))
         {
             if (!string.IsNullOrEmpty(userInput))
             {
                 SendData(userInput);
                 userInput = "";
-                // 입력 후 포커스 유지 (편의성)
                 GUI.FocusControl(""); 
             }
         }

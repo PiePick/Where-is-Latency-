@@ -25,7 +25,7 @@ async def handle_client(reader, writer):
             if not user_text:
                 continue
 
-            print(f"\n👤 User Input: {user_text}")
+            print(f"\n User Input: {user_text}")
             print("-" * 30)
             
             # ==================================================
@@ -33,29 +33,27 @@ async def handle_client(reader, writer):
             # ==================================================
             start_time = time.time()
             
-            # analyze_and_react 안에서 BERT/SpaCy 시간을 재서 옴
             fast_result = fast_lane.analyze_and_react(user_text)
-            
             total_latency = time.time() - start_time
             
             fast_packet = {
                 "type": "fast",
                 "emotion": fast_result['emotion_label'],
                 "reaction": fast_result['reaction'],
-                "keyword": fast_result['keyword'],
-                "bert_time": fast_result['bert_time'],   # Unity로 보냄
-                "spacy_time": fast_result['spacy_time'], # Unity로 보냄
+                "echo_text": fast_result['echo_text'], # ★ Unity로 전송
+                "bert_time": fast_result['bert_time'],
+                "spacy_time": fast_result['spacy_time'],
                 "latency": f"{total_latency:.4f}s"
             }
             
-            # 3. ★ Unity로 즉시 발송 (Flush) ★
-            # LLM이 생각하기 전에 먼저 보내서 Unity가 움직이게 함
             await send_json(writer, fast_packet)
+            
             print(f"   [Fast Log]")
-            print(f"   ├─ Total: {total_latency:.4f}s")
-            print(f"   ├─ BERT:  {fast_result['bert_time']}")
-            print(f"   └─ SpaCy: {fast_result['spacy_time']}")
-            print(f"   >> Reaction: {fast_result['reaction']}")
+            print(f"   ├─ Time: {total_latency:.4f}s (BERT: {fast_result['bert_time']}, SpaCy: {fast_result['spacy_time']})")
+            print(f"   ├─ Emotion: {fast_result['emotion_label']}")
+            print(f"   ├─ Reaction: \"{fast_result['reaction']}\"")
+            if fast_result['echo_text']:
+                print(f"   └─ Echoing:  \"{fast_result['echo_text']}\"") # 서버 로그에도 표시
             
             # ==================================================
             #[Slow Track] LLM 심층 사고 (Network I/O)
