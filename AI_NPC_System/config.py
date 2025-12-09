@@ -2,45 +2,42 @@
 import os
 
 # ==========================================
-# 🔑 API 키 파일 경로 설정
+# 🔑 API 키 파일 경로 (자동 인식)
 # ==========================================
-# 1. 방금 만든 txt 파일의 '전체 경로'를 아래 따옴표 안에 적으세요.
-# (주의: 윈도우 경로라도 역슬래시(\) 대신 슬래시(/)를 쓰는 게 에러가 없습니다.)
-# 예시: "C:/Users/Public/gemini_key.txt"
-KEY_FILE_PATH = "C:/Users/my coms/Desktop/gemini_key.txt" 
-
+# 사용자 홈 디렉토리(예: C:\Users\my coms)를 자동으로 찾아서 Desktop 경로와 합칩니다.
+# 이제 경로 때문에 에러 날 일이 없습니다!
+KEY_FILE_PATH = os.path.join(os.path.expanduser("~"), "Desktop", "gemini_key.txt")
 
 def load_api_key(filepath):
-    """지정된 경로의 텍스트 파일을 읽어 API 키를 반환하는 함수"""
-    print(f"[Config] 키 파일 로딩 중... ({filepath})")
+    """파일이 있으면 읽고, 없으면 None 반환"""
+    print(f"📂 [Config] 키 파일 찾는 중... ({filepath})")
     
     if not os.path.exists(filepath):
-        print(f"[Error] 파일을 찾을 수 없습니다! 경로를 확인해주세요: {filepath}")
+        print("⚠️ 키 파일이 없습니다. (Ollama만 사용 가능)")
         return None
         
     try:
         with open(filepath, "r", encoding="utf-8") as f:
-            # 파일 내용을 읽고 앞뒤 공백/줄바꿈을 제거(.strip)
             key = f.read().strip()
-            
-        if not key:
-            print("[Warning] 파일이 비어 있습니다.")
-            return None
-            
-        print("[Config] API 키 로드 완료!")
-        return key
-        
+            print("Gemini API 키 로드 완료!")
+            return key
     except Exception as e:
-        print(f"[Error] 키 파일을 읽는 중 오류 발생: {e}")
+        print(f"키 파일 읽기 실패: {e}")
         return None
 
-# ==========================================
-# ⚙️ 모델 설정
-# ==========================================
-
-# 파일에서 키를 읽어와 변수에 저장
 GEMINI_API_KEY = load_api_key(KEY_FILE_PATH)
 
-# 사용할 모델 이름
-GEMINI_MODEL_NAME = "gemini-2.5-flash"
+
+# ==========================================
+# 🤖 모델 설정 (Failover)
+# ==========================================
+
+# 1순위: 로컬 Ollama
+OLLAMA_URL = "http://localhost:11434/v1"
+OLLAMA_MODEL = "gemma3:1b"  # 설치된 모델명 (llama3, mistral 등)
+
+# 2순위: 클라우드 Gemini (백업용)
+GEMINI_MODEL = "gemini-2.5-flash"
+
+# 감정 분석 모델 (Fast Lane용)
 EMOTION_MODEL_NAME = "joeddav/distilbert-base-uncased-go-emotions-student"
