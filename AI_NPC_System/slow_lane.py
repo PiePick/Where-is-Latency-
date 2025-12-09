@@ -1,51 +1,139 @@
 # slow_lane.py
-import google.generativeai as genai
 import config
+from openai import OpenAI
+import google.generativeai as genai
+import asyncio
 
-# 1. Gemini 설정 (config.py에서 키를 가져옴)
-try:
-    genai.configure(api_key=config.GEMINI_API_KEY)
-except AttributeError:
-    print("config.py에 GEMINI_API_KEY가 없습니다.")
-
-# 2. 모델 초기화 (비동기 지원)
-model = genai.GenerativeModel(config.GEMINI_MODEL_NAME)
-
-async def generate_response(user_text, fast_reaction_text):
+async def generate_response(user_input, fast_reaction=None):
     """
-    Gemini를 사용하여 사용자의 말에 대한 심층 답변을 생성합니다.
-    (Fast Lane의 리액션을 중복하지 않도록 지시)
+    Slow Lane: '조용히' Ollama 시도 -> 실패 시 '조용히' Gemini 전환 -> 성공한 모델만 로그 출력
     """
     
     # 시스템 프롬프트 구성
-    system_prompt = f"""
-    You are an empathetic, calm, and polite AI NPC engaging in a conversation.
-    Your tone must always be kind, composed, and respectful.
+    system_prompt = (
+        "You are a helpful and friendly NPC. "
+        "Keep your response concise (within 2-3 sentences). "
+        "Speak naturally like a human."
+    )
+    if fast_reaction:
+        system_prompt += f" You already reacted with '{fast_reaction}'. Continue naturally."
 
-    [Current Situation]
-    - The User said: "{user_text}"
-    - You (Instinctively) already reacted with: "{fast_reaction_text}"
-
-    [Instructions]
-    1. **Do NOT repeat the instinctive reaction.** Your job is to continue the flow, not echo it.
-    2. **Natural Conversation:** Connect your sentences smoothly. Focus on maintaining a natural dialogue rather than explaining or teaching.
-    3. **Error Handling:** If the user's input contains speech recognition errors or typos, infer the intended meaning and respond naturally without pointing out the mistake.
-    4. **Length Constraint:** Keep your response strictly between **100 to 400 characters**.
-    5. **Style:** Use a polite and warm tone. Do not use formal system language (e.g., "As an AI...").
-
-    [Goal]
-    Provide a warm, supportive, and natural follow-up response in English that deepens the conversation based on the context above.
-    """
-
+    # ==========================================
+    # 🥇 시도 1: 로컬 Ollama (Silent Try)
+    # ==========================================
     try:
-        # 3. 비동기 호출 (generate_content_async 사용)
-        # 이 함수는 await를 통해 응답이 올 때까지 기다리지만, 서버 전체를 멈추지는 않습니다.
-        response = await model.generate_content_async(system_prompt)
+        # 타임아웃 1.0초 설정: 안 켜져 있으면 1초 만에 바로 포기하고 넘어감
+        client = OpenAI(
+            base_url=config.OLLAMA_URL,
+            api_key='ollama',
+            timeout=1.0 
+        )
+
+        response = client.chat.completions.create(
+            model=config.OLLAMA_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_input}
+            ],
+            temperature=0.7,
+        )
         
-        # 결과 텍스트 반환
+        # ★ 성공 시에만 로그 출력
+        print(f"🐢 [Slow Lane] ✅ Used Model: Local Ollama ({config.OLLAMA_MODEL})")
+        return response.choices[0].message.content
+
+    except Exception:
+        # 실패하면 아무 말도 안 하고(pass) 바로 다음으로 넘어감
+        pass
+
+    # ==========================================
+    # 🥈 시도 2: 클라우드 Gemini (Silent Try)
+    # ==========================================
+    try:
+        if not config.GEMINI_API_KEY:
+            return "❌ Error: No Models Available."
+
+        genai.configure(api_key=config.GEMINI_API_KEY)
+        model = genai.GenerativeModel(config.GEMINI_MODEL)
+        
+        full_prompt = f"{system_prompt}\n\nUser Input: {user_input}"
+        
+        # 비동기 호출
+        response = await model.generate_content_async(full_prompt)
+        
+        # ★ 성공 시에만 로그 출력
+        print(f"🐢 [Slow Lane] ✅ Used Model: Cloud Gemini ({config.GEMINI_MODEL})")
         return response.text.strip()
-        
+
     except Exception as e:
-        error_msg = f"Gemini Error: {str(e)}"
-        print(f"{error_msg}")
-        return "I am listening... (nodding)"
+        print(f"❌ [Fatal Error] All models failed: {e}")
+        return "..."# slow_lane.py
+import config
+from openai import OpenAI
+import google.generativeai as genai
+import asyncio
+
+async def generate_response(user_input, fast_reaction=None):
+    """
+    Slow Lane: '조용히' Ollama 시도 -> 실패 시 '조용히' Gemini 전환 -> 성공한 모델만 로그 출력
+    """
+    
+    # 시스템 프롬프트 구성
+    system_prompt = (
+        "You are a helpful and friendly NPC. "
+        "Keep your response concise (within 2-3 sentences). "
+        "Speak naturally like a human."
+    )
+    if fast_reaction:
+        system_prompt += f" You already reacted with '{fast_reaction}'. Continue naturally."
+
+    # ==========================================
+    # 🥇 시도 1: 로컬 Ollama (Silent Try)
+    # ==========================================
+    try:
+        # 타임아웃 1.0초 설정: 안 켜져 있으면 1초 만에 바로 포기하고 넘어감
+        client = OpenAI(
+            base_url=config.OLLAMA_URL,
+            api_key='ollama',
+            timeout=1.0 
+        )
+
+        response = client.chat.completions.create(
+            model=config.OLLAMA_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_input}
+            ],
+            temperature=0.7,
+        )
+        
+        # ★ 성공 시에만 로그 출력
+        print(f"🐢 [Slow Lane] ✅ Used Model: Local Ollama ({config.OLLAMA_MODEL})")
+        return response.choices[0].message.content
+
+    except Exception:
+        # 실패하면 아무 말도 안 하고(pass) 바로 다음으로 넘어감
+        pass
+
+    # ==========================================
+    # 🥈 시도 2: 클라우드 Gemini (Silent Try)
+    # ==========================================
+    try:
+        if not config.GEMINI_API_KEY:
+            return "❌ Error: No Models Available."
+
+        genai.configure(api_key=config.GEMINI_API_KEY)
+        model = genai.GenerativeModel(config.GEMINI_MODEL)
+        
+        full_prompt = f"{system_prompt}\n\nUser Input: {user_input}"
+        
+        # 비동기 호출
+        response = await model.generate_content_async(full_prompt)
+        
+        # ★ 성공 시에만 로그 출력
+        print(f"🐢 [Slow Lane] ✅ Used Model: Cloud Gemini ({config.GEMINI_MODEL})")
+        return response.text.strip()
+
+    except Exception as e:
+        print(f"❌ [Fatal Error] All models failed: {e}")
+        return "..."
