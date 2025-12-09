@@ -59,13 +59,14 @@
     <UnityVersion>2022.3.22f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Users\max47\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.2.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="C:\Users\my coms\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.2.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.22f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.22f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\tts\WinTTS.cs" />
     <Compile Include="Assets\ThirdParty\Vosk\Vosk.cs" />
+    <Compile Include="Assets\SpeechRecognitionSystem\Scripts\AudioPlayer.cs" />
     <Compile Include="Assets\Scripts\gemini\GeminiTextTest.cs" />
     <Compile Include="Assets\Samples\OpenAI Unity\0.2.2\Whisper\SaveWav.cs" />
     <Compile Include="Assets\Scripts\AIConnector.cs" />
@@ -77,23 +78,32 @@
     <Compile Include="Assets\ThirdParty\Vosk\VoskPINVOKE.cs" />
     <Compile Include="Assets\ThirdParty\Vosk\Model.cs" />
     <Compile Include="Assets\Scripts\WavUtility.cs" />
+    <Compile Include="Assets\SpeechRecognitionSystem\Scripts\AudioRecorder.cs" />
     <Compile Include="Assets\Scripts\gemini\GeminiChat.cs" />
     <Compile Include="Assets\ThirdParty\Vosk\VoskRecognizer.cs" />
     <Compile Include="Assets\Scripts\NPCController.cs" />
     <Compile Include="Assets\Scripts\WhisperListener.cs" />
     <Compile Include="Assets\Samples\OpenAI Unity\0.2.2\Whisper\Whisper.cs" />
     <Compile Include="Assets\Scripts\MicTest.cs" />
+    <Compile Include="Assets\SpeechRecognitionSystem\Scripts\SpeechRecognizer.cs" />
     <Compile Include="Assets\ThirdParty\Vosk\SpkModel.cs" />
     <Compile Include="Assets\Samples\OpenAI Unity\0.2.2\Whisper\NewBehaviourScript.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\ThirdParty\Zip\Ionic.Zip.Unity.dll" />
     <None Include="Assets\ThirdParty\Zip\License.txt" />
+    <None Include="Assets\SpeechRecognitionSystem\Plugins\Windows\x86_64\SRS.dll" />
     <None Include="Assets\ThirdParty\Vosk\Plugins\Windows\libwinpthread-1.dll" />
     <None Include="Assets\ThirdParty\Vosk\Plugins\Windows\libvosk.dll" />
+    <None Include="Assets\SpeechRecognitionSystem\Plugins\Windows\x86_64\libomp.dll" />
+    <None Include="Assets\SpeechRecognitionSystem\Notices.txt" />
+    <None Include="Assets\SpeechRecognitionSystem\Plugins\Managed\SpeechRecognitionSystem.dll" />
+    <None Include="Assets\SpeechRecognitionSystem\Plugins\Windows\x86_64\flang.dll" />
     <None Include="Assets\ThirdParty\Vosk\Plugins\Windows\libstdc++-6.dll" />
+    <None Include="Assets\SpeechRecognitionSystem\Plugins\Managed\Static\SpeechRecognitionSystem.dll" />
     <None Include="Assets\ThirdParty\Zip\Ionic.Zip.Unity.XML" />
     <None Include="Assets\ThirdParty\Vosk\Plugins\Windows\libgcc_s_seh-1.dll" />
+    <None Include="Assets\SpeechRecognitionSystem\Plugins\Windows\x86_64\flangrti.dll" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -436,16 +446,8 @@
       <HintPath>Library\PackageCache\com.unity.nuget.newtonsoft-json@3.2.1\Runtime\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.Android.Types">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.22f1\Editor\Data\PlaybackEngines\AndroidPlayer\Unity.Android.Types.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.Android.Gradle">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.22f1\Editor\Data\PlaybackEngines\AndroidPlayer\Unity.Android.Gradle.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Unity.Android.GradleProject">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.22f1\Editor\Data\PlaybackEngines\AndroidPlayer\Unity.Android.GradleProject.dll</HintPath>
+    <Reference Include="SpeechRecognitionSystem">
+      <HintPath>Assets\SpeechRecognitionSystem\Plugins\Managed\SpeechRecognitionSystem.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="netstandard">
