@@ -38,6 +38,8 @@ public class AIConnector : MonoBehaviour
     // 메인 쓰레드 처리를 위한 큐
     private Queue<string> packetQueue = new Queue<string>();
 
+    [SerializeField] private SpeechRecognizer speechRecognizer;
+
     void Start()
     {
         ConnectToServer();
@@ -74,6 +76,26 @@ public class AIConnector : MonoBehaviour
             
             // 보낸 내용 채팅창에 표시
             AddToChat($"User: {text}");
+            text = "";
+        }
+        catch (Exception)
+        {
+            AddToChat("[System] 전송 실패");
+        }
+    }
+
+    public void SendData()
+    {
+        if (client == null || !client.Connected) return;
+        
+        try 
+        {
+            byte[] data = Encoding.UTF8.GetBytes(userInput);
+            stream.Write(data, 0, data.Length);
+            
+            // 보낸 내용 채팅창에 표시
+            AddToChat($"User: {userInput}");
+            userInput = "";
         }
         catch (Exception)
         {
@@ -120,6 +142,8 @@ public class AIConnector : MonoBehaviour
                 ProcessPacket(json);
             }
         }
+
+        userInput = speechRecognizer.LastRecognitionResult;
     }
 
     // ★ 핵심 수정: 로그가 아니라 대화로 처리
@@ -184,7 +208,6 @@ public class AIConnector : MonoBehaviour
         float padding = 20f;
         GUILayout.BeginArea(new Rect(padding, padding, Screen.width - padding*2, Screen.height - padding*2));
         
-        // 1. 대화 내용 표시 영역
         GUILayout.Label("== Chat with AI NPC ==", GUI.skin.box, GUILayout.Height(50));
         
         scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
@@ -204,20 +227,6 @@ public class AIConnector : MonoBehaviour
 
         GUILayout.Space(10);
         
-        // 2. 입력 영역
-        userInput = GUILayout.TextField(userInput, GUILayout.Height(50));
-        
-        if (GUILayout.Button("Send", GUILayout.Height(60)) || 
-           (Event.current.isKey && Event.current.keyCode == KeyCode.Return && Event.current.type == EventType.KeyUp))
-        {
-            if (!string.IsNullOrEmpty(userInput))
-            {
-                SendData(userInput);
-                userInput = "";
-                GUI.FocusControl(""); 
-            }
-        }
-
         GUILayout.EndArea();
     }
 

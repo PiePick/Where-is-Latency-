@@ -40,8 +40,8 @@ internal class SpeechRecognizer : MonoBehaviour
         if (string.IsNullOrEmpty(text))
             return;
 
-        // string 누적 //영성이형 여기 보면돼요
-        LastRecognitionResult += text + "\n";
+        // string 누적 영성이형 여기 보면돼요
+        LastRecognitionResult += text + " ";
 
         // 콘솔 출력 
         Debug.Log(text);
