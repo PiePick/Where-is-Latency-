@@ -59,17 +59,19 @@
     <UnityVersion>2022.3.22f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Users\my coms\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.2.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="C:\Users\max47\.vscode\extensions\visualstudiotoolsforunity.vstuc-1.2.0\Analyzers\Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.22f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.22f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\tts\WinTTS.cs" />
     <Compile Include="Assets\ThirdParty\Vosk\Vosk.cs" />
+    <Compile Include="Assets\Scripts\tts\temp.cs" />
     <Compile Include="Assets\SpeechRecognitionSystem\Scripts\AudioPlayer.cs" />
     <Compile Include="Assets\Samples\OpenAI Unity\0.2.2\Whisper\SaveWav.cs" />
     <Compile Include="Assets\Scripts\AIConnector.cs" />
     <Compile Include="Assets\Scripts\CSVLoader.cs" />
+    <Compile Include="Assets\Scripts\tts\StopButtonHandler.cs" />
     <Compile Include="Assets\ThirdParty\Vosk\VoskPINVOKE.cs" />
     <Compile Include="Assets\ThirdParty\Vosk\Model.cs" />
     <Compile Include="Assets\Scripts\WavUtility.cs" />

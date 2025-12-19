@@ -10,7 +10,7 @@ using SpeechRecognitionSystem;
 using UnityEngine;
 using UnityEngine.Events;
 
-internal class SpeechRecognizer : MonoBehaviour 
+public class SpeechRecognizer : MonoBehaviour 
 {
     public string LanguageModelDirPath = "SpeechRecognitionSystem/model/english_small";
 
@@ -45,6 +45,20 @@ internal class SpeechRecognizer : MonoBehaviour
 
         // 콘솔 출력 
         Debug.Log(text);
+    }
+
+
+    public void SpeakFinalResult()
+    {
+        if (string.IsNullOrWhiteSpace(LastRecognitionResult))
+            return;
+
+        string finalText = LastRecognitionResult.Trim();
+        Debug.Log("Final TTS: " + finalText);
+        WinTTS.Speak(finalText);
+
+        // 다음 녹음을 위해 초기화
+        LastRecognitionResult = "";
     }
 
     private void onLanguageModelCopyComplete(string modelDirPath) {

@@ -8,14 +8,11 @@ extern "C"
 {
     __declspec(dllexport) void SpeakText(const wchar_t* text)
     {
-        // Initialize COM in STA (SAPI requires STA)
         HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
         if (FAILED(hr))
             return;
 
         ISpVoice* pVoice = NULL;
-
-        // Create SAPI voice instance
         hr = CoCreateInstance(
             CLSID_SpVoice,
             NULL,
@@ -30,17 +27,48 @@ extern "C"
             return;
         }
 
-        // Synchronous playback (SPF_DEFAULT instead of SPF_ASYNC)
-        // → Ensures audio does NOT cut off early
-        hr = pVoice->Speak(text, SPF_DEFAULT, NULL);
+        // ===============================
+        // 영어(en-US) 보이스 직접 선택
+        // ===============================
+        ISpObjectTokenCategory* pCategory = NULL;
+        IEnumSpObjectTokens* pEnum = NULL;
+        ISpObjectToken* pToken = NULL;
+
+        hr = CoCreateInstance(
+            CLSID_SpObjectTokenCategory,
+            NULL,
+            CLSCTX_ALL,
+            IID_ISpObjectTokenCategory,
+            (void**)&pCategory
+        );
 
         if (SUCCEEDED(hr))
         {
-            // Block until speech is fully finished
+            hr = pCategory->SetId(SPCAT_VOICES, FALSE);
+            if (SUCCEEDED(hr))
+            {
+                hr = pCategory->EnumTokens(L"Language=409", NULL, &pEnum);
+                if (SUCCEEDED(hr))
+                {
+                    ULONG fetched = 0;
+                    if (SUCCEEDED(pEnum->Next(1, &pToken, &fetched)) && fetched > 0)
+                    {
+                        pVoice->SetVoice(pToken);
+                        pToken->Release();
+                    }
+                    pEnum->Release();
+                }
+            }
+            pCategory->Release();
+        }
+        // ===============================
+
+        hr = pVoice->Speak(text, SPF_DEFAULT, NULL);
+        if (SUCCEEDED(hr))
+        {
             pVoice->WaitUntilDone(INFINITE);
         }
 
-        // Cleanup
         pVoice->Release();
         CoUninitialize();
     }
