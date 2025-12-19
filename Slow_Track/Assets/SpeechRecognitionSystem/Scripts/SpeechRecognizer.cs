@@ -44,7 +44,6 @@ public class SpeechRecognizer : MonoBehaviour
         LastRecognitionResult += text + " ";
 
         // 콘솔 출력 
-        Debug.Log(text);
     }
 
 
@@ -54,7 +53,7 @@ public class SpeechRecognizer : MonoBehaviour
             return;
 
         string finalText = LastRecognitionResult.Trim();
-        Debug.Log("Final TTS: " + finalText);
+        Debug.Log(finalText);
         WinTTS.Speak(finalText);
 
         // 다음 녹음을 위해 초기화
