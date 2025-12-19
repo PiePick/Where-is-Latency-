@@ -168,14 +168,14 @@ public class AIConnector : MonoBehaviour
                 // NPC 대사로 출력 (로그 정보 제외)
                 AddToChat($"NPC: {finalLine}");
                 
-                // TODO: 여기서 TTS로 finalLine 재생
+                WinTTS.Speak(finalLine);
             }
             else if (packet.type == "slow")
             {
                 // [Slow Lane] LLM 답변 출력
                 AddToChat($"NPC: {packet.npc_reply}");
                 
-                // TODO: 이어서 TTS로 packet.npc_reply 재생
+                WinTTS.Speak(packet.npc_reply);
             }
         }
         catch (Exception e)

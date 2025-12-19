@@ -54,7 +54,6 @@ public class SpeechRecognizer : MonoBehaviour
 
         string finalText = LastRecognitionResult.Trim();
         Debug.Log(finalText);
-        WinTTS.Speak(finalText);
 
         // 다음 녹음을 위해 초기화
         LastRecognitionResult = "";
