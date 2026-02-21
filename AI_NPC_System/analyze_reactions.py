@@ -3,16 +3,11 @@ from pathlib import Path
 
 import fast_lane
 
-TEST_TEXTS = [
-    "I just got promoted at work and I feel amazing.",
-    "I am really upset because my best friend ignored me.",
-    "I am drinking water and reading emails right now.",
-    "I feel terrified about tomorrow.",
-    "That was a wonderful surprise for me.",
-    "Can you explain this again?",
-    "I feel confused and not sure what to do.",
-    "Everything is normal and calm today.",
-]
+import json
+
+TEST_TEXTS_FILE = Path(__file__).resolve().parent / "test_inputs_common_v1.json"
+TEST_TEXTS = json.loads(TEST_TEXTS_FILE.read_text(encoding="utf-8"))
+VERSION_TAG = "v01.2"
 
 
 FIELDS = [
@@ -65,15 +60,15 @@ def run_tests():
 
 
 def write_outputs(rows, out_dir: Path):
-    csv_path = out_dir / "reaction_analysis_v01.csv"
+    csv_path = out_dir / f"reaction_analysis_{VERSION_TAG}.csv"
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=FIELDS)
         w.writeheader()
         w.writerows(rows)
 
-    md_path = out_dir / "reaction_analysis_v01.md"
+    md_path = out_dir / f"reaction_analysis_{VERSION_TAG}.md"
     with md_path.open("w", encoding="utf-8") as f:
-        f.write("# Reaction Analysis v01 (Detailed)\n\n")
+        f.write(f"# Reaction Analysis {VERSION_TAG} (Detailed)\n\n")
         f.write("| text | emotion | strategy | reaction | echo | top1 | margin | entropy | calib_T | eff_T | p(emotion) | p(echo) | p(bridge) | p(neutral) |\n")
         f.write("|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n")
         for r in rows:
@@ -84,7 +79,7 @@ def write_outputs(rows, out_dir: Path):
                 f"| {text} | {r['emotion_label']} | {r['strategy']} | {reaction} | {echo} | {r['top1']} | {r['margin']} | {r['entropy']} | {r['calibration_temp']} | {r['effective_temperature']} | {r['p_emotion_first']} | {r['p_echo_first']} | {r['p_bridge']} | {r['p_neutral_minimal']} |\n"
             )
 
-    png_path = out_dir / "reaction_strategy_distribution_v01.png"
+    png_path = out_dir / f"reaction_strategy_distribution_{VERSION_TAG}.png"
     try:
         import matplotlib.pyplot as plt
         from collections import Counter
