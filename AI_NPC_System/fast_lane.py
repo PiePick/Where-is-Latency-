@@ -102,11 +102,18 @@ def _aggregate_category_scores(all_scores):
 
 
 def _pick_reaction(emotion_label, strategy):
-    # strategy-specific list 우선
+    # v02: strategy + emotion specific pools first
+    strategy_emotion_key = f"{strategy}_{emotion_label}"
+    if strategy_emotion_key in REACTION_DB and isinstance(REACTION_DB.get(strategy_emotion_key), list):
+        arr = REACTION_DB.get(strategy_emotion_key) or DEFAULT_REACTIONS
+        return random.choice(arr)
+
+    # strategy-specific list
     if strategy in REACTION_DB and isinstance(REACTION_DB.get(strategy), list):
         arr = REACTION_DB.get(strategy) or DEFAULT_REACTIONS
         return random.choice(arr)
 
+    # emotion fallback
     arr = REACTION_DB.get(emotion_label, DEFAULT_REACTIONS)
     return random.choice(arr)
 
