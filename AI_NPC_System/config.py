@@ -41,3 +41,9 @@ GEMINI_MODEL = "gemini-2.5-flash"
 
 # 감정 분석 모델 (Fast Lane용)
 EMOTION_MODEL_NAME = "joeddav/distilbert-base-uncased-go-emotions-student"
+
+# Fast Lane reaction DB 파일명 (AI_NPC_System 폴더 기준)
+REACTION_DB_FILE = "reactions_v01.json"
+
+# Slow lane 예상 지연(밀리초) - bridge 전략 힌트용
+EXPECTED_SLOW_LANE_MS = 2800

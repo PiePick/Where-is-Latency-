@@ -1,0 +1,7 @@
+{
+  "positive": ["Nice.", "That’s great.", "I’m glad.", "Love that.", "Awesome."],
+  "negative": ["That sounds rough.", "I hear you.", "That hurts.", "I’m with you.", "Oof, that’s hard."],
+  "neutral": ["I see.", "Got it.", "I’m listening.", "Go ahead.", "Tell me more."],
+  "ambiguous": ["Interesting.", "That’s a twist.", "Really?", "Hmm, okay.", "I can see that."],
+  "bridge": ["I hear you—", "Okay, one sec—", "Mm, go on—", "Right—", "I’m here—"]
+}

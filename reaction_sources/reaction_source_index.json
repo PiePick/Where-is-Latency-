@@ -1,0 +1,26 @@
+{
+  "version": "v01",
+  "sources": [
+    {
+      "name": "EmpatheticDialogues",
+      "type": "dataset",
+      "url": "https://huggingface.co/datasets/empathetic_dialogues",
+      "paper": "https://aclanthology.org/P19-1534/",
+      "usage": "empathetic short acknowledgement style"
+    },
+    {
+      "name": "DailyDialog",
+      "type": "dataset",
+      "url": "https://huggingface.co/datasets/daily_dialog",
+      "paper": "https://aclanthology.org/I17-1099/",
+      "usage": "natural daily conversational turns"
+    },
+    {
+      "name": "GoEmotions",
+      "type": "dataset",
+      "url": "https://huggingface.co/datasets/go_emotions",
+      "paper": "https://aclanthology.org/2020.acl-main.372/",
+      "usage": "emotion taxonomy and label mapping"
+    }
+  ]
+}

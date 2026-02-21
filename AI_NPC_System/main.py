@@ -73,14 +73,14 @@ async def run_cycle():
         
         # 3. [시각화] Fast Lane 결과 출력
         latency = time.time() - start_time
-        print(f"⚡ [Fast Lane] ({latency:.2f}s) 감정: {fast_result['emotion_detail']}")
+        print(f"⚡ [Fast Lane] ({latency:.2f}s) 감정: {fast_result['emotion_label']} / 전략: {fast_result.get('strategy','n/a')}")
         print(f"   🔊 리액션: \"{reaction}\"")
-        if keyword:
-            print(f"   🦜 에코잉: \"{keyword}?\"")
+        if keyword and fast_result.get('echo_text'):
+            print(f"   🦜 에코잉: \"{fast_result['echo_text']}\"")
             
         # 4. Slow Lane 요청 (Fast Lane 리액션 정보 전달)
         #print(f"🐢 [Slow Lane] GPT 생각 중...")
-        llm_answer = await slow_lane.generate_response(user_input, reaction)
+        llm_answer = await slow_lane.generate_response(user_input, reaction, fast_result.get('strategy'))
         
         # 5. Slow Lane 결과 출력
         total_time = time.time() - start_time

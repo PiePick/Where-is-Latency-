@@ -37,20 +37,28 @@ async def handle_client(reader, writer):
             total_latency = time.time() - start_time
             
             fast_packet = {
+                "schema_version": 2,
                 "type": "fast",
                 "emotion": fast_result['emotion_label'],
                 "reaction": fast_result['reaction'],
-                "echo_text": fast_result['echo_text'], # ★ Unity로 전송
+                "echo_text": fast_result['echo_text'],
                 "bert_time": fast_result['bert_time'],
                 "spacy_time": fast_result['spacy_time'],
-                "latency": f"{total_latency:.4f}s"
+                "strategy": fast_result.get('strategy'),
+                "confidence_band": fast_result.get('confidence_band'),
+                "top1": fast_result.get('top1'),
+                "margin": fast_result.get('margin'),
+                "entropy": fast_result.get('entropy'),
+                "latency": f"{total_latency:.4f}s",
+                "latency_ms": int(total_latency * 1000)
             }
             
             await send_json(writer, fast_packet)
             
             print(f"   [Fast Log]")
             print(f"   ├─ Time: {total_latency:.4f}s (BERT: {fast_result['bert_time']}, SpaCy: {fast_result['spacy_time']})")
-            print(f"   ├─ Emotion: {fast_result['emotion_label']}")
+            print(f"   ├─ Emotion: {fast_result['emotion_label']} ({fast_result.get('confidence_band')})")
+            print(f"   ├─ Strategy: {fast_result.get('strategy')} / top1={fast_result.get('top1')} margin={fast_result.get('margin')} entropy={fast_result.get('entropy')}")
             print(f"   ├─ Reaction: \"{fast_result['reaction']}\"")
             if fast_result['echo_text']:
                 print(f"   └─ Echoing:  \"{fast_result['echo_text']}\"") # 서버 로그에도 표시
@@ -63,17 +71,20 @@ async def handle_client(reader, writer):
             # 4. Slow Lane 로직 수행 (비동기 대기)
             # Fast Lane의 결과(reaction)를 문맥으로 넘겨줍니다.
             llm_reply = await slow_lane.generate_response(
-                user_text, 
-                fast_result['reaction']
+                user_text,
+                fast_result['reaction'],
+                fast_result.get('strategy')
             )
             
             latency_slow = time.time() - start_time
             
             # 5. Slow Lane 패킷 생성
             slow_packet = {
+                "schema_version": 2,
                 "type": "slow",
                 "npc_reply": llm_reply,
-                "latency": f"{latency_slow:.4f}s"
+                "latency": f"{latency_slow:.4f}s",
+                "latency_ms": int(latency_slow * 1000)
             }
             
             # 6. Unity로 발송
