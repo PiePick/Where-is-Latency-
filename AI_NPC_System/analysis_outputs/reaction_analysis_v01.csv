@@ -1,0 +1,11 @@
+text,emotion_label,strategy,reaction,echo_text,confidence_band,top1,margin,entropy,action_probs
+I passed the exam and I feel amazing.,positive,echo_first,"Right, on that—",exam?,high,0.8,0.6412,0.4525,"{""emotion_first"": 0.473875, ""echo_first"": 0.213693, ""bridge"": 0.242277, ""neutral_minimal"": 0.070154}"
+I am scared about tomorrow's interview.,negative,emotion_first,I hear you.,interview?,high,0.8996,0.8479,0.2931,"{""emotion_first"": 0.627205, ""echo_first"": 0.212699, ""bridge"": 0.123245, ""neutral_minimal"": 0.036851}"
+I am just drinking water now.,positive,bridge,Right—,water?,low,0.5809,0.3486,0.7622,"{""emotion_first"": 0.183072, ""echo_first"": 0.145051, ""bridge"": 0.520315, ""neutral_minimal"": 0.151561}"
+My friend ignored my message and I feel sad.,negative,emotion_first,That’s great.,message?,high,0.9113,0.8638,0.2695,"{""emotion_first"": 0.64253, ""echo_first"": 0.210441, ""bridge"": 0.113169, ""neutral_minimal"": 0.033861}"
+"Wow, I didn't expect this at all.",ambiguous,bridge,I’m here—,,medium,0.7211,0.5695,0.5911,"{""emotion_first"": 0.196829, ""echo_first"": 0.098341, ""bridge"": 0.570635, ""neutral_minimal"": 0.134196}"
+Can you explain this one more time?,ambiguous,emotion_first,That sounds rough.,time?,medium,0.5529,0.2421,0.7208,"{""emotion_first"": 0.064196, ""echo_first"": 0.178538, ""bridge"": 0.640178, ""neutral_minimal"": 0.117089}"
+"Everything is fine, just a normal day.",positive,emotion_first,That’s great.,day?,medium,0.7113,0.5875,0.6463,"{""emotion_first"": 0.335251, ""echo_first"": 0.195955, ""bridge"": 0.361589, ""neutral_minimal"": 0.107206}"
+I am angry because my work got rejected.,negative,bridge,"Mm, go on—",work?,high,0.9237,0.8839,0.2388,"{""emotion_first"": 0.660436, ""echo_first"": 0.207511, ""bridge"": 0.10158, ""neutral_minimal"": 0.030473}"
+I feel curious about this project idea.,ambiguous,bridge,I’m here—,idea?,medium,0.6806,0.4186,0.5759,"{""emotion_first"": 0.145834, ""echo_first"": 0.171356, ""bridge"": 0.577656, ""neutral_minimal"": 0.105153}"
+I am relieved that the surgery ended well.,positive,echo_first,"Okay, about that—",surgery?,high,0.8156,0.7014,0.4574,"{""emotion_first"": 0.495021, ""echo_first"": 0.216424, ""bridge"": 0.223053, ""neutral_minimal"": 0.065501}"

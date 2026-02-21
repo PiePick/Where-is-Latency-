@@ -128,6 +128,8 @@ def analyze_and_react(text):
         has_keyword=bool(keyword),
         user_text=text,
         llm_eta_ms=getattr(config, "EXPECTED_SLOW_LANE_MS", 0),
+        temperature=getattr(config, "ACTION_SAMPLING_TEMPERATURE", 0.9),
+        sample=getattr(config, "ACTION_SAMPLING_ENABLED", True),
     )
 
     strategy = policy["strategy"]
@@ -149,6 +151,8 @@ def analyze_and_react(text):
         "margin": round(policy["margin"], 4),
         "entropy": round(policy["entropy"], 4),
         "confidence_band": policy["confidence_band"],
+        "action_probs": policy.get("action_probs", {}),
+        "strategy_scores": policy.get("strategy_scores", {}),
         "category_scores": {k: round(v, 4) for k, v in category_scores.items()},
         "bert_time": f"{bert_time:.4f}s",
         "spacy_time": f"{spacy_time:.4f}s",

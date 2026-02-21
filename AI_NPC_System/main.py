@@ -56,6 +56,9 @@ async def run_cycle():
                 user_input = input("\n⌨️  User (입력): ").strip()
                 if not user_input:
                     continue
+                if user_input.lower() in {"exit", "quit", "q"}:
+                    print("👋 종료 명령 감지: 프로그램을 종료합니다.")
+                    break
             except EOFError:
                 break # 종료 처리
 
@@ -74,6 +77,10 @@ async def run_cycle():
         # 3. [시각화] Fast Lane 결과 출력
         latency = time.time() - start_time
         print(f"⚡ [Fast Lane] ({latency:.2f}s) 감정: {fast_result['emotion_label']} / 전략: {fast_result.get('strategy','n/a')}")
+        probs = fast_result.get('action_probs', {})
+        if probs:
+            probs_str = ", ".join([f"{k}:{v:.2f}" for k, v in probs.items()])
+            print(f"   📊 action_probs: {probs_str}")
         print(f"   🔊 리액션: \"{reaction}\"")
         if keyword and fast_result.get('echo_text'):
             print(f"   🦜 에코잉: \"{fast_result['echo_text']}\"")

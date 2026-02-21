@@ -1,4 +1,8 @@
 import math
+import random
+
+
+ACTIONS = ["emotion_first", "echo_first", "bridge", "neutral_minimal"]
 
 
 def safe_entropy(prob_map):
@@ -47,26 +51,86 @@ def confidence_band(top1, margin, entropy):
     return "low"
 
 
-def select_strategy(category_scores, has_keyword, user_text, llm_eta_ms=0):
+def _softmax(score_map, temperature=1.0):
+    t = max(1e-6, float(temperature))
+    vals = {k: float(v) / t for k, v in score_map.items()}
+    m = max(vals.values()) if vals else 0.0
+    exps = {k: math.exp(v - m) for k, v in vals.items()}
+    s = sum(exps.values())
+    if s <= 0:
+        return {k: 1.0 / len(score_map) for k in score_map}
+    return {k: exps[k] / s for k in exps}
+
+
+def _weighted_choice(prob_map):
+    r = random.random()
+    cum = 0.0
+    for k, p in prob_map.items():
+        cum += p
+        if r <= cum:
+            return k
+    return list(prob_map.keys())[-1]
+
+
+def _strategy_scores(features, has_keyword, user_text, llm_eta_ms=0):
+    top1 = features["top1"]
+    margin = features["margin"]
+    entropy = features["entropy"]
+    top1_label = features["top1_label"]
+
+    question_flag = str(user_text).strip().endswith("?")
+    eta_pressure = min(1.5, max(0.0, (float(llm_eta_ms) - 1200.0) / 1200.0))
+
+    scores = {k: 0.0 for k in ACTIONS}
+
+    # emotion_first: high confidence + clear positive/negative
+    scores["emotion_first"] = (1.8 * top1) + (1.2 * margin) - (1.0 * entropy)
+    if top1_label in {"positive", "negative"}:
+        scores["emotion_first"] += 0.6
+
+    # echo_first: question/keyword driven
+    scores["echo_first"] = (1.0 * margin) + (0.6 * top1) - (0.4 * entropy)
+    if has_keyword:
+        scores["echo_first"] += 0.7
+    if question_flag:
+        scores["echo_first"] += 0.5
+
+    # bridge: uncertainty or high ETA pressure
+    scores["bridge"] = (1.2 * entropy) + (1.1 * eta_pressure) - (0.4 * margin)
+    if top1_label == "ambiguous":
+        scores["bridge"] += 0.4
+
+    # neutral_minimal: low confidence / neutral content
+    scores["neutral_minimal"] = (1.1 * entropy) + (0.7 * (1 - top1))
+    if top1_label == "neutral":
+        scores["neutral_minimal"] += 0.5
+    if not has_keyword:
+        scores["neutral_minimal"] += 0.2
+
+    return scores
+
+
+def select_strategy(
+    category_scores,
+    has_keyword,
+    user_text,
+    llm_eta_ms=0,
+    temperature=0.9,
+    sample=True,
+):
     f = compute_confidence_features(category_scores)
     band = confidence_band(f["top1"], f["margin"], f["entropy"])
 
-    question_flag = str(user_text).strip().endswith("?")
-    if llm_eta_ms >= 2200:
-        strategy = "bridge"
-    elif band == "low":
-        strategy = "neutral_minimal"
-    elif question_flag and has_keyword:
-        strategy = "echo_first"
-    elif band == "high" and f["top1_label"] in {"positive", "negative"}:
-        strategy = "emotion_first"
-    elif has_keyword and band == "medium":
-        strategy = "echo_first"
-    elif f["top1_label"] == "ambiguous":
-        strategy = "bridge"
+    scores = _strategy_scores(f, has_keyword, user_text, llm_eta_ms=llm_eta_ms)
+    probs = _softmax(scores, temperature=temperature)
+
+    if sample:
+        strategy = _weighted_choice(probs)
     else:
-        strategy = "neutral_minimal"
+        strategy = max(probs, key=probs.get)
 
     f["confidence_band"] = band
     f["strategy"] = strategy
+    f["strategy_scores"] = {k: round(v, 6) for k, v in scores.items()}
+    f["action_probs"] = {k: round(v, 6) for k, v in probs.items()}
     return f
