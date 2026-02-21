@@ -102,18 +102,11 @@ def _aggregate_category_scores(all_scores):
 
 
 def _pick_reaction(emotion_label, strategy):
-    # v02: strategy + emotion specific pools first
-    strategy_emotion_key = f"{strategy}_{emotion_label}"
-    if strategy_emotion_key in REACTION_DB and isinstance(REACTION_DB.get(strategy_emotion_key), list):
-        arr = REACTION_DB.get(strategy_emotion_key) or DEFAULT_REACTIONS
+    # v03: only 5 groups are used (positive/neutral/negative/ambiguous/echoing)
+    if strategy == "echo_first" and isinstance(REACTION_DB.get("echoing"), list):
+        arr = REACTION_DB.get("echoing") or DEFAULT_REACTIONS
         return random.choice(arr)
 
-    # strategy-specific list
-    if strategy in REACTION_DB and isinstance(REACTION_DB.get(strategy), list):
-        arr = REACTION_DB.get(strategy) or DEFAULT_REACTIONS
-        return random.choice(arr)
-
-    # emotion fallback
     arr = REACTION_DB.get(emotion_label, DEFAULT_REACTIONS)
     return random.choice(arr)
 
@@ -164,8 +157,8 @@ def analyze_and_react(text):
 
     strategy = policy["strategy"]
 
-    # 중립 최소 모드면 에코잉 억제
-    if strategy == "neutral_minimal":
+    # v03: echoing은 echo_first 전략에서만 허용
+    if strategy != "echo_first":
         echo_text = ""
 
     reaction = _pick_reaction(final_emotion, strategy)
