@@ -1,7 +1,6 @@
 # slow_lane.py
 import config
 from openai import OpenAI
-import google.generativeai as genai
 
 
 async def generate_response(user_input, fast_reaction=None, strategy=None):
@@ -38,11 +37,13 @@ async def generate_response(user_input, fast_reaction=None, strategy=None):
     except Exception:
         pass
 
-    # 2) Cloud Gemini
+    # 2) Cloud Gemini (현재 비활성화)
     try:
         if not config.GEMINI_API_KEY:
-            return "❌ Error: No Models Available."
+            print("⚠️ [Slow Lane] Ollama 실패 + Gemini 비활성화 상태")
+            return "..."
 
+        import google.generativeai as genai
         genai.configure(api_key=config.GEMINI_API_KEY)
         model = genai.GenerativeModel(config.GEMINI_MODEL)
         full_prompt = f"{system_prompt}\n\nUser Input: {user_input}"

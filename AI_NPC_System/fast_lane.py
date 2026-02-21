@@ -13,12 +13,22 @@ import merge_policy
 
 print("⚡ [Fast Lane] 모델 로딩 중...")
 
+MODEL_READY = True
+MODEL_ERROR = None
+
 try:
     emotion_pipeline = pipeline("text-classification", model=config.EMOTION_MODEL_NAME, top_k=None)
     nlp = spacy.load("en_core_web_sm")
 except Exception as e:
-    print(f"모델 로드 실패: {e}")
-    exit()
+    MODEL_READY = False
+    MODEL_ERROR = str(e)
+    emotion_pipeline = None
+    nlp = None
+    print("❌ [Fast Lane] 모델 로딩 실패")
+    print(f"   ├─ EMOTION_MODEL_NAME: {getattr(config, 'EMOTION_MODEL_NAME', 'unknown')}")
+    print(f"   ├─ spaCy model: en_core_web_sm")
+    print(f"   └─ error: {MODEL_ERROR}")
+    print("⚠️ [Fast Lane] 중립 fallback 모드로 계속 실행합니다.")
 
 DEFAULT_REACTIONS = ["I see.", "I hear you.", "Please go on."]
 
@@ -84,13 +94,18 @@ def analyze_and_react(text):
     final_emotion = "neutral"
     category_scores = {"positive": 0.0, "negative": 0.0, "ambiguous": 0.0, "neutral": 1.0}
 
-    try:
-        short_text = text[:512]
-        all_scores = emotion_pipeline(short_text)[0]
-        category_scores = _aggregate_category_scores(all_scores)
-        final_emotion = max(category_scores, key=category_scores.get)
-    except Exception as e:
-        print(f"감정 분석 에러: {e}")
+    if not MODEL_READY:
+        print("⚠️ [Fast Lane] fallback 중: 모델 미준비 상태로 neutral 처리")
+        if MODEL_ERROR:
+            print(f"   └─ last_error: {MODEL_ERROR}")
+    else:
+        try:
+            short_text = text[:512]
+            all_scores = emotion_pipeline(short_text)[0]
+            category_scores = _aggregate_category_scores(all_scores)
+            final_emotion = max(category_scores, key=category_scores.get)
+        except Exception as e:
+            print(f"감정 분석 에러: {e}")
 
     bert_time = time.time() - t0
 
@@ -98,13 +113,14 @@ def analyze_and_react(text):
     keyword = None
     echo_text = ""
     try:
-        doc = nlp(text)
-        keywords = [t.text for t in doc if t.pos_ in ["NOUN", "PROPN"]]
-        if keywords:
-            keyword = keywords[-1]
-            echo_text = f"{keyword}?"
-    except Exception:
-        pass
+        if nlp is not None:
+            doc = nlp(text)
+            keywords = [t.text for t in doc if t.pos_ in ["NOUN", "PROPN"]]
+            if keywords:
+                keyword = keywords[-1]
+                echo_text = f"{keyword}?"
+    except Exception as e:
+        print(f"spaCy 키워드 추출 에러: {e}")
     spacy_time = time.time() - t1
 
     policy = merge_policy.select_strategy(

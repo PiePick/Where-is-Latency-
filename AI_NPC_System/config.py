@@ -6,26 +6,27 @@ import os
 # ==========================================
 # 사용자 홈 디렉토리(예: C:\Users\my coms)를 자동으로 찾아서 Desktop 경로와 합칩니다.
 # 이제 경로 때문에 에러 날 일이 없습니다!
-KEY_FILE_PATH = os.path.join(os.path.expanduser("~"), "Desktop", "gemini_key.txt")
+# KEY_FILE_PATH = os.path.join(os.path.expanduser("~"), "Desktop", "gemini_key.txt")
+#
+# def load_api_key(filepath):
+#     """파일이 있으면 읽고, 없으면 None 반환"""
+#     print(f"📂 [Config] 키 파일 찾는 중... ({filepath})")
+#
+#     if not os.path.exists(filepath):
+#         print("⚠️ 키 파일이 없습니다. (Ollama만 사용 가능)")
+#         return None
+#
+#     try:
+#         with open(filepath, "r", encoding="utf-8") as f:
+#             key = f.read().strip()
+#             print("Gemini API 키 로드 완료!")
+#             return key
+#     except Exception as e:
+#         print(f"키 파일 읽기 실패: {e}")
+#         return None
 
-def load_api_key(filepath):
-    """파일이 있으면 읽고, 없으면 None 반환"""
-    print(f"📂 [Config] 키 파일 찾는 중... ({filepath})")
-    
-    if not os.path.exists(filepath):
-        print("⚠️ 키 파일이 없습니다. (Ollama만 사용 가능)")
-        return None
-        
-    try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            key = f.read().strip()
-            print("Gemini API 키 로드 완료!")
-            return key
-    except Exception as e:
-        print(f"키 파일 읽기 실패: {e}")
-        return None
-
-GEMINI_API_KEY = load_api_key(KEY_FILE_PATH)
+# Ollama 메인 운영: Gemini key 입력/로드 비활성화
+GEMINI_API_KEY = None
 
 
 # ==========================================
