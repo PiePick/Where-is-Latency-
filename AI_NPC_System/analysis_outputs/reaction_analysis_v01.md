@@ -1,12 +1,12 @@
 # Reaction Analysis v01 (Detailed)
 
-| text | emotion | strategy | reaction | echo | top1 | margin | entropy | p(emotion) | p(echo) | p(bridge) | p(neutral) |
-|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|
-| I just got promoted at work and I feel amazing. | positive | echo_first | Okay, about that— | work? | 0.8252 | 0.6917 | 0.4206 | 0.51202 | 0.216137 | 0.2105 | 0.061343 |
-| I am really upset because my best friend ignored me. | negative | echo_first | Okay, about that— | friend? | 0.8711 | 0.7963 | 0.3498 | 0.584882 | 0.216447 | 0.153188 | 0.045484 |
-| I am drinking water and reading emails right now. | positive | neutral_minimal | Go ahead. |  | 0.4273 | 0.1352 | 0.8397 | 0.091593 | 0.09834 | 0.625056 | 0.185012 |
-| I feel terrified about tomorrow. | negative | emotion_first | Nice. | tomorrow? | 0.9073 | 0.8556 | 0.2769 | 0.637056 | 0.211172 | 0.116856 | 0.034915 |
-| That was a wonderful surprise for me. | positive | echo_first | Got it— | surprise? | 0.6237 | 0.2762 | 0.5634 | 0.249969 | 0.166513 | 0.456254 | 0.127264 |
-| Can you explain this again? | ambiguous | bridge | Mm, go on— |  | 0.5678 | 0.2409 | 0.6839 | 0.076373 | 0.09336 | 0.676896 | 0.153371 |
-| I feel confused and not sure what to do. | ambiguous | emotion_first | I hear you. |  | 0.851 | 0.7511 | 0.3821 | 0.391966 | 0.13759 | 0.38067 | 0.089774 |
-| Everything is normal and calm today. | positive | bridge | Mm, go on— | today? | 0.6914 | 0.5569 | 0.6687 | 0.30899 | 0.189532 | 0.386859 | 0.114618 |
+| text | emotion | strategy | reaction | echo | top1 | margin | entropy | calib_T | eff_T | p(emotion) | p(echo) | p(bridge) | p(neutral) |
+|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| I just got promoted at work and I feel amazing. | positive | echo_first | Got it— | work? | 0.8252 | 0.6917 | 0.4206 | 1.05 | 0.945 | 0.499686 | 0.219773 | 0.214311 | 0.06623 |
+| I am really upset because my best friend ignored me. | negative | emotion_first | That’s great. | friend? | 0.8711 | 0.7963 | 0.3498 | 1.05 | 0.945 | 0.569802 | 0.221088 | 0.159069 | 0.050042 |
+| I am drinking water and reading emails right now. | positive | bridge | Mm, go on— | emails? | 0.4273 | 0.1352 | 0.8397 | 1.05 | 0.945 | 0.097548 | 0.10438 | 0.607519 | 0.190553 |
+| I feel terrified about tomorrow. | negative | emotion_first | Nice. | tomorrow? | 0.9073 | 0.8556 | 0.2769 | 1.05 | 0.945 | 0.620666 | 0.216847 | 0.123426 | 0.039061 |
+| That was a wonderful surprise for me. | positive | bridge | Right— | surprise? | 0.6237 | 0.2762 | 0.5634 | 1.05 | 0.945 | 0.251346 | 0.1707 | 0.445808 | 0.132145 |
+| Can you explain this again? | ambiguous | bridge | Right— |  | 0.5678 | 0.2409 | 0.6839 | 1.05 | 0.945 | 0.08236 | 0.099721 | 0.657926 | 0.159994 |
+| I feel confused and not sure what to do. | ambiguous | bridge | I hear you— |  | 0.851 | 0.7511 | 0.3821 | 1.05 | 0.945 | 0.38652 | 0.142614 | 0.375904 | 0.094963 |
+| Everything is normal and calm today. | positive | neutral_minimal | I see. |  | 0.6914 | 0.5569 | 0.6687 | 1.05 | 0.945 | 0.307181 | 0.19286 | 0.380501 | 0.119458 |

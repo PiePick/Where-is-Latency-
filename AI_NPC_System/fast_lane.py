@@ -67,6 +67,28 @@ def load_reactions():
 REACTION_DB = load_reactions()
 
 
+def load_calibration_temperature():
+    t = float(getattr(config, "CALIBRATION_TEMPERATURE", 1.0))
+    if not getattr(config, "CALIBRATION_ENABLED", False):
+        return t
+
+    file_name = getattr(config, "CALIBRATION_PARAM_FILE", "calibration_params_v012.json")
+    p = Path(__file__).resolve().parent / file_name
+    if not p.exists():
+        return t
+
+    try:
+        obj = json.loads(p.read_text(encoding="utf-8"))
+        fitted = float(obj.get("best_temperature", t))
+        return max(0.05, min(5.0, fitted))
+    except Exception as e:
+        print(f"calibration param load 에러: {e}")
+        return t
+
+
+CALIBRATION_TEMP = load_calibration_temperature()
+
+
 def _aggregate_category_scores(all_scores):
     category_scores = {"positive": 0.0, "negative": 0.0, "ambiguous": 0.0, "neutral": 0.0}
     for item in all_scores:
@@ -130,6 +152,7 @@ def analyze_and_react(text):
         llm_eta_ms=getattr(config, "EXPECTED_SLOW_LANE_MS", 0),
         temperature=getattr(config, "ACTION_SAMPLING_TEMPERATURE", 0.9),
         sample=getattr(config, "ACTION_SAMPLING_ENABLED", True),
+        calibration_temp=CALIBRATION_TEMP,
     )
 
     strategy = policy["strategy"]
@@ -153,6 +176,8 @@ def analyze_and_react(text):
         "confidence_band": policy["confidence_band"],
         "action_probs": policy.get("action_probs", {}),
         "strategy_scores": policy.get("strategy_scores", {}),
+        "calibration_temp": policy.get("calibration_temp"),
+        "effective_temperature": policy.get("effective_temperature"),
         "category_scores": {k: round(v, 4) for k, v in category_scores.items()},
         "bert_time": f"{bert_time:.4f}s",
         "spacy_time": f"{spacy_time:.4f}s",

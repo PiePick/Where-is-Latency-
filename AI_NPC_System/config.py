@@ -52,3 +52,8 @@ EXPECTED_SLOW_LANE_MS = 2800
 # Fast Lane 전략 선택: 확률 샘플링 설정
 ACTION_SAMPLING_ENABLED = True
 ACTION_SAMPLING_TEMPERATURE = 0.9
+
+# v01.2 Calibration (Temperature Scaling)
+CALIBRATION_ENABLED = True
+CALIBRATION_TEMPERATURE = 1.15
+CALIBRATION_PARAM_FILE = "calibration_params_v012.json"

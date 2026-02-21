@@ -117,12 +117,14 @@ def select_strategy(
     llm_eta_ms=0,
     temperature=0.9,
     sample=True,
+    calibration_temp=1.0,
 ):
     f = compute_confidence_features(category_scores)
     band = confidence_band(f["top1"], f["margin"], f["entropy"])
 
     scores = _strategy_scores(f, has_keyword, user_text, llm_eta_ms=llm_eta_ms)
-    probs = _softmax(scores, temperature=temperature)
+    effective_temp = max(1e-6, float(temperature) * float(calibration_temp))
+    probs = _softmax(scores, temperature=effective_temp)
 
     if sample:
         strategy = _weighted_choice(probs)
@@ -133,4 +135,6 @@ def select_strategy(
     f["strategy"] = strategy
     f["strategy_scores"] = {k: round(v, 6) for k, v in scores.items()}
     f["action_probs"] = {k: round(v, 6) for k, v in probs.items()}
+    f["calibration_temp"] = round(float(calibration_temp), 6)
+    f["effective_temperature"] = round(float(effective_temp), 6)
     return f

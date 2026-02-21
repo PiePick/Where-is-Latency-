@@ -25,6 +25,8 @@ FIELDS = [
     "top1",
     "margin",
     "entropy",
+    "calibration_temp",
+    "effective_temperature",
     "p_emotion_first",
     "p_echo_first",
     "p_bridge",
@@ -51,6 +53,8 @@ def run_tests():
             "top1": r.get("top1"),
             "margin": r.get("margin"),
             "entropy": r.get("entropy"),
+            "calibration_temp": r.get("calibration_temp"),
+            "effective_temperature": r.get("effective_temperature"),
             "p_emotion_first": probs.get("emotion_first"),
             "p_echo_first": probs.get("echo_first"),
             "p_bridge": probs.get("bridge"),
@@ -70,14 +74,14 @@ def write_outputs(rows, out_dir: Path):
     md_path = out_dir / "reaction_analysis_v01.md"
     with md_path.open("w", encoding="utf-8") as f:
         f.write("# Reaction Analysis v01 (Detailed)\n\n")
-        f.write("| text | emotion | strategy | reaction | echo | top1 | margin | entropy | p(emotion) | p(echo) | p(bridge) | p(neutral) |\n")
-        f.write("|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n")
+        f.write("| text | emotion | strategy | reaction | echo | top1 | margin | entropy | calib_T | eff_T | p(emotion) | p(echo) | p(bridge) | p(neutral) |\n")
+        f.write("|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n")
         for r in rows:
             text = str(r['text']).replace('|', ' ')
             reaction = str(r['reaction']).replace('|', ' ')
             echo = str(r['echo_text']).replace('|', ' ')
             f.write(
-                f"| {text} | {r['emotion_label']} | {r['strategy']} | {reaction} | {echo} | {r['top1']} | {r['margin']} | {r['entropy']} | {r['p_emotion_first']} | {r['p_echo_first']} | {r['p_bridge']} | {r['p_neutral_minimal']} |\n"
+                f"| {text} | {r['emotion_label']} | {r['strategy']} | {reaction} | {echo} | {r['top1']} | {r['margin']} | {r['entropy']} | {r['calibration_temp']} | {r['effective_temperature']} | {r['p_emotion_first']} | {r['p_echo_first']} | {r['p_bridge']} | {r['p_neutral_minimal']} |\n"
             )
 
     png_path = out_dir / "reaction_strategy_distribution_v01.png"
