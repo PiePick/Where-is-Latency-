@@ -1,26 +1,12 @@
-# Reaction Analysis v01
+# Reaction Analysis v01 (Detailed)
 
-## Strategy Count
-- echo_first: 2
-- emotion_first: 4
-- bridge: 4
-
-## Emotion Count
-- positive: 4
-- negative: 3
-- ambiguous: 3
-
-## Per-turn Table
-
-| text | emotion | strategy | reaction | top1 | margin | entropy |
-|---|---|---|---|---:|---:|---:|
-| I passed the exam and I feel amazing. | positive | echo_first | Right, on that— | 0.8 | 0.6412 | 0.4525 |
-| I am scared about tomorrow's interview. | negative | emotion_first | I hear you. | 0.8996 | 0.8479 | 0.2931 |
-| I am just drinking water now. | positive | bridge | Right— | 0.5809 | 0.3486 | 0.7622 |
-| My friend ignored my message and I feel sad. | negative | emotion_first | That’s great. | 0.9113 | 0.8638 | 0.2695 |
-| Wow, I didn't expect this at all. | ambiguous | bridge | I’m here— | 0.7211 | 0.5695 | 0.5911 |
-| Can you explain this one more time? | ambiguous | emotion_first | That sounds rough. | 0.5529 | 0.2421 | 0.7208 |
-| Everything is fine, just a normal day. | positive | emotion_first | That’s great. | 0.7113 | 0.5875 | 0.6463 |
-| I am angry because my work got rejected. | negative | bridge | Mm, go on— | 0.9237 | 0.8839 | 0.2388 |
-| I feel curious about this project idea. | ambiguous | bridge | I’m here— | 0.6806 | 0.4186 | 0.5759 |
-| I am relieved that the surgery ended well. | positive | echo_first | Okay, about that— | 0.8156 | 0.7014 | 0.4574 |
+| text | emotion | strategy | reaction | echo | top1 | margin | entropy | p(emotion) | p(echo) | p(bridge) | p(neutral) |
+|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| I just got promoted at work and I feel amazing. | positive | echo_first | Okay, about that— | work? | 0.8252 | 0.6917 | 0.4206 | 0.51202 | 0.216137 | 0.2105 | 0.061343 |
+| I am really upset because my best friend ignored me. | negative | echo_first | Okay, about that— | friend? | 0.8711 | 0.7963 | 0.3498 | 0.584882 | 0.216447 | 0.153188 | 0.045484 |
+| I am drinking water and reading emails right now. | positive | neutral_minimal | Go ahead. |  | 0.4273 | 0.1352 | 0.8397 | 0.091593 | 0.09834 | 0.625056 | 0.185012 |
+| I feel terrified about tomorrow. | negative | emotion_first | Nice. | tomorrow? | 0.9073 | 0.8556 | 0.2769 | 0.637056 | 0.211172 | 0.116856 | 0.034915 |
+| That was a wonderful surprise for me. | positive | echo_first | Got it— | surprise? | 0.6237 | 0.2762 | 0.5634 | 0.249969 | 0.166513 | 0.456254 | 0.127264 |
+| Can you explain this again? | ambiguous | bridge | Mm, go on— |  | 0.5678 | 0.2409 | 0.6839 | 0.076373 | 0.09336 | 0.676896 | 0.153371 |
+| I feel confused and not sure what to do. | ambiguous | emotion_first | I hear you. |  | 0.851 | 0.7511 | 0.3821 | 0.391966 | 0.13759 | 0.38067 | 0.089774 |
+| Everything is normal and calm today. | positive | bridge | Mm, go on— | today? | 0.6914 | 0.5569 | 0.6687 | 0.30899 | 0.189532 | 0.386859 | 0.114618 |

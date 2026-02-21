@@ -1,21 +1,34 @@
 import csv
-import json
-from collections import Counter, defaultdict
 from pathlib import Path
 
 import fast_lane
 
 TEST_TEXTS = [
-    "I passed the exam and I feel amazing.",
-    "I am scared about tomorrow's interview.",
-    "I am just drinking water now.",
-    "My friend ignored my message and I feel sad.",
-    "Wow, I didn't expect this at all.",
-    "Can you explain this one more time?",
-    "Everything is fine, just a normal day.",
-    "I am angry because my work got rejected.",
-    "I feel curious about this project idea.",
-    "I am relieved that the surgery ended well.",
+    "I just got promoted at work and I feel amazing.",
+    "I am really upset because my best friend ignored me.",
+    "I am drinking water and reading emails right now.",
+    "I feel terrified about tomorrow.",
+    "That was a wonderful surprise for me.",
+    "Can you explain this again?",
+    "I feel confused and not sure what to do.",
+    "Everything is normal and calm today.",
+]
+
+
+FIELDS = [
+    "text",
+    "emotion_label",
+    "strategy",
+    "reaction",
+    "echo_text",
+    "confidence_band",
+    "top1",
+    "margin",
+    "entropy",
+    "p_emotion_first",
+    "p_echo_first",
+    "p_bridge",
+    "p_neutral_minimal",
 ]
 
 
@@ -23,14 +36,11 @@ def ensure_dir(p: Path):
     p.mkdir(parents=True, exist_ok=True)
 
 
-def main():
-    root = Path(__file__).resolve().parent
-    out_dir = root / "analysis_outputs"
-    ensure_dir(out_dir)
-
+def run_tests():
     rows = []
     for t in TEST_TEXTS:
         r = fast_lane.analyze_and_react(t)
+        probs = r.get("action_probs", {}) or {}
         row = {
             "text": t,
             "emotion_label": r.get("emotion_label"),
@@ -41,46 +51,44 @@ def main():
             "top1": r.get("top1"),
             "margin": r.get("margin"),
             "entropy": r.get("entropy"),
-            "action_probs": json.dumps(r.get("action_probs", {}), ensure_ascii=False),
+            "p_emotion_first": probs.get("emotion_first"),
+            "p_echo_first": probs.get("echo_first"),
+            "p_bridge": probs.get("bridge"),
+            "p_neutral_minimal": probs.get("neutral_minimal"),
         }
         rows.append(row)
+    return rows
 
+
+def write_outputs(rows, out_dir: Path):
     csv_path = out_dir / "reaction_analysis_v01.csv"
     with csv_path.open("w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+        w = csv.DictWriter(f, fieldnames=FIELDS)
         w.writeheader()
         w.writerows(rows)
 
-    # markdown table summary
-    strategy_cnt = Counter([r["strategy"] for r in rows])
-    emotion_cnt = Counter([r["emotion_label"] for r in rows])
-
     md_path = out_dir / "reaction_analysis_v01.md"
     with md_path.open("w", encoding="utf-8") as f:
-        f.write("# Reaction Analysis v01\n\n")
-        f.write("## Strategy Count\n")
-        for k, v in strategy_cnt.items():
-            f.write(f"- {k}: {v}\n")
-        f.write("\n## Emotion Count\n")
-        for k, v in emotion_cnt.items():
-            f.write(f"- {k}: {v}\n")
-        f.write("\n## Per-turn Table\n\n")
-        f.write("| text | emotion | strategy | reaction | top1 | margin | entropy |\n")
-        f.write("|---|---|---|---|---:|---:|---:|\n")
+        f.write("# Reaction Analysis v01 (Detailed)\n\n")
+        f.write("| text | emotion | strategy | reaction | echo | top1 | margin | entropy | p(emotion) | p(echo) | p(bridge) | p(neutral) |\n")
+        f.write("|---|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|\n")
         for r in rows:
-            text = r["text"].replace("|", " ")
-            reaction = str(r["reaction"]).replace("|", " ")
+            text = str(r['text']).replace('|', ' ')
+            reaction = str(r['reaction']).replace('|', ' ')
+            echo = str(r['echo_text']).replace('|', ' ')
             f.write(
-                f"| {text} | {r['emotion_label']} | {r['strategy']} | {reaction} | {r['top1']} | {r['margin']} | {r['entropy']} |\n"
+                f"| {text} | {r['emotion_label']} | {r['strategy']} | {reaction} | {echo} | {r['top1']} | {r['margin']} | {r['entropy']} | {r['p_emotion_first']} | {r['p_echo_first']} | {r['p_bridge']} | {r['p_neutral_minimal']} |\n"
             )
 
-    # graph
     png_path = out_dir / "reaction_strategy_distribution_v01.png"
     try:
         import matplotlib.pyplot as plt
+        from collections import Counter
 
-        labels = list(strategy_cnt.keys())
-        values = [strategy_cnt[k] for k in labels]
+        cnt = Counter([r["strategy"] for r in rows])
+        labels = list(cnt.keys())
+        values = [cnt[k] for k in labels]
+
         plt.figure(figsize=(8, 4))
         plt.bar(labels, values)
         plt.title("Fast-track Strategy Distribution (v01)")
@@ -89,12 +97,21 @@ def main():
         plt.tight_layout()
         plt.savefig(png_path)
         plt.close()
-        print(f"graph: {png_path}")
     except Exception as e:
         print(f"graph skipped: {e}")
 
+    return csv_path, md_path, png_path
+
+
+def main():
+    root = Path(__file__).resolve().parent
+    out_dir = root / "analysis_outputs"
+    ensure_dir(out_dir)
+    rows = run_tests()
+    csv_path, md_path, png_path = write_outputs(rows, out_dir)
     print(f"csv: {csv_path}")
     print(f"md: {md_path}")
+    print(f"png: {png_path}")
 
 
 if __name__ == "__main__":
