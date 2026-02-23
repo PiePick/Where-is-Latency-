@@ -5,9 +5,12 @@ using System.Threading;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+
 
 // 서버 패킷 구조체
 [Serializable]
+
 public class ServerPacket
 {
     public string type;      // fast or slow
@@ -166,14 +169,17 @@ public class AIConnector : MonoBehaviour
                 }
 
                 // NPC 대사로 출력 (로그 정보 제외)
-                AddToChat($"NPC: {finalLine}");
+                //AddToChat($"NPC: {finalLine}");
+
+                ShowSubtitle(finalLine);
                 
                 WinTTS.Speak(finalLine);
             }
             else if (packet.type == "slow")
             {
                 // [Slow Lane] LLM 답변 출력
-                AddToChat($"NPC: {packet.npc_reply}");
+                //AddToChat($"NPC: {packet.npc_reply}");
+                ShowSubtitle(packet.npc_reply);
                 
                 WinTTS.Speak(packet.npc_reply);
             }
@@ -197,37 +203,59 @@ public class AIConnector : MonoBehaviour
     }
 
     // 깔끔해진 채팅 UI
-    void OnGUI()
+    // void OnGUI()
+    // {
+    //     // 폰트 크기 키움
+    //     GUI.skin.label.fontSize = 24;
+    //     GUI.skin.textField.fontSize = 24;
+    //     GUI.skin.button.fontSize = 24;
+    //     GUI.skin.box.fontSize = 24;
+
+    //     float padding = 20f;
+    //     GUILayout.BeginArea(new Rect(padding, padding, Screen.width - padding*2, Screen.height - padding*2));
+        
+    //     GUILayout.Label("== Chat with AI NPC ==", GUI.skin.box, GUILayout.Height(50));
+        
+    //     scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
+        
+    //     foreach (string msg in chatHistory)
+    //     {
+    //         // 말한 사람에 따라 색상이나 스타일을 다르게 줄 수도 있음
+    //         if (msg.StartsWith("User:")) GUI.color = Color.yellow;
+    //         else if (msg.StartsWith("NPC:")) GUI.color = Color.white;
+    //         else GUI.color = Color.gray; // 시스템 메시지
+
+    //         GUILayout.Label(msg);
+    //     }
+    //     GUI.color = Color.white; // 색상 복구
+
+    //     GUILayout.EndScrollView();
+
+    //     GUILayout.Space(10);
+        
+    //     GUILayout.EndArea();
+    // }
+
+    [SerializeField] private TextMeshProUGUI subtitleText;
+
+    private Coroutine subtitleCoroutine;
+
+    void ShowSubtitle(string line)
     {
-        // 폰트 크기 키움
-        GUI.skin.label.fontSize = 24;
-        GUI.skin.textField.fontSize = 24;
-        GUI.skin.button.fontSize = 24;
-        GUI.skin.box.fontSize = 24;
+        if (subtitleCoroutine != null)
+            StopCoroutine(subtitleCoroutine);
 
-        float padding = 20f;
-        GUILayout.BeginArea(new Rect(padding, padding, Screen.width - padding*2, Screen.height - padding*2));
-        
-        GUILayout.Label("== Chat with AI NPC ==", GUI.skin.box, GUILayout.Height(50));
-        
-        scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.ExpandHeight(true));
-        
-        foreach (string msg in chatHistory)
-        {
-            // 말한 사람에 따라 색상이나 스타일을 다르게 줄 수도 있음
-            if (msg.StartsWith("User:")) GUI.color = Color.yellow;
-            else if (msg.StartsWith("NPC:")) GUI.color = Color.white;
-            else GUI.color = Color.gray; // 시스템 메시지
+        subtitleCoroutine = StartCoroutine(SubtitleRoutine(line));
+    }
 
-            GUILayout.Label(msg);
-        }
-        GUI.color = Color.white; // 색상 복구
+    IEnumerator SubtitleRoutine(string line)
+    {
+        subtitleText.text = line;
+        subtitleText.gameObject.SetActive(true);
 
-        GUILayout.EndScrollView();
+        yield return new WaitForSeconds(4f); // 자막 유지 시간
 
-        GUILayout.Space(10);
-        
-        GUILayout.EndArea();
+        subtitleText.gameObject.SetActive(false);
     }
 
     void OnApplicationQuit()
