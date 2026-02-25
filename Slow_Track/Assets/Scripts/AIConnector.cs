@@ -172,8 +172,8 @@ public class AIConnector : MonoBehaviour
                 //AddToChat($"NPC: {finalLine}");
 
                 ShowSubtitle(finalLine);
-                
-                WinTTS.Speak(finalLine);
+
+                StartCoroutine(PlayTTS(finalLine));
             }
             else if (packet.type == "slow")
             {
@@ -181,7 +181,7 @@ public class AIConnector : MonoBehaviour
                 //AddToChat($"NPC: {packet.npc_reply}");
                 ShowSubtitle(packet.npc_reply);
                 
-                WinTTS.Speak(packet.npc_reply);
+                StartCoroutine(PlayTTS(packet.npc_reply));
             }
         }
         catch (Exception e)
@@ -238,30 +238,44 @@ public class AIConnector : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI subtitleText;
 
-    private Coroutine subtitleCoroutine;
 
     void ShowSubtitle(string line)
     {
-        if (subtitleCoroutine != null)
-            StopCoroutine(subtitleCoroutine);
-
-        subtitleCoroutine = StartCoroutine(SubtitleRoutine(line));
-    }
-
-    IEnumerator SubtitleRoutine(string line)
-    {
         subtitleText.text = line;
         subtitleText.gameObject.SetActive(true);
-
-        yield return new WaitForSeconds(4f); // 자막 유지 시간
-
-        subtitleText.gameObject.SetActive(false);
     }
 
-    void OnApplicationQuit()
+    IEnumerator PlayTTS(string line)
     {
-        isRunning = false;
-        if(client != null) client.Close();
-        if(receiveThread != null) receiveThread.Abort();
+        yield return null;
+        WinTTS.Speak(line);
     }
+
+    //아래는 자막유지시간 적용시
+    // private Coroutine subtitleCoroutine;
+
+    // void ShowSubtitle(string line)
+    // {
+    //     if (subtitleCoroutine != null)
+    //         StopCoroutine(subtitleCoroutine);
+
+    //     subtitleCoroutine = StartCoroutine(SubtitleRoutine(line));
+    // }
+
+    // IEnumerator SubtitleRoutine(string line)
+    // {
+    //     subtitleText.text = line;
+    //     subtitleText.gameObject.SetActive(true);
+
+    //     yield return new WaitForSeconds(4f); // 자막 유지 시간
+
+    //     subtitleText.gameObject.SetActive(false);
+    // }
+
+    // void OnApplicationQuit()
+    // {
+    //     isRunning = false;
+    //     if(client != null) client.Close();
+    //     if(receiveThread != null) receiveThread.Abort();
+    // }
 }

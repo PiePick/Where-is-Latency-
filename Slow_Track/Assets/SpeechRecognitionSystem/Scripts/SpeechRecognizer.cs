@@ -118,7 +118,7 @@ public class SpeechRecognizer : MonoBehaviour
             _init = _sr.Init(_absoluteLanguageModelDirPath);
 
             if (_init) {
-                LogMessageReceived?.Invoke("The SRS plugin is ready to work...");
+                //LogMessageReceived?.Invoke("The SRS plugin is ready to work...");
 
                 _running = true;
                 Task.Run(processing).ConfigureAwait(false);

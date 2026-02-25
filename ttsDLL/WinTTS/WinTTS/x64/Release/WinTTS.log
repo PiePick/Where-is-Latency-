@@ -1,16 +1,7 @@
-﻿  WinTTS.cpp
-C:\Users\max47\Desktop\Coding\Where-is-Latency-\ttsDLL\WinTTS\WinTTS.cpp(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-C:\Users\max47\Desktop\Coding\Where-is-Latency-\ttsDLL\WinTTS\WinTTS.cpp(1,9): warning C4005: 'UNICODE': 매크로 재정의
-      C:\Users\max47\Desktop\Coding\Where-is-Latency-\ttsDLL\WinTTS\WinTTS.cpp(1,9):
-      이전에 명령줄에서 선언된 'UNICODE'
-  
-C:\Users\max47\Desktop\Coding\Where-is-Latency-\ttsDLL\WinTTS\WinTTS.cpp(2,9): warning C4005: '_UNICODE': 매크로 재정의
-      C:\Users\max47\Desktop\Coding\Where-is-Latency-\ttsDLL\WinTTS\WinTTS.cpp(2,9):
-      이전에 명령줄에서 선언된 '_UNICODE'
-  
-     C:\Users\max47\Desktop\Coding\Where-is-Latency-\ttsDLL\WinTTS\x64\Release\WinTTS.lib 라이브러리 및 C:\Users\max47\Desktop\Coding\Where-is-Latency-\ttsDLL\WinTTS\x64\Release\WinTTS.exp 개체를 생성하고 있습니다.
+﻿     C:\Users\User\Desktop\YG\WinTTS\x64\Release\WinTTS.lib 라이브러리 및 C:\Users\User\Desktop\YG\WinTTS\x64\Release\WinTTS.exp 개체를 생성하고 있습니다.
   코드를 생성하고 있습니다.
-  Previous IPDB not found, fall back to full compilation.
-  All 2 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  0 of 3 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.
-  WinTTS.vcxproj -> C:\Users\max47\Desktop\Coding\Where-is-Latency-\ttsDLL\WinTTS\x64\Release\WinTTS.dll
+  WinTTS.vcxproj -> C:\Users\User\Desktop\YG\WinTTS\x64\Release\WinTTS.dll
