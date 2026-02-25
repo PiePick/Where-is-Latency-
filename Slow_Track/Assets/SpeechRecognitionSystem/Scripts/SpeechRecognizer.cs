@@ -137,6 +137,7 @@ public class SpeechRecognizer : MonoBehaviour
     private bool micIsRecording = false;
 
     private void Update() {
+
         tryDeinitSpeechRecognizer();
         tryToInitLanguageModel();
         tryToInitSpeechRecognizer();
@@ -168,6 +169,9 @@ public class SpeechRecognizer : MonoBehaviour
                     ResultReceived?.Invoke(result);  // 여기서 OnFinalResult() 자동 실행됨
             }
         }
+
+
+        
     }
 
     private async Task processing() 
