@@ -43,6 +43,7 @@ public class AIConnector : MonoBehaviour
 
     [SerializeField] private SpeechRecognizer speechRecognizer;
 
+    [SerializeField] private Animator npcAnimator;
     void Start()
     {
         ConnectToServer();
@@ -158,9 +159,12 @@ public class AIConnector : MonoBehaviour
 
             if (packet.type == "fast")
             {
+                
+                HandleEmotion(packet.emotion);
+
                 // [Fast Lane] 에코잉 + 리액션 합치기
                 string finalLine = packet.reaction;
-
+                
                 // 에코잉이 있다면 앞에 붙여서 자연스럽게 만들기
                 // 예: "Wallet?" + " " + "That sounds terrible."
                 if (!string.IsNullOrEmpty(packet.echo_text))
@@ -250,6 +254,24 @@ public class AIConnector : MonoBehaviour
         yield return null;
         WinTTS.Speak(line);
     }
+
+
+    void HandleEmotion(string emotion)
+    {
+        int emotionID = 0;
+
+        switch (emotion)
+        {
+            case "positive": emotionID = 1; break;
+            case "negative": emotionID = 2; break;
+            case "neutral": emotionID = 3; break;
+            default: emotionID = 4; break;
+        }
+
+        npcAnimator.SetInteger("EmotionID", emotionID);
+        Debug.Log(emotionID);
+    }
+    
 
     //아래는 자막유지시간 적용시
     // private Coroutine subtitleCoroutine;
