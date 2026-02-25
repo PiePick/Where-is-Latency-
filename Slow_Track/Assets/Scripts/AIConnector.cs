@@ -90,6 +90,8 @@ public class AIConnector : MonoBehaviour
 
     public void SendData()
     {
+        speechRecognizer.SpeakFinalResult();
+
         if (client == null || !client.Connected) return;
         
         try 
@@ -148,6 +150,20 @@ public class AIConnector : MonoBehaviour
         }
 
         userInput = speechRecognizer.LastRecognitionResult;
+
+        
+        // 스페이스바 눌렀을 때 → 녹음 시작
+        if ( Input.GetKeyDown( KeyCode.Space ) )
+        {
+            Debug.Log("듣는 중.....");
+        }
+
+        // 스페이스바 떼면 → 녹음 종료
+        if ( Input.GetKeyUp( KeyCode.Space ) )
+        {
+            SendData();
+            Debug.Log("듣기 완료!!");
+        }
     }
 
     // ★ 핵심 수정: 로그가 아니라 대화로 처리
@@ -264,12 +280,12 @@ public class AIConnector : MonoBehaviour
         {
             case "positive": emotionID = 1; break;
             case "negative": emotionID = 2; break;
+            case "ambiguous": emotionID = 4; break;
             case "neutral": emotionID = 3; break;
-            default: emotionID = 4; break;
         }
 
         npcAnimator.SetInteger("EmotionID", emotionID);
-        Debug.Log(emotionID);
+        Debug.Log(emotion);
     }
     
 

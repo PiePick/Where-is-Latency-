@@ -7,11 +7,14 @@ public class StopButtonHandler : MonoBehaviour
 
     private void Start()
     {
-        GetComponent<Button>().onClick.AddListener(OnStopClicked);
+        
     }
 
-    private void OnStopClicked()
+    private void Update()
     {
-        recognizer.SpeakFinalResult();
+        if ( Input.GetKeyUp( KeyCode.Space ) )
+        {
+            recognizer.SpeakFinalResult();
+        }
     }
 }

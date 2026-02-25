@@ -50,18 +50,40 @@ public class AudioRecorder : MonoBehaviour, IAudioProvider {
         }
     }
 
-    private void Update( ) {
-        bool micAutorized = true;
-        if ( Application.platform == RuntimePlatform.Android ) {
-            micAutorized = Permission.HasUserAuthorizedPermission( Permission.Microphone );
-        }
-        if ( micAutorized ) {
-            if ( _firstLoad ) {
-                if (StartOnAwake)
-                    OnStart( );
+    private void Update( )
+    {
+        bool micAuthorized = true;
 
-                this.MicReady?.Invoke( this );
-                _firstLoad = false;
+        if ( Application.platform == RuntimePlatform.Android )
+        {
+            micAuthorized = Permission.HasUserAuthorizedPermission( Permission.Microphone );
+        }
+
+        if ( !micAuthorized )
+            return;
+
+        // 최초 로드 시 자동 시작 제거 (원하면 유지 가능)
+        if ( _firstLoad )
+        {
+            this.MicReady?.Invoke( this );
+            _firstLoad = false;
+        }
+
+        // 스페이스바 눌렀을 때 → 녹음 시작
+        if ( Input.GetKeyDown( KeyCode.Space ) )
+        {
+            if ( !IsRecording() )
+            {
+                OnStart();
+            }
+        }
+
+        // 스페이스바 떼면 → 녹음 종료
+        if ( Input.GetKeyUp( KeyCode.Space ) )
+        {
+            if ( IsRecording() )
+            {
+                OnStop();
             }
         }
     }
