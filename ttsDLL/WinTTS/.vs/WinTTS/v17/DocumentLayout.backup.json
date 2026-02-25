@@ -1,10 +1,10 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\max47\\Desktop\\Coding\\Where-is-Latency-\\ttsDLL\\WinTTS\\",
+  "WorkspaceRootPath": "C:\\Users\\User\\Desktop\\YG\\WinTTS\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A4B8F4B0-1234-4D4C-9E50-1234567890AB}|WinTTS.vcxproj|C:\\Users\\max47\\Desktop\\Coding\\Where-is-Latency-\\ttsDLL\\WinTTS\\WinTTS.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{A4B8F4B0-1234-4D4C-9E50-1234567890AB}|WinTTS.vcxproj|solutionrelative:WinTTS.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{A52955A5-62D2-4CD2-BABF-71138D207EF6}|WinTTS\\WinTTS.vcxproj|C:\\Users\\User\\Desktop\\YG\\WinTTS\\WinTTS\\dllmain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A52955A5-62D2-4CD2-BABF-71138D207EF6}|WinTTS\\WinTTS.vcxproj|solutionrelative:WinTTS\\dllmain.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -19,15 +19,19 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "WinTTS.cpp",
-              "DocumentMoniker": "C:\\Users\\max47\\Desktop\\Coding\\Where-is-Latency-\\ttsDLL\\WinTTS\\WinTTS.cpp",
-              "RelativeDocumentMoniker": "WinTTS.cpp",
-              "ToolTip": "C:\\Users\\max47\\Desktop\\Coding\\Where-is-Latency-\\ttsDLL\\WinTTS\\WinTTS.cpp",
-              "RelativeToolTip": "WinTTS.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC8AAAAAAAAAAAAAAA==",
+              "Title": "dllmain.cpp",
+              "DocumentMoniker": "C:\\Users\\User\\Desktop\\YG\\WinTTS\\WinTTS\\dllmain.cpp",
+              "RelativeDocumentMoniker": "WinTTS\\dllmain.cpp",
+              "ToolTip": "C:\\Users\\User\\Desktop\\YG\\WinTTS\\WinTTS\\dllmain.cpp",
+              "RelativeToolTip": "WinTTS\\dllmain.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-09T12:47:37.949Z",
+              "WhenOpened": "2026-02-25T04:46:53.908Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
             }
           ]
         }
