@@ -1,0 +1,90 @@
+"""Fish Speech inline nonverbal cue selection for Fast Track text."""
+
+from __future__ import annotations
+
+import json
+import random
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+
+ROOT = Path(__file__).resolve().parent
+DEFAULT_CUE_PATH = ROOT / "fish_speech_nonverbal_cues.json"
+
+
+@dataclass(frozen=True)
+class FishSpeechCue:
+    tag: str
+    cue_text: str
+    distilbert_label: str
+    distilbert_score: float
+    final_category: str
+    weight: float = 1.0
+
+
+class FishSpeechCueSelector:
+    def __init__(
+        self,
+        cue_path: Path = DEFAULT_CUE_PATH,
+        *,
+        enabled: bool = True,
+        probability: float = 0.65,
+        seed: int | None = None,
+    ) -> None:
+        self.enabled = enabled
+        self.probability = max(0.0, min(1.0, probability))
+        self.rng = random.Random(seed)
+        self.cues = self._load(cue_path)
+
+    def _load(self, cue_path: Path) -> dict[str, list[FishSpeechCue]]:
+        if not cue_path.exists():
+            return {}
+        raw = json.loads(cue_path.read_text(encoding="utf-8"))
+        loaded: dict[str, list[FishSpeechCue]] = {}
+        for category, values in raw.items():
+            if category == "meta" or not isinstance(values, list):
+                continue
+            loaded[category] = [
+                FishSpeechCue(
+                    tag=str(item["tag"]),
+                    cue_text=str(item.get("cue_text", "")),
+                    distilbert_label=str(item.get("distilbert_label", "")),
+                    distilbert_score=float(item.get("distilbert_score", 0.0)),
+                    final_category=str(item.get("final_category", category)),
+                    weight=float(item.get("weight", 1.0)),
+                )
+                for item in values
+            ]
+        return loaded
+
+    def choose(self, category: str) -> FishSpeechCue | None:
+        if not self.enabled or self.rng.random() > self.probability:
+            return None
+        candidates = self.cues.get(category) or self.cues.get("Neutral") or []
+        if not candidates:
+            return None
+        weights = [max(0.0, cue.weight) for cue in candidates]
+        if not any(weights):
+            return self.rng.choice(candidates)
+        return self.rng.choices(candidates, weights=weights, k=1)[0]
+
+    @staticmethod
+    def apply(text: str, cue: FishSpeechCue | None) -> str:
+        text = text.strip()
+        if not cue:
+            return text
+        return f"{cue.tag} {text}".strip()
+
+    @staticmethod
+    def cue_to_dict(cue: FishSpeechCue | None) -> dict[str, Any] | None:
+        if cue is None:
+            return None
+        return {
+            "tag": cue.tag,
+            "cue_text": cue.cue_text,
+            "distilbert_label": cue.distilbert_label,
+            "distilbert_score": round(cue.distilbert_score, 4),
+            "final_category": cue.final_category,
+            "weight": cue.weight,
+        }

@@ -45,6 +45,8 @@ async def handle_client(reader, writer):
                 "reaction": tts_text,
                 "raw_reaction": fast_result['reaction'],
                 "tts_text": tts_text,
+                "plain_tts_text": fast_result.get("plain_tts_text", tts_text),
+                "fish_speech_cue": fast_result.get("fish_speech_cue"),
                 "echo_text": fast_result['echo_text'],
                 "reaction_source": fast_result.get("reaction_source"),
                 "bert_time": fast_result['bert_time'],
@@ -71,7 +73,7 @@ async def handle_client(reader, writer):
             # ==================================================
             #[Slow Track] LLM 심층 사고 (Network I/O)
             # ==================================================
-            print("[Slow Lane] Gemini 2.5 Flash 생각 중...")
+            print("[Slow Track] Local LLM generating...")
             
             # 4. Slow Lane 로직 수행 (비동기 대기)
             # Fast Lane의 결과(reaction)를 문맥으로 넘겨줍니다.

@@ -34,6 +34,9 @@ def _get_engine() -> HybridFastTrack | None:
                 spacy_model=config.SPACY_MODEL_NAME,
                 everyday_weight=config.FAST_TRACK_EVERYDAY_WEIGHT,
                 stream_weight=config.FAST_TRACK_STREAM_WEIGHT,
+                fish_speech_cue_path=config.FISH_SPEECH_CUE_PATH,
+                fish_speech_cues_enabled=config.FISH_SPEECH_CUES_ENABLED,
+                fish_speech_cue_probability=config.FISH_SPEECH_CUE_PROBABILITY,
             )
         )
         return _ENGINE
@@ -93,6 +96,8 @@ def analyze_and_react(text: str) -> dict:
         "emotion_detail": result["emotion_label"],
         "reaction": result["reaction"],
         "tts_text": result["tts_text"],
+        "plain_tts_text": result.get("plain_tts_text", result["tts_text"]),
+        "fish_speech_cue": result.get("fish_speech_cue"),
         "keyword": result["keyword"],
         "keywords": result["keywords"],
         "echo_text": result["tts_text"] if result["keyword"] else "",

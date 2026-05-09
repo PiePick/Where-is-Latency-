@@ -22,6 +22,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from fish_speech_cues import DEFAULT_CUE_PATH, FishSpeechCueSelector
+
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_REACTION_PATH = ROOT / "hybrid_reactions.json"
@@ -76,6 +78,9 @@ class HybridFastTrackConfig:
     spacy_model: str = "en_core_web_sm"
     everyday_weight: float = 0.60
     stream_weight: float = 0.40
+    fish_speech_cue_path: Path = DEFAULT_CUE_PATH
+    fish_speech_cues_enabled: bool = True
+    fish_speech_cue_probability: float = 0.65
 
 
 def require_runtime_deps() -> tuple[Any, Any, Any]:
@@ -140,6 +145,12 @@ class HybridFastTrack:
 
         self.rng = random.Random(self.config.seed)
         self.reactions = load_reaction_db(self.config.reaction_path)
+        self.cue_selector = FishSpeechCueSelector(
+            self.config.fish_speech_cue_path,
+            enabled=self.config.fish_speech_cues_enabled,
+            probability=self.config.fish_speech_cue_probability,
+            seed=self.config.seed,
+        )
         self.device = choose_device(torch, self.config.device)
         self.classifier = pipeline(
             "text-classification",
@@ -213,7 +224,7 @@ class HybridFastTrack:
         if not keyword:
             return reaction
         if reaction.endswith("?"):
-            return f"{reaction} About {keyword}?"
+            return reaction
         if reaction.endswith((".", "!")):
             return f"{reaction} About {keyword}?"
         return f"{reaction} {keyword}?"
@@ -230,13 +241,17 @@ class HybridFastTrack:
         keyword_ms = (time.perf_counter() - keyword_started) * 1000.0
 
         reaction, source = self.choose_reaction(emotion["category"])
-        tts_text = self.make_tts_text(reaction, keywords)
+        plain_tts_text = self.make_tts_text(reaction, keywords)
+        fish_speech_cue = self.cue_selector.choose(emotion["category"])
+        tts_text = self.cue_selector.apply(plain_tts_text, fish_speech_cue)
         total_ms = (time.perf_counter() - started) * 1000.0
 
         return {
             "tts_text": tts_text,
+            "plain_tts_text": plain_tts_text,
             "reaction": reaction,
             "reaction_source": source,
+            "fish_speech_cue": self.cue_selector.cue_to_dict(fish_speech_cue),
             "keyword": keywords[-1] if keywords else None,
             "keywords": keywords,
             "emotion": emotion["category"],
@@ -273,6 +288,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-runtime-score", type=float, default=0.0)
     parser.add_argument("--everyday-weight", type=float, default=0.60)
     parser.add_argument("--stream-weight", type=float, default=0.40)
+    parser.add_argument("--disable-fish-speech-cues", action="store_true")
+    parser.add_argument("--fish-speech-cue-probability", type=float, default=0.65)
     return parser.parse_args()
 
 
@@ -286,6 +303,8 @@ def main() -> int:
             min_runtime_score=args.min_runtime_score,
             everyday_weight=args.everyday_weight,
             stream_weight=args.stream_weight,
+            fish_speech_cues_enabled=not args.disable_fish_speech_cues,
+            fish_speech_cue_probability=args.fish_speech_cue_probability,
         )
     )
     print(json.dumps(engine.generate(args.text), ensure_ascii=False, indent=2))

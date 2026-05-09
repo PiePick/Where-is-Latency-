@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import json
+import urllib.error
+import urllib.request
+
 import config
-from openai import AsyncOpenAI
 
 
 def _system_prompt(fast_reaction: str | None, strategy: str | None) -> str:
@@ -12,7 +15,13 @@ def _system_prompt(fast_reaction: str | None, strategy: str | None) -> str:
         "Reply to the viewer in 2 concise sentences or fewer. "
         "Be emotionally coherent with the viewer's message. "
         "Do not repeat the exact fast reaction unless it is needed for coherence. "
-        "Avoid long explanations, roleplay narration, and markdown."
+        "Avoid long explanations, roleplay narration, and markdown. "
+        "The TTS engine is Fish Speech and supports inline paralinguistic tags. "
+        "You may use at most one short tag per sentence when it makes the voice more natural. "
+        "Allowed tags: [sigh], [soft sigh], [relieved sigh], [excited], [excited inhale], "
+        "[laughing], [chuckle], [delight], [surprised], [surprised gasp], [shocked], "
+        "[pause], [short pause], [whisper], [low voice], [exhale], [inhale]. "
+        "Use tags as vocal direction only; do not explain the tags."
     )
     if fast_reaction:
         prompt += f" The Fast Track already said: {fast_reaction!r}."
@@ -31,17 +40,32 @@ async def _call_openai_compatible(
     fast_reaction: str | None,
     strategy: str | None,
 ) -> str:
-    client = AsyncOpenAI(base_url=base_url, api_key=api_key, timeout=timeout)
-    response = await client.chat.completions.create(
-        model=model,
-        messages=[
+    endpoint = f"{base_url.rstrip('/')}/chat/completions"
+    payload = {
+        "model": model,
+        "messages": [
             {"role": "system", "content": _system_prompt(fast_reaction, strategy)},
             {"role": "user", "content": user_input},
         ],
-        temperature=config.LOCAL_LLM_TEMPERATURE,
-        max_tokens=config.LOCAL_LLM_MAX_TOKENS,
+        "temperature": config.LOCAL_LLM_TEMPERATURE,
+        "max_tokens": config.LOCAL_LLM_MAX_TOKENS,
+    }
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    req = urllib.request.Request(
+        endpoint,
+        data=json.dumps(payload).encode("utf-8"),
+        headers=headers,
+        method="POST",
     )
-    content = response.choices[0].message.content or ""
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            obj = json.loads(response.read().decode("utf-8"))
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"local LLM server unreachable at {endpoint}: {exc}") from exc
+
+    content = obj.get("choices", [{}])[0].get("message", {}).get("content", "")
     return content.strip() or "I hear you."
 
 
