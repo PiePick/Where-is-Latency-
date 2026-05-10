@@ -19,9 +19,13 @@ def _system_prompt(fast_reaction: str | None, strategy: str | None) -> str:
         "Avoid long explanations, roleplay narration, and markdown. "
         "The TTS engine is Fish Speech and supports inline paralinguistic tags. "
         "You may use at most one short tag per sentence when it makes the voice more natural. "
-        "Allowed tags: [sigh], [soft sigh], [relieved sigh], [excited], [excited inhale], "
-        "[laughing], [chuckle], [delight], [surprised], [surprised gasp], [shocked], "
-        "[pause], [short pause], [whisper], [low voice], [exhale], [inhale]. "
+        "Allowed tags: [pause], [short pause], [break], [emphasis], [emphasize], "
+        "[inhale], [exhale], [chuckle], [chuckling], [laughing], [laughing tone], "
+        "[excited], [excited tone], [excited inhale], [squeal of delight], [breathless], "
+        "[delight], [relieved sigh], [sigh], [soft sigh], [sad sigh], [sad], [angry], "
+        "[tsk], [whisper], [low voice], [surprised], [surprised gasp], [shocked], "
+        "[clearing throat], [volume up], [volume down], [low volume], [loud], "
+        "[screaming], [shouting]. "
         "Use tags as vocal direction only; do not explain the tags."
     )
     if fast_reaction:

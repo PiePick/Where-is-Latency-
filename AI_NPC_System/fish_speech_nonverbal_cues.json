@@ -1,10 +1,19 @@
 {
   "meta": {
-    "version": "fish-speech-cues-v01",
-    "source": "Fish Speech README inline control examples",
+    "version": "fish-speech-cues-v02",
+    "source": "Fish Speech README inline control examples plus Fish Speech WebUI examples",
     "model": "joeddav/distilbert-base-uncased-go-emotions-student",
-    "labeling_method": "DistilBERT top-1 label on plain English cue text, then mapped to FastTrack categories",
-    "note": "Pause/breath cues are paralinguistic controls, so DistilBERT confidence can be low. The final_category field is the runtime bucket used by FastTrack."
+    "labeling_method": "Original v01 cues retain DistilBERT top-1 labels. Added Fish Speech README/WebUI tags use semantic overrides when the tag is a voice-control cue rather than a sentence-level emotion.",
+    "excluded_tags": [
+      "[singing]",
+      "[interrupting]",
+      "[echo]",
+      "[audience laughter]",
+      "[with strong accent]",
+      "[panting]",
+      "[moaning]"
+    ],
+    "note": "Pause, volume, emphasis, and breath cues are paralinguistic controls, so DistilBERT confidence can be low or not meaningful. The final_category field is the runtime bucket used by FastTrack."
   },
   "Positive": [
     {
@@ -24,6 +33,22 @@
       "weight": 0.85
     },
     {
+      "tag": "[laughing tone]",
+      "cue_text": "laughing tone",
+      "distilbert_label": "semantic_override_amusement",
+      "distilbert_score": 0.0,
+      "final_category": "Positive",
+      "weight": 0.82
+    },
+    {
+      "tag": "[chuckling]",
+      "cue_text": "chuckling",
+      "distilbert_label": "semantic_override_amusement",
+      "distilbert_score": 0.0,
+      "final_category": "Positive",
+      "weight": 0.82
+    },
+    {
       "tag": "[excited]",
       "cue_text": "excited",
       "distilbert_label": "excitement",
@@ -32,12 +57,28 @@
       "weight": 0.8
     },
     {
+      "tag": "[excited tone]",
+      "cue_text": "excited tone",
+      "distilbert_label": "semantic_override_excitement",
+      "distilbert_score": 0.0,
+      "final_category": "Positive",
+      "weight": 0.78
+    },
+    {
       "tag": "[delight]",
       "cue_text": "delight",
       "distilbert_label": "joy",
       "distilbert_score": 0.323,
       "final_category": "Positive",
       "weight": 0.75
+    },
+    {
+      "tag": "[squeal of delight]",
+      "cue_text": "squeal of delight",
+      "distilbert_label": "semantic_override_joy",
+      "distilbert_score": 0.0,
+      "final_category": "Positive",
+      "weight": 0.55
     },
     {
       "tag": "[relieved sigh]",
@@ -54,9 +95,25 @@
       "distilbert_score": 0.3461,
       "final_category": "Positive",
       "weight": 0.6
+    },
+    {
+      "tag": "[breathless]",
+      "cue_text": "breathless",
+      "distilbert_label": "semantic_override_excitement",
+      "distilbert_score": 0.0,
+      "final_category": "Positive",
+      "weight": 0.45
     }
   ],
   "Negative": [
+    {
+      "tag": "[angry]",
+      "cue_text": "angry",
+      "distilbert_label": "semantic_override_anger",
+      "distilbert_score": 0.0,
+      "final_category": "Negative",
+      "weight": 1.0
+    },
     {
       "tag": "[sad sigh]",
       "cue_text": "sad sigh",
@@ -90,6 +147,14 @@
       "weight": 0.75
     },
     {
+      "tag": "[tsk]",
+      "cue_text": "tsk",
+      "distilbert_label": "semantic_override_annoyance",
+      "distilbert_score": 0.0,
+      "final_category": "Negative",
+      "weight": 0.62
+    },
+    {
       "tag": "[whisper]",
       "cue_text": "whisper",
       "distilbert_label": "nervousness",
@@ -104,6 +169,22 @@
       "distilbert_score": 0.1144,
       "final_category": "Negative",
       "weight": 0.35
+    },
+    {
+      "tag": "[screaming]",
+      "cue_text": "screaming",
+      "distilbert_label": "semantic_override_anger",
+      "distilbert_score": 0.0,
+      "final_category": "Negative",
+      "weight": 0.25
+    },
+    {
+      "tag": "[shouting]",
+      "cue_text": "shouting",
+      "distilbert_label": "semantic_override_anger",
+      "distilbert_score": 0.0,
+      "final_category": "Negative",
+      "weight": 0.25
     }
   ],
   "Ambiguous": [
@@ -146,6 +227,14 @@
       "distilbert_score": 0.202,
       "final_category": "Ambiguous",
       "weight": 0.4
+    },
+    {
+      "tag": "[inhale]",
+      "cue_text": "inhale",
+      "distilbert_label": "semantic_override_attention",
+      "distilbert_score": 0.0,
+      "final_category": "Ambiguous",
+      "weight": 0.35
     }
   ],
   "Neutral": [
@@ -166,6 +255,30 @@
       "weight": 0.75
     },
     {
+      "tag": "[break]",
+      "cue_text": "break",
+      "distilbert_label": "semantic_override_pause",
+      "distilbert_score": 0.0,
+      "final_category": "Neutral",
+      "weight": 0.72
+    },
+    {
+      "tag": "[emphasis]",
+      "cue_text": "emphasis",
+      "distilbert_label": "semantic_override_emphasis",
+      "distilbert_score": 0.0,
+      "final_category": "Neutral",
+      "weight": 0.65
+    },
+    {
+      "tag": "[emphasize]",
+      "cue_text": "emphasize",
+      "distilbert_label": "semantic_override_emphasis",
+      "distilbert_score": 0.0,
+      "final_category": "Neutral",
+      "weight": 0.6
+    },
+    {
       "tag": "[exhale]",
       "cue_text": "exhale",
       "distilbert_label": "relief",
@@ -180,6 +293,38 @@
       "distilbert_score": 0.1075,
       "final_category": "Neutral",
       "weight": 0.45
+    },
+    {
+      "tag": "[volume up]",
+      "cue_text": "volume up",
+      "distilbert_label": "semantic_override_volume",
+      "distilbert_score": 0.0,
+      "final_category": "Neutral",
+      "weight": 0.35
+    },
+    {
+      "tag": "[volume down]",
+      "cue_text": "volume down",
+      "distilbert_label": "semantic_override_volume",
+      "distilbert_score": 0.0,
+      "final_category": "Neutral",
+      "weight": 0.35
+    },
+    {
+      "tag": "[low volume]",
+      "cue_text": "low volume",
+      "distilbert_label": "semantic_override_volume",
+      "distilbert_score": 0.0,
+      "final_category": "Neutral",
+      "weight": 0.3
+    },
+    {
+      "tag": "[loud]",
+      "cue_text": "loud",
+      "distilbert_label": "semantic_override_volume",
+      "distilbert_score": 0.0,
+      "final_category": "Neutral",
+      "weight": 0.25
     }
   ]
 }
