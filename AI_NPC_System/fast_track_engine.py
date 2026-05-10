@@ -69,16 +69,17 @@ FALLBACK_REACTIONS = {
     "Neutral": ["Got it.", "I see.", "Okay."],
 }
 
-STREAM_KEYWORD_HINTS = {
-    "chat", "stream", "viewer", "clip", "meme", "game", "rank", "match", "boss",
-    "level", "win", "loss", "queue", "lag", "server", "discord", "youtube", "twitch",
-    "subs", "donation", "raid", "pog", "gg", "npc", "vtuber",
-}
-
-EVERYDAY_KEYWORD_HINTS = {
-    "mom", "dad", "mother", "father", "sister", "brother", "friend", "family", "money",
-    "school", "class", "exam", "homework", "work", "job", "teacher", "doctor",
-    "health", "sleep", "food", "relationship", "birthday", "house", "home",
+SOURCE_KEYWORD_HINTS = {
+    "stream": {
+        "chat", "stream", "viewer", "clip", "meme", "game", "rank", "match", "boss",
+        "level", "win", "loss", "queue", "lag", "server", "discord", "youtube", "twitch",
+        "subs", "donation", "raid", "pog", "gg", "npc", "vtuber",
+    },
+    "everyday": {
+        "mom", "dad", "mother", "father", "sister", "brother", "friend", "family", "money",
+        "school", "class", "exam", "homework", "work", "job", "teacher", "doctor",
+        "health", "sleep", "food", "relationship", "birthday", "house", "home",
+    },
 }
 
 
@@ -98,6 +99,24 @@ class HybridFastTrackConfig:
     audio_cache_path: Path = DEFAULT_FAST_TRACK_AUDIO_CACHE_PATH
     audio_cache_enabled: bool = True
     keyword_source_bias_enabled: bool = True
+
+
+@dataclass(frozen=True)
+class CoverChoice:
+    """One FastTrack cover selected from cache or live text fallback."""
+
+    reaction: str
+    source: str
+    plain_tts_text: str
+    tts_text: str
+    cue: dict[str, Any] | None
+    audio_path: str | None = None
+    cache_id: str | None = None
+
+    @property
+    def cache_hit(self) -> bool:
+        """Return true when this cover points to a pre-generated wav file."""
+        return self.audio_path is not None
 
 
 def require_runtime_deps() -> tuple[Any, Any, Any]:
@@ -231,44 +250,72 @@ class HybridFastTrack:
         return keywords
 
     def preferred_source_from_keywords(self, keywords: list[str]) -> str | None:
-        """Use keywords as a selection hint, not as text echoed to the user."""
+        """Use keywords as a source-selection hint without echoing them."""
         if not self.config.keyword_source_bias_enabled:
             return None
         normalized = {kw.strip(".,!?;:\"'()").lower() for kw in keywords}
         normalized.discard("")
-        if normalized & STREAM_KEYWORD_HINTS:
-            return "stream"
-        if normalized & EVERYDAY_KEYWORD_HINTS:
-            return "everyday"
+        for source, hints in SOURCE_KEYWORD_HINTS.items():
+            if normalized & hints:
+                return source
         return None
 
     def choose_reaction(self, category: str, preferred_source: str | None = None) -> tuple[str, str]:
-        """Sample reactions, optionally biased by keyword-derived source hints."""
+        """Sample a reaction, optionally biased by keyword-derived source hints."""
         bucket = self.reactions.get(category, {})
         if isinstance(bucket, dict):
-            everyday = bucket.get("everyday") or []
-            stream = bucket.get("stream") or []
-            source_lists = {"everyday": everyday, "stream": stream}
+            source_lists = {
+                "everyday": bucket.get("everyday") or [],
+                "stream": bucket.get("stream") or [],
+            }
             if preferred_source in source_lists and source_lists[preferred_source]:
                 return self.rng.choice(source_lists[preferred_source]), preferred_source
+
+            everyday = source_lists["everyday"]
+            stream = source_lists["stream"]
             if everyday and stream:
                 total_weight = max(0.0, self.config.everyday_weight) + max(0.0, self.config.stream_weight)
                 everyday_probability = self.config.everyday_weight / total_weight if total_weight else 0.5
                 source = "everyday" if self.rng.random() < everyday_probability else "stream"
-                candidates = everyday if source == "everyday" else stream
-                return self.rng.choice(candidates), source
-            if everyday:
-                return self.rng.choice(everyday), "everyday"
-            if stream:
-                return self.rng.choice(stream), "stream"
+                return self.rng.choice(source_lists[source]), source
+            for source, candidates in source_lists.items():
+                if candidates:
+                    return self.rng.choice(candidates), source
 
         candidates = FALLBACK_REACTIONS.get(category, FALLBACK_REACTIONS["Neutral"])
         return self.rng.choice(candidates), "fallback"
 
-    def make_tts_text(self, reaction: str, keywords: list[str]) -> str:
-        """Return the cover line without directly echoing extracted keywords."""
-        del keywords
-        return reaction.strip()
+    def choose_cover(self, category: str, keywords: list[str]) -> tuple[CoverChoice, str | None]:
+        """Select a cached audio cover when possible, otherwise build live text."""
+        preferred_source = self.preferred_source_from_keywords(keywords)
+        cached = self.audio_cache.choose(category, preferred_source=preferred_source)
+        if cached:
+            return (
+                CoverChoice(
+                    reaction=cached.reaction,
+                    source=cached.source,
+                    plain_tts_text=cached.plain_tts_text,
+                    tts_text=cached.tts_text,
+                    cue=cached.cue,
+                    audio_path=str(cached.audio_path),
+                    cache_id=cached.cache_id,
+                ),
+                preferred_source,
+            )
+
+        reaction, source = self.choose_reaction(category, preferred_source)
+        selected_cue = self.cue_selector.choose(category)
+        plain_tts_text = reaction.strip()
+        return (
+            CoverChoice(
+                reaction=reaction,
+                source=source,
+                plain_tts_text=plain_tts_text,
+                tts_text=self.cue_selector.apply(plain_tts_text, selected_cue),
+                cue=self.cue_selector.cue_to_dict(selected_cue),
+            ),
+            preferred_source,
+        )
 
     def generate(self, user_text: str) -> dict[str, Any]:
         """Generate a complete FastTrack packet and timing metrics."""
@@ -282,40 +329,18 @@ class HybridFastTrack:
         keywords = self.extract_keywords(user_text)
         keyword_ms = (time.perf_counter() - keyword_started) * 1000.0
 
-        preferred_source = self.preferred_source_from_keywords(keywords)
-        cached_cover = self.audio_cache.choose(
-            emotion["category"],
-            preferred_source=preferred_source,
-        )
-        if cached_cover:
-            reaction = cached_cover.reaction
-            source = cached_cover.source
-            plain_tts_text = cached_cover.plain_tts_text
-            tts_text = cached_cover.tts_text
-            fish_speech_cue = cached_cover.cue
-            fast_audio_path = str(cached_cover.audio_path)
-            fast_audio_cache_id = cached_cover.cache_id
-            fast_audio_cache_hit = True
-        else:
-            reaction, source = self.choose_reaction(emotion["category"], preferred_source)
-            plain_tts_text = self.make_tts_text(reaction, keywords)
-            selected_cue = self.cue_selector.choose(emotion["category"])
-            fish_speech_cue = self.cue_selector.cue_to_dict(selected_cue)
-            tts_text = self.cue_selector.apply(plain_tts_text, selected_cue)
-            fast_audio_path = None
-            fast_audio_cache_id = None
-            fast_audio_cache_hit = False
+        cover, preferred_source = self.choose_cover(emotion["category"], keywords)
         total_ms = (time.perf_counter() - started) * 1000.0
 
         return {
-            "tts_text": tts_text,
-            "plain_tts_text": plain_tts_text,
-            "reaction": reaction,
-            "reaction_source": source,
-            "fish_speech_cue": fish_speech_cue,
-            "fast_audio_path": fast_audio_path,
-            "fast_audio_cache_id": fast_audio_cache_id,
-            "fast_audio_cache_hit": fast_audio_cache_hit,
+            "tts_text": cover.tts_text,
+            "plain_tts_text": cover.plain_tts_text,
+            "reaction": cover.reaction,
+            "reaction_source": cover.source,
+            "fish_speech_cue": cover.cue,
+            "fast_audio_path": cover.audio_path,
+            "fast_audio_cache_id": cover.cache_id,
+            "fast_audio_cache_hit": cover.cache_hit,
             "keyword_selection_source": preferred_source,
             "keyword": keywords[-1] if keywords else None,
             "keywords": keywords,
