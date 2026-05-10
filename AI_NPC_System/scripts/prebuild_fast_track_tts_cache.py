@@ -172,9 +172,15 @@ def synthesize_items(args: argparse.Namespace, items: list[dict[str, Any]]) -> N
 def write_manifest(args: argparse.Namespace, items: list[dict[str, Any]]) -> Path:
     """Write the runtime manifest next to the generated audio tree."""
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    manifest_path = args.output_dir / "manifest.json"
+    generated_at = datetime.now(timezone.utc).isoformat()
+    if args.dry_run and manifest_path.exists():
+        previous = load_json(manifest_path)
+        generated_at = str(previous.get("generated_at", generated_at))
+
     manifest = {
         "version": "fast-track-tts-cache-v01",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": generated_at,
         "generator": "AI_NPC_System/scripts/prebuild_fast_track_tts_cache.py",
         "reaction_path": str(args.reaction_path),
         "cue_path": str(args.cue_path),
@@ -185,7 +191,6 @@ def write_manifest(args: argparse.Namespace, items: list[dict[str, Any]]) -> Pat
         },
         "items": items,
     }
-    manifest_path = args.output_dir / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     return manifest_path
 
