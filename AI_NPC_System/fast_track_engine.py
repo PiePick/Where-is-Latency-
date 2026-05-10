@@ -2,14 +2,14 @@
 Runtime hybrid Fast Track reaction generator.
 
 Install:
-  python3 -m pip install -r AI_NPC_System/reaction_pipeline/requirements_hybrid_reactions.txt
+  python3 -m pip install -r AI_NPC_System/scripts/requirements.txt
   python3 -m spacy download en_core_web_sm
 
 Build the reaction JSON first:
-  python3 AI_NPC_System/reaction_pipeline/build_hybrid_reactions.py
+  python3 AI_NPC_System/scripts/build_reaction_dataset.py
 
 CLI smoke test:
-  python3 AI_NPC_System/hybrid_fast_track.py --text "I passed the exam today"
+  python3 AI_NPC_System/fast_track_engine.py --text "I passed the exam today"
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from fish_speech_cues import DEFAULT_CUE_PATH, FishSpeechCueSelector
+from tts_cues import DEFAULT_CUE_PATH, FishSpeechCueSelector
 
 
 ROOT = Path(__file__).resolve().parent
@@ -91,7 +91,7 @@ def require_runtime_deps() -> tuple[Any, Any, Any]:
         from transformers import pipeline
     except ImportError as exc:
         print("Missing dependency. Install with:")
-        print("  python3 -m pip install -r AI_NPC_System/reaction_pipeline/requirements_hybrid_reactions.txt")
+        print("  python3 -m pip install -r AI_NPC_System/scripts/requirements.txt")
         print("  python3 -m spacy download en_core_web_sm")
         raise SystemExit(2) from exc
     return spacy, torch, pipeline

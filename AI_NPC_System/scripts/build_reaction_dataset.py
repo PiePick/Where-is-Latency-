@@ -14,14 +14,14 @@ Output shape:
 }
 
 Install:
-  python3 -m pip install -r AI_NPC_System/reaction_pipeline/requirements_hybrid_reactions.txt
+  python3 -m pip install -r AI_NPC_System/scripts/requirements.txt
   python3 -m spacy download en_core_web_sm
 
 Run:
-  python3 AI_NPC_System/reaction_pipeline/build_hybrid_reactions.py
+  python3 AI_NPC_System/scripts/build_reaction_dataset.py
 
 Run with the local vLLM judge:
-  python3 AI_NPC_System/reaction_pipeline/build_hybrid_reactions.py \
+  python3 AI_NPC_System/scripts/build_reaction_dataset.py \
     --llm-filter \
     --llm-base-url http://127.0.0.1:8001/v1 \
     --llm-model qwen2.5:7b
@@ -237,7 +237,7 @@ def require_runtime_deps() -> tuple[Any, Any, Any]:
         from transformers import pipeline
     except ImportError as exc:
         print("Missing dependency. Install with:")
-        print("  python3 -m pip install -r AI_NPC_System/reaction_pipeline/requirements_hybrid_reactions.txt")
+        print("  python3 -m pip install -r AI_NPC_System/scripts/requirements.txt")
         print("  python3 -m spacy download en_core_web_sm")
         raise SystemExit(2) from exc
     return torch, load_dataset, pipeline

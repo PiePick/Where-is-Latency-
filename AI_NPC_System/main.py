@@ -5,9 +5,9 @@ from __future__ import annotations
 import asyncio
 import time
 
-import fast_lane
-import slow_lane
-from fish_speech_tts import FishSpeechTTSClient
+import fast_track
+import slow_track
+from tts_client import FishSpeechTTSClient
 
 
 def _read_user_text() -> str | None:
@@ -50,7 +50,7 @@ async def run_cycle() -> None:
 
         started = time.time()
         # FastTrack returns immediately usable text plus metadata for logs/UI.
-        fast_result = fast_lane.analyze_and_react(user_input)
+        fast_result = fast_track.analyze_and_react(user_input)
         fast_text = fast_result.get("tts_text") or fast_result["reaction"]
         print(
             "FastTrack: "
@@ -62,7 +62,7 @@ async def run_cycle() -> None:
         _speak_or_log(tts, fast_text, "fast")
 
         # SlowTrack can spend more time on a natural full response.
-        slow_text = await slow_lane.generate_response(
+        slow_text = await slow_track.generate_response(
             user_input,
             fast_text,
             fast_result.get("strategy"),

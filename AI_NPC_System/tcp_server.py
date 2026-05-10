@@ -12,8 +12,8 @@ import json
 import time
 from typing import Any
 
-import fast_lane
-import slow_lane
+import fast_track
+import slow_track
 
 
 HOST = "127.0.0.1"
@@ -98,7 +98,7 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
 
             # FastTrack runs first so TTS/UI can react before the local LLM finishes.
             start_time = time.time()
-            fast_result = fast_lane.analyze_and_react(user_text)
+            fast_result = fast_track.analyze_and_react(user_text)
             fast_latency = time.time() - start_time
             tts_text = fast_result.get("tts_text") or fast_result["reaction"]
 
@@ -107,7 +107,7 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
 
             # SlowTrack follows with a more natural local LLM answer.
             print("[Slow Track] Local LLM generating...")
-            llm_reply = await slow_lane.generate_response(
+            llm_reply = await slow_track.generate_response(
                 user_text,
                 tts_text,
                 fast_result.get("strategy"),

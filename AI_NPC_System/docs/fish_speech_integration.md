@@ -12,11 +12,11 @@ Fish Speech is distributed under the Fish Audio Research License. Research and n
 
 ```text
 vendor/fish-speech
-AI_NPC_System/fish_speech_tts.py
-AI_NPC_System/fish_speech_cues.py
+AI_NPC_System/tts_client.py
+AI_NPC_System/tts_cues.py
 AI_NPC_System/fish_speech_nonverbal_cues.json
-AI_NPC_System/reaction_pipeline/run_fish_speech_server.sh
-AI_NPC_System/reaction_pipeline/build_fish_speech_cues.py
+AI_NPC_System/scripts/start_fish_speech_server.sh
+AI_NPC_System/scripts/build_tts_cues.py
 ```
 
 ## Fish Speech Server
@@ -31,7 +31,7 @@ hf download fishaudio/s2-pro --local-dir checkpoints/s2-pro
 Start the server:
 
 ```bash
-AI_NPC_System/reaction_pipeline/run_fish_speech_server.sh
+AI_NPC_System/scripts/start_fish_speech_server.sh
 ```
 
 Default endpoint:

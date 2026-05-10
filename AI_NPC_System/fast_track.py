@@ -1,14 +1,13 @@
-"""Compatibility wrapper for the current hybrid Fast Track runtime.
+"""FastTrack facade used by the chat loop and TCP server.
 
-`server.py` and `main.py` still import `fast_lane.analyze_and_react()`.
-The actual implementation now lives in `hybrid_fast_track.py` and uses
-`hybrid_reactions.json`.
+The heavy DistilBERT/spaCy implementation lives in `fast_track_engine.py`.
+This module keeps the public `analyze_and_react()` call small and stable.
 """
 
 from __future__ import annotations
 
 import config
-from hybrid_fast_track import HybridFastTrack, HybridFastTrackConfig
+from fast_track_engine import HybridFastTrack, HybridFastTrackConfig
 
 
 print("[Fast Track] Loading hybrid reaction engine...")
@@ -80,7 +79,7 @@ def _fallback_response(text: str) -> dict:
 
 
 def analyze_and_react(text: str) -> dict:
-    """Generate the compatibility packet expected by server.py and main.py."""
+    """Generate the FastTrack packet expected by tcp_server.py and main.py."""
     engine = _get_engine()
     if engine is None:
         return _fallback_response(text)
