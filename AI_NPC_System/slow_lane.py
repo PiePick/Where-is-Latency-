@@ -10,6 +10,7 @@ import config
 
 
 def _system_prompt(fast_reaction: str | None, strategy: str | None) -> str:
+    """Build the persona and Fish Speech cue policy sent to the local LLM."""
     prompt = (
         "You are a natural, friendly English-speaking VTuber NPC. "
         "Reply to the viewer in 2 concise sentences or fewer. "
@@ -40,6 +41,7 @@ async def _call_openai_compatible(
     fast_reaction: str | None,
     strategy: str | None,
 ) -> str:
+    """Call an OpenAI-compatible local server with only stdlib HTTP."""
     endpoint = f"{base_url.rstrip('/')}/chat/completions"
     payload = {
         "model": model,
@@ -89,6 +91,7 @@ async def generate_response(user_input, fast_reaction=None, strategy=None):
         config.FALLBACK_LOCAL_LLM_TIMEOUT,
     )
 
+    # Prefer the quality model, then fall back to the smaller local server.
     for base_url, api_key, model, timeout in (primary, fallback):
         try:
             reply = await _call_openai_compatible(

@@ -16,6 +16,8 @@ import config
 
 @dataclass(frozen=True)
 class FishSpeechTTSConfig:
+    """HTTP settings for the local Fish Speech API server."""
+
     tts_url: str = config.FISH_SPEECH_TTS_URL
     health_url: str = config.FISH_SPEECH_HEALTH_URL
     api_key: str = config.FISH_SPEECH_API_KEY
@@ -32,11 +34,14 @@ class FishSpeechTTSConfig:
 
 
 class FishSpeechTTSClient:
+    """Small stdlib-only client for Fish Speech synthesis and playback."""
+
     def __init__(self, cfg: FishSpeechTTSConfig | None = None) -> None:
         self.cfg = cfg or FishSpeechTTSConfig()
         self.cfg.output_dir.mkdir(parents=True, exist_ok=True)
 
     def is_healthy(self) -> bool:
+        """Check whether the Fish Speech API server is reachable."""
         req = urllib.request.Request(self.cfg.health_url, method="GET")
         try:
             with urllib.request.urlopen(req, timeout=3.0) as response:
@@ -45,6 +50,7 @@ class FishSpeechTTSClient:
             return False
 
     def synthesize_to_file(self, text: str, *, prefix: str = "tts") -> Path:
+        """Send text to Fish Speech and save the returned audio file."""
         text = text.strip()
         if not text:
             raise ValueError("Cannot synthesize empty text.")
@@ -86,12 +92,14 @@ class FishSpeechTTSClient:
         return out_path
 
     def speak(self, text: str, *, prefix: str = "tts") -> Path:
+        """Synthesize audio and play it when auto-play is enabled."""
         audio_path = self.synthesize_to_file(text, prefix=prefix)
         if self.cfg.auto_play:
             play_audio(audio_path)
         return audio_path
 
     def _accept_header(self) -> str:
+        """Select an Accept header that matches the requested audio format."""
         if self.cfg.audio_format == "wav":
             return "audio/wav"
         if self.cfg.audio_format == "mp3":
@@ -102,6 +110,7 @@ class FishSpeechTTSClient:
 
 
 def play_audio(audio_path: Path) -> bool:
+    """Try common desktop audio players without making playback mandatory."""
     audio_path = audio_path.resolve()
 
     # WSL can usually delegate playback to Windows.
@@ -144,6 +153,7 @@ def play_audio(audio_path: Path) -> bool:
 
 
 def _is_wsl() -> bool:
+    """Detect WSL so playback can be delegated to Windows."""
     try:
         release = Path("/proc/sys/kernel/osrelease").read_text(encoding="utf-8").lower()
         return "microsoft" in release or "wsl" in release

@@ -71,6 +71,7 @@ CANDIDATES = [
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse cue builder options."""
     parser = argparse.ArgumentParser(description="Build Fish Speech cue JSON.")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--model", default=MODEL_NAME)
@@ -79,6 +80,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def normalize_score_list(raw: Any) -> list[dict[str, Any]]:
+    """Normalize Transformers pipeline output shape."""
     if isinstance(raw, list) and raw and isinstance(raw[0], list):
         return raw[0]
     if isinstance(raw, list):
@@ -87,6 +89,7 @@ def normalize_score_list(raw: Any) -> list[dict[str, Any]]:
 
 
 def main() -> int:
+    """Label candidate cue text and write emotion buckets."""
     args = parse_args()
     try:
         import torch

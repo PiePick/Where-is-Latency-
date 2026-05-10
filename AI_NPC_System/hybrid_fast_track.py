@@ -84,6 +84,7 @@ class HybridFastTrackConfig:
 
 
 def require_runtime_deps() -> tuple[Any, Any, Any]:
+    """Import optional ML dependencies only when the runtime is used."""
     try:
         import spacy
         import torch
@@ -97,6 +98,7 @@ def require_runtime_deps() -> tuple[Any, Any, Any]:
 
 
 def choose_device(torch: Any, requested: str) -> int:
+    """Map a human-readable device option to a Transformers pipeline device."""
     if requested == "cpu":
         return -1
     if requested == "cuda":
@@ -107,12 +109,14 @@ def choose_device(torch: Any, requested: str) -> int:
 
 
 def load_reaction_db(path: Path) -> dict[str, Any]:
+    """Load the prebuilt reaction list, or let runtime fallbacks handle misses."""
     if not path.exists():
         return {}
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def normalize_score_list(raw: Any) -> list[dict[str, Any]]:
+    """Normalize Transformers output across old and new pipeline shapes."""
     if isinstance(raw, list):
         if raw and isinstance(raw[0], list):
             return raw[0] if raw[0] else [{"label": "neutral", "score": 0.0}]
@@ -121,6 +125,7 @@ def normalize_score_list(raw: Any) -> list[dict[str, Any]]:
 
 
 def aggregate_category_scores(score_items: list[dict[str, Any]]) -> dict[str, float]:
+    """Collapse GoEmotions labels into the four FastTrack categories."""
     scores = {"Positive": 0.0, "Negative": 0.0, "Ambiguous": 0.0, "Neutral": 0.0}
     for item in score_items:
         label = str(item.get("label", "neutral")).lower()
@@ -131,6 +136,7 @@ def aggregate_category_scores(score_items: list[dict[str, Any]]) -> dict[str, fl
 
 
 def ranked_label_scores(score_items: list[dict[str, Any]]) -> list[tuple[str, float]]:
+    """Return DistilBERT labels from highest to lowest confidence."""
     ranked = [
         (str(item.get("label", "neutral")).lower(), float(item.get("score", 0.0)))
         for item in score_items
@@ -139,6 +145,8 @@ def ranked_label_scores(score_items: list[dict[str, Any]]) -> list[tuple[str, fl
 
 
 class HybridFastTrack:
+    """Fast reaction engine: DistilBERT emotion, spaCy keywords, reaction mix."""
+
     def __init__(self, config: HybridFastTrackConfig | None = None) -> None:
         self.config = config or HybridFastTrackConfig()
         spacy, torch, pipeline = require_runtime_deps()
@@ -166,10 +174,12 @@ class HybridFastTrack:
         self._warmup()
 
     def _warmup(self) -> None:
+        """Pay first-call model overhead before live traffic arrives."""
         self.classifier("warm up", truncation=True)
         self.nlp("warm up")
 
     def classify_emotion(self, text: str) -> dict[str, Any]:
+        """Classify text with top-1 GoEmotions label and mapped category."""
         raw = self.classifier(text[:512], truncation=True)
         score_items = normalize_score_list(raw)
         ranked_labels = ranked_label_scores(score_items)
@@ -190,6 +200,7 @@ class HybridFastTrack:
         }
 
     def extract_keywords(self, text: str) -> list[str]:
+        """Extract noun-like terms for short echoing."""
         doc = self.nlp(text)
         keywords = []
         for token in doc:
@@ -198,6 +209,7 @@ class HybridFastTrack:
         return keywords
 
     def choose_reaction(self, category: str) -> tuple[str, str]:
+        """Sample everyday or stream reactions according to configured weights."""
         bucket = self.reactions.get(category, {})
         if isinstance(bucket, dict):
             everyday = bucket.get("everyday") or []
@@ -217,6 +229,7 @@ class HybridFastTrack:
         return self.rng.choice(candidates), "fallback"
 
     def make_tts_text(self, reaction: str, keywords: list[str]) -> str:
+        """Attach a lightweight keyword echo without delaying FastTrack."""
         reaction = reaction.strip()
         if not keywords:
             return reaction
@@ -230,6 +243,7 @@ class HybridFastTrack:
         return f"{reaction} {keyword}?"
 
     def generate(self, user_text: str) -> dict[str, Any]:
+        """Generate a complete FastTrack packet and timing metrics."""
         started = time.perf_counter()
 
         emotion_started = time.perf_counter()
@@ -269,6 +283,7 @@ _DEFAULT_ENGINE: HybridFastTrack | None = None
 
 
 def get_default_engine() -> HybridFastTrack:
+    """Expose a lazy singleton for scripts that need one-line FastTrack calls."""
     global _DEFAULT_ENGINE
     if _DEFAULT_ENGINE is None:
         _DEFAULT_ENGINE = HybridFastTrack()
@@ -276,6 +291,7 @@ def get_default_engine() -> HybridFastTrack:
 
 
 def generate_fast_tts_text(user_text: str) -> str:
+    """Return only the TTS-ready FastTrack text."""
     return get_default_engine().generate(user_text)["tts_text"]
 
 

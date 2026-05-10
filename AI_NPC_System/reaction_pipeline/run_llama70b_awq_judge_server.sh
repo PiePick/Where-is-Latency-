@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Start the local Llama 3.3 70B AWQ vLLM server used for quality filtering.
 HOST="${LLAMA70B_HOST:-127.0.0.1}"
 PORT="${LLAMA70B_PORT:-8002}"
 SERVED_MODEL_NAME="${LLAMA70B_SERVED_MODEL_NAME:-llama3.3:70b-awq}"
@@ -12,9 +13,11 @@ ENV_NAME="${LLAMA70B_CONDA_ENV:-agentscope}"
 CONDA_ROOT="${LLAMA70B_CONDA_ROOT:-/home/ysree/miniconda3}"
 CUDA_RUNTIME_LIB="${CONDA_ROOT}/envs/${ENV_NAME}/lib/python3.12/site-packages/nvidia/cuda_runtime/lib"
 
+# vLLM is installed inside the selected conda environment.
 source "${CONDA_ROOT}/etc/profile.d/conda.sh"
 conda activate "${ENV_NAME}"
 
+# Keep user-site packages and temp paths from leaking into reproducible runs.
 export PYTHONNOUSERSITE=1
 export CUDA_VISIBLE_DEVICES="${CUDA_DEVICES}"
 export LD_LIBRARY_PATH="${CUDA_RUNTIME_LIB}:${LD_LIBRARY_PATH:-}"

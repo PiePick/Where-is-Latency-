@@ -11,6 +11,7 @@ from fish_speech_tts import FishSpeechTTSClient
 
 
 def _read_user_text() -> str | None:
+    """Read one console turn; None means the user wants to stop."""
     try:
         text = input("\nUser: ").strip()
     except EOFError:
@@ -23,6 +24,7 @@ def _read_user_text() -> str | None:
 
 
 def _speak_or_log(tts: FishSpeechTTSClient, text: str, prefix: str) -> None:
+    """Use Fish Speech when available, but keep text chat usable without it."""
     try:
         audio_path = tts.speak(text, prefix=prefix)
         print(f"{prefix} audio: {audio_path}")
@@ -31,6 +33,7 @@ def _speak_or_log(tts: FishSpeechTTSClient, text: str, prefix: str) -> None:
 
 
 async def run_cycle() -> None:
+    """Run a local chat loop: FastTrack first, SlowTrack second."""
     print("AI NPC local chat started. Type exit to quit.")
     tts = FishSpeechTTSClient()
     if tts.is_healthy():
@@ -46,6 +49,7 @@ async def run_cycle() -> None:
             continue
 
         started = time.time()
+        # FastTrack returns immediately usable text plus metadata for logs/UI.
         fast_result = fast_lane.analyze_and_react(user_input)
         fast_text = fast_result.get("tts_text") or fast_result["reaction"]
         print(
@@ -57,6 +61,7 @@ async def run_cycle() -> None:
         )
         _speak_or_log(tts, fast_text, "fast")
 
+        # SlowTrack can spend more time on a natural full response.
         slow_text = await slow_lane.generate_response(
             user_input,
             fast_text,

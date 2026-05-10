@@ -1,4 +1,8 @@
-"""Runtime configuration for the AI NPC Fast/Slow Track prototype."""
+"""Runtime configuration for the AI NPC Fast/Slow Track prototype.
+
+Every value can be overridden with an environment variable so experiments can
+switch models, ports, and output paths without editing runtime code.
+"""
 
 from __future__ import annotations
 
@@ -7,6 +11,25 @@ from pathlib import Path
 
 
 ROOT_DIR = Path(__file__).resolve().parent
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    """Read a permissive boolean environment variable."""
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.lower() not in {"0", "false", "no", "off"}
+
+
+def _env_float(name: str, default: float) -> float:
+    """Read a float environment variable with a clear fallback."""
+    return float(os.getenv(name, str(default)))
+
+
+def _env_int(name: str, default: int) -> int:
+    """Read an integer environment variable with a clear fallback."""
+    return int(os.getenv(name, str(default)))
+
 
 # Cloud fallback is intentionally disabled by default.
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or None
@@ -22,20 +45,20 @@ REACTION_DB_FILE = os.getenv("REACTION_DB_FILE", "hybrid_reactions.json")
 REACTION_DB_PATH = ROOT_DIR / REACTION_DB_FILE
 FISH_SPEECH_CUE_FILE = os.getenv("FISH_SPEECH_CUE_FILE", "fish_speech_nonverbal_cues.json")
 FISH_SPEECH_CUE_PATH = ROOT_DIR / FISH_SPEECH_CUE_FILE
-FISH_SPEECH_CUES_ENABLED = os.getenv("FISH_SPEECH_CUES_ENABLED", "1") not in {"0", "false", "False"}
-FISH_SPEECH_CUE_PROBABILITY = float(os.getenv("FISH_SPEECH_CUE_PROBABILITY", "0.65"))
+FISH_SPEECH_CUES_ENABLED = _env_bool("FISH_SPEECH_CUES_ENABLED", True)
+FISH_SPEECH_CUE_PROBABILITY = _env_float("FISH_SPEECH_CUE_PROBABILITY", 0.65)
 FAST_TRACK_DEVICE = os.getenv("FAST_TRACK_DEVICE", "auto")
-FAST_TRACK_MIN_RUNTIME_SCORE = float(os.getenv("FAST_TRACK_MIN_RUNTIME_SCORE", "0.0"))
-FAST_TRACK_EVERYDAY_WEIGHT = float(os.getenv("FAST_TRACK_EVERYDAY_WEIGHT", "0.60"))
-FAST_TRACK_STREAM_WEIGHT = float(os.getenv("FAST_TRACK_STREAM_WEIGHT", "0.40"))
+FAST_TRACK_MIN_RUNTIME_SCORE = _env_float("FAST_TRACK_MIN_RUNTIME_SCORE", 0.0)
+FAST_TRACK_EVERYDAY_WEIGHT = _env_float("FAST_TRACK_EVERYDAY_WEIGHT", 0.60)
+FAST_TRACK_STREAM_WEIGHT = _env_float("FAST_TRACK_STREAM_WEIGHT", 0.40)
 
 # Slow Track: quality local LLM first, smaller local model second.
 LOCAL_LLM_BASE_URL = os.getenv("LOCAL_LLM_BASE_URL", "http://127.0.0.1:8002/v1")
 LOCAL_LLM_MODEL = os.getenv("LOCAL_LLM_MODEL", "llama3.3:70b-awq")
 LOCAL_LLM_API_KEY = os.getenv("LOCAL_LLM_API_KEY", "EMPTY")
-LOCAL_LLM_TIMEOUT = float(os.getenv("LOCAL_LLM_TIMEOUT", "45.0"))
-LOCAL_LLM_TEMPERATURE = float(os.getenv("LOCAL_LLM_TEMPERATURE", "0.7"))
-LOCAL_LLM_MAX_TOKENS = int(os.getenv("LOCAL_LLM_MAX_TOKENS", "180"))
+LOCAL_LLM_TIMEOUT = _env_float("LOCAL_LLM_TIMEOUT", 45.0)
+LOCAL_LLM_TEMPERATURE = _env_float("LOCAL_LLM_TEMPERATURE", 0.7)
+LOCAL_LLM_MAX_TOKENS = _env_int("LOCAL_LLM_MAX_TOKENS", 180)
 
 FALLBACK_LOCAL_LLM_BASE_URL = os.getenv(
     "FALLBACK_LOCAL_LLM_BASE_URL",
@@ -43,14 +66,14 @@ FALLBACK_LOCAL_LLM_BASE_URL = os.getenv(
 )
 FALLBACK_LOCAL_LLM_MODEL = os.getenv("FALLBACK_LOCAL_LLM_MODEL", "qwen2.5:7b")
 FALLBACK_LOCAL_LLM_API_KEY = os.getenv("FALLBACK_LOCAL_LLM_API_KEY", "EMPTY")
-FALLBACK_LOCAL_LLM_TIMEOUT = float(os.getenv("FALLBACK_LOCAL_LLM_TIMEOUT", "20.0"))
+FALLBACK_LOCAL_LLM_TIMEOUT = _env_float("FALLBACK_LOCAL_LLM_TIMEOUT", 20.0)
 
 # Backward-compatible aliases for older scripts.
 OLLAMA_URL = FALLBACK_LOCAL_LLM_BASE_URL
 OLLAMA_MODEL = FALLBACK_LOCAL_LLM_MODEL
 
 # Slow lane ETA hint for clients/logging.
-EXPECTED_SLOW_LANE_MS = int(os.getenv("EXPECTED_SLOW_LANE_MS", "3500"))
+EXPECTED_SLOW_LANE_MS = _env_int("EXPECTED_SLOW_LANE_MS", 3500)
 
 # Fish Speech TTS HTTP server. The base model is selected when that server starts.
 FISH_SPEECH_BASE_URL = os.getenv("FISH_SPEECH_BASE_URL", "http://127.0.0.1:8080")
@@ -60,10 +83,10 @@ FISH_SPEECH_API_KEY = os.getenv("FISH_SPEECH_API_KEY", "")
 FISH_SPEECH_REFERENCE_ID = os.getenv("FISH_SPEECH_REFERENCE_ID") or None
 FISH_SPEECH_FORMAT = os.getenv("FISH_SPEECH_FORMAT", "wav")
 FISH_SPEECH_OUTPUT_DIR = ROOT_DIR / os.getenv("FISH_SPEECH_OUTPUT_DIR", "tts_outputs")
-FISH_SPEECH_TIMEOUT = float(os.getenv("FISH_SPEECH_TIMEOUT", "120.0"))
-FISH_SPEECH_TOP_P = float(os.getenv("FISH_SPEECH_TOP_P", "0.8"))
-FISH_SPEECH_TEMPERATURE = float(os.getenv("FISH_SPEECH_TEMPERATURE", "0.8"))
-FISH_SPEECH_REPETITION_PENALTY = float(os.getenv("FISH_SPEECH_REPETITION_PENALTY", "1.1"))
-FISH_SPEECH_MAX_NEW_TOKENS = int(os.getenv("FISH_SPEECH_MAX_NEW_TOKENS", "1024"))
-FISH_SPEECH_CHUNK_LENGTH = int(os.getenv("FISH_SPEECH_CHUNK_LENGTH", "200"))
-FISH_SPEECH_AUTO_PLAY = os.getenv("FISH_SPEECH_AUTO_PLAY", "1") not in {"0", "false", "False"}
+FISH_SPEECH_TIMEOUT = _env_float("FISH_SPEECH_TIMEOUT", 120.0)
+FISH_SPEECH_TOP_P = _env_float("FISH_SPEECH_TOP_P", 0.8)
+FISH_SPEECH_TEMPERATURE = _env_float("FISH_SPEECH_TEMPERATURE", 0.8)
+FISH_SPEECH_REPETITION_PENALTY = _env_float("FISH_SPEECH_REPETITION_PENALTY", 1.1)
+FISH_SPEECH_MAX_NEW_TOKENS = _env_int("FISH_SPEECH_MAX_NEW_TOKENS", 1024)
+FISH_SPEECH_CHUNK_LENGTH = _env_int("FISH_SPEECH_CHUNK_LENGTH", 200)
+FISH_SPEECH_AUTO_PLAY = _env_bool("FISH_SPEECH_AUTO_PLAY", True)

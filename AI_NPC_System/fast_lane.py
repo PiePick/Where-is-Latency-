@@ -18,6 +18,7 @@ _ENGINE_ERROR: str | None = None
 
 
 def _get_engine() -> HybridFastTrack | None:
+    """Load the heavy model stack once and reuse it for every request."""
     global _ENGINE, _ENGINE_ERROR
     if _ENGINE is not None:
         return _ENGINE
@@ -48,6 +49,7 @@ def _get_engine() -> HybridFastTrack | None:
 
 
 def _fallback_response(text: str) -> dict:
+    """Return a neutral packet when model loading failed."""
     del text
     return {
         "emotion_label": "neutral",
@@ -78,6 +80,7 @@ def _fallback_response(text: str) -> dict:
 
 
 def analyze_and_react(text: str) -> dict:
+    """Generate the compatibility packet expected by server.py and main.py."""
     engine = _get_engine()
     if engine is None:
         return _fallback_response(text)
@@ -91,6 +94,7 @@ def analyze_and_react(text: str) -> dict:
         str(key).lower(): value for key, value in result.get("category_scores", {}).items()
     }
 
+    # Preserve old field names while exposing the new hybrid/Fish Speech data.
     return {
         "emotion_label": category_key,
         "emotion_detail": result["emotion_label"],

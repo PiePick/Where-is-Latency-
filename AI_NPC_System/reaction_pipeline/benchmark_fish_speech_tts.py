@@ -16,6 +16,7 @@ DEFAULT_HEALTH_URL = "http://127.0.0.1:8080/v1/health"
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse benchmark options without importing the main runtime."""
     parser = argparse.ArgumentParser(description="Measure Fish Speech /v1/tts latency.")
     parser.add_argument("--url", default=DEFAULT_TTS_URL)
     parser.add_argument("--health-url", default=DEFAULT_HEALTH_URL)
@@ -24,6 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--warmup", type=int, default=1)
     parser.add_argument("--format", choices=("wav", "mp3", "opus", "pcm"), default="wav")
     parser.add_argument("--output-dir", type=Path, default=Path("AI_NPC_System/tts_benchmarks"))
+    parser.add_argument("--save-audio", action="store_true")
     parser.add_argument("--reference-id", default=None)
     parser.add_argument("--api-key", default="")
     parser.add_argument("--timeout", type=float, default=180.0)
@@ -31,6 +33,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def health_check(url: str) -> None:
+    """Fail early if the Fish Speech server is not ready."""
     req = urllib.request.Request(url, method="GET")
     with urllib.request.urlopen(req, timeout=5) as response:
         if response.status != 200:
@@ -38,6 +41,7 @@ def health_check(url: str) -> None:
 
 
 def synthesize(args: argparse.Namespace, index: int, save: bool) -> tuple[float, int]:
+    """Run one synthesis request and optionally keep the audio artifact."""
     payload = {
         "text": args.text,
         "format": args.format,
@@ -86,7 +90,7 @@ def main() -> int:
 
     elapsed_values: list[float] = []
     for index in range(args.runs):
-        elapsed, size = synthesize(args, index, save=True)
+        elapsed, size = synthesize(args, index, save=args.save_audio)
         elapsed_values.append(elapsed)
         print(f"run {index + 1}: {elapsed:.3f}s, bytes={size}")
 

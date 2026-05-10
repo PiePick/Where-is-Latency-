@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Launch the Fish Speech HTTP API from the vendored repository.
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 FISH_DIR="${FISH_SPEECH_REPO_DIR:-${ROOT_DIR}/vendor/fish-speech}"
 HOST="${FISH_SPEECH_HOST:-127.0.0.1}"
@@ -14,6 +15,7 @@ PYTHON_BIN="${FISH_SPEECH_PYTHON:-python3}"
 cd "${FISH_DIR}"
 export CUDA_VISIBLE_DEVICES="${CUDA_DEVICES}"
 
+# The server needs the S2-Pro checkpoint and codec file under one directory.
 if [ ! -d "${CHECKPOINT_DIR}" ]; then
   echo "Missing Fish Speech checkpoint: ${CHECKPOINT_DIR}" >&2
   echo "Download first:" >&2
@@ -21,6 +23,7 @@ if [ ! -d "${CHECKPOINT_DIR}" ]; then
   exit 2
 fi
 
+# Keep the command as an array so paths with spaces remain safe.
 cmd=(
   "${PYTHON_BIN}" tools/api_server.py
   --llama-checkpoint-path "${CHECKPOINT_DIR}"
@@ -34,6 +37,7 @@ if [ -n "${API_KEY}" ]; then
   cmd+=(--api-key "${API_KEY}")
 fi
 
+# EXTRA_ARGS is intentionally appended unquoted for advanced one-off tuning.
 echo "Starting Fish Speech server on http://${HOST}:${PORT}"
 echo "Using CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 "${cmd[@]}" ${EXTRA_ARGS}

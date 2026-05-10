@@ -201,6 +201,7 @@ BLOCKED_PHRASE_RE = re.compile(
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse dataset, labeling, and optional LLM filter settings."""
     parser = argparse.ArgumentParser(description="Build hybrid Fast Track reaction JSON.")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--model", default=MODEL_NAME)
@@ -229,6 +230,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def require_runtime_deps() -> tuple[Any, Any, Any]:
+    """Import heavy dataset/model dependencies only for the builder."""
     try:
         import torch
         from datasets import load_dataset
@@ -242,6 +244,7 @@ def require_runtime_deps() -> tuple[Any, Any, Any]:
 
 
 def normalize_text(text: str) -> str | None:
+    """Normalize raw dataset text and reject obvious non-reaction noise."""
     text = URL_RE.sub("", text)
     text = text.replace("\n", " ").replace("\r", " ")
     text = SPACE_RE.sub(" ", text).strip()
@@ -291,21 +294,25 @@ def normalize_text(text: str) -> str | None:
 
 
 def is_category_suitable(text: str, category: str) -> bool:
+    """Keep questions only where they work as generic clarification reactions."""
     if category in {"Positive", "Negative", "Neutral"} and "?" in text:
         return False
     return True
 
 
 def word_count(text: str) -> int:
+    """Count simple English word tokens."""
     return len(WORD_RE.findall(text))
 
 
 def is_short_reaction(text: str, max_words: int) -> bool:
+    """Apply the short-reaction length rule."""
     count = word_count(text)
     return 1 <= count <= max_words
 
 
 def dedupe_keep_order(items: Iterable[str]) -> list[str]:
+    """Remove duplicates while preserving first-seen dataset order."""
     seen: set[str] = set()
     out: list[str] = []
     for item in items:
@@ -318,6 +325,7 @@ def dedupe_keep_order(items: Iterable[str]) -> list[str]:
 
 
 def cap_candidates(items: list[str], cap: int, seed: int) -> list[str]:
+    """Sample a stable candidate subset for faster experiments."""
     if cap <= 0 or len(items) <= cap:
         return items
     rng = random.Random(seed)
@@ -327,6 +335,7 @@ def cap_candidates(items: list[str], cap: int, seed: int) -> list[str]:
 
 
 def normalize_daily_dialog_split(split: str) -> str:
+    """Map common validation aliases to the DailyDialog split name."""
     if split == "validation":
         return "validation"
     if split in {"valid", "val", "dev"}:
@@ -337,6 +346,7 @@ def normalize_daily_dialog_split(split: str) -> str:
 
 
 def download_daily_dialog_zip() -> Path:
+    """Download the original DailyDialog archive as a fallback source."""
     RAW_CACHE_DIR.mkdir(parents=True, exist_ok=True)
     zip_path = RAW_CACHE_DIR / "ijcnlp_dailydialog.zip"
     if zip_path.exists() and zip_path.stat().st_size > 0:
@@ -346,6 +356,7 @@ def download_daily_dialog_zip() -> Path:
 
 
 def download_daily_dialog_split_zip(split_name: str) -> Path:
+    """Prefer the Hugging Face split mirror, then fall back to the original zip."""
     try:
         from huggingface_hub import hf_hub_download
 
@@ -361,6 +372,7 @@ def download_daily_dialog_split_zip(split_name: str) -> Path:
 
 
 def load_daily_dialog_candidates(load_dataset: Any, split: str, max_words: int) -> list[str]:
+    """Extract short everyday utterances from DailyDialog."""
     del load_dataset
     split_name = normalize_daily_dialog_split(split)
     zip_path = download_daily_dialog_split_zip(split_name)
@@ -377,6 +389,7 @@ def load_daily_dialog_candidates(load_dataset: Any, split: str, max_words: int) 
 
 
 def parse_daily_dialog_zip(split_zip: ZipFile, dialog_path: str, max_words: int) -> list[str]:
+    """Parse DailyDialog __eou__ separated turns from one split zip."""
     candidates: list[str] = []
     with split_zip.open(dialog_path) as dialog_file:
         for raw_line in dialog_file:
@@ -391,6 +404,7 @@ def parse_daily_dialog_zip(split_zip: ZipFile, dialog_path: str, max_words: int)
 
 
 def load_goemotions_dataset(load_dataset: Any, split: str) -> Any:
+    """Load GoEmotions with the current official name or older alias."""
     try:
         return load_dataset("google-research-datasets/go_emotions", "simplified", split=split)
     except Exception:
@@ -398,6 +412,7 @@ def load_goemotions_dataset(load_dataset: Any, split: str) -> Any:
 
 
 def load_goemotions_candidates(load_dataset: Any, split: str, max_words: int) -> list[str]:
+    """Extract short stream-style utterances from GoEmotions raw text."""
     dataset = load_goemotions_dataset(load_dataset, split)
     candidates: list[str] = []
     for row in dataset:
@@ -411,6 +426,7 @@ def load_goemotions_candidates(load_dataset: Any, split: str, max_words: int) ->
 
 
 def choose_device(torch: Any, requested: str) -> int:
+    """Map CLI device selection to Transformers pipeline device IDs."""
     if requested == "cpu":
         return -1
     if requested == "cuda":
@@ -421,6 +437,7 @@ def choose_device(torch: Any, requested: str) -> int:
 
 
 def normalize_score_list(item: Any) -> list[dict[str, Any]]:
+    """Normalize Transformers output across pipeline versions."""
     if isinstance(item, list):
         if not item:
             return [{"label": "neutral", "score": 0.0}]
@@ -431,6 +448,7 @@ def normalize_score_list(item: Any) -> list[dict[str, Any]]:
 
 
 def aggregate_category_scores(score_items: list[dict[str, Any]]) -> dict[str, float]:
+    """Collapse original GoEmotions labels into four runtime categories."""
     scores = {category: 0.0 for category in CATEGORIES}
     for item in score_items:
         label = str(item.get("label", "neutral")).lower()
@@ -441,12 +459,14 @@ def aggregate_category_scores(score_items: list[dict[str, Any]]) -> dict[str, fl
 
 
 def top_label(score_items: list[dict[str, Any]]) -> str:
+    """Return the highest scoring original GoEmotions label."""
     if not score_items:
         return "neutral"
     return str(max(score_items, key=lambda item: float(item.get("score", 0.0))).get("label", "neutral")).lower()
 
 
 def ranked_label_scores(score_items: list[dict[str, Any]]) -> list[tuple[str, float]]:
+    """Sort original labels by DistilBERT score."""
     ranked = [
         (str(item.get("label", "neutral")).lower(), float(item.get("score", 0.0)))
         for item in score_items
@@ -455,6 +475,7 @@ def ranked_label_scores(score_items: list[dict[str, Any]]) -> list[tuple[str, fl
 
 
 def local_llm_chat(args: argparse.Namespace, prompt: str, max_tokens: int | None = None) -> str:
+    """Call the configured local LLM judge through OpenAI or Ollama HTTP."""
     response_tokens = max_tokens if max_tokens is not None else args.llm_max_tokens
     if args.llm_provider == "ollama":
         url = args.llm_base_url.rstrip("/")
@@ -490,6 +511,7 @@ def local_llm_chat(args: argparse.Namespace, prompt: str, max_tokens: int | None
 
 
 def llm_accepts_reaction(args: argparse.Namespace, text: str, category: str, source_name: str) -> bool:
+    """Judge one candidate line for standalone VTuber reaction quality."""
     prompt = (
         "You are filtering short English VTuber reaction lines.\n"
         "Return exactly YES or NO.\n\n"
@@ -512,6 +534,7 @@ def llm_accepts_reaction(args: argparse.Namespace, text: str, category: str, sou
 
 
 def parse_llm_json_array(text: str) -> list[Any]:
+    """Extract a JSON array from a strict but imperfect LLM response."""
     start = text.find("[")
     end = text.rfind("]")
     if start == -1 or end == -1 or end <= start:
@@ -525,6 +548,7 @@ def llm_accepts_reaction_batch(
     category: str,
     source_name: str,
 ) -> list[bool]:
+    """Judge a batch of candidate lines and fall back to single calls if needed."""
     if len(texts) == 1:
         return [llm_accepts_reaction(args, texts[0], category, source_name)]
 
@@ -566,6 +590,7 @@ def llm_filter_buckets(
     buckets: dict[str, list[str]],
     source_name: str,
 ) -> tuple[dict[str, list[str]], dict[str, Any]]:
+    """Run the optional local LLM quality filter over all emotion buckets."""
     if not args.llm_filter:
         return buckets, {"enabled": False}
 
@@ -629,6 +654,7 @@ def spacy_reference_filter_buckets(
     buckets: dict[str, list[str]],
     source_name: str,
 ) -> tuple[dict[str, list[str]], dict[str, Any]]:
+    """Remove lines that look bound to a named person, place, product, or topic."""
     if args.disable_spacy_reference_filter:
         return buckets, {"enabled": False}
 
@@ -687,6 +713,7 @@ def classify_candidates(
     min_top_score: float,
     batch_size: int,
 ) -> tuple[dict[str, list[str]], dict[str, Any]]:
+    """Label candidates with DistilBERT top-1 and bucket them by category."""
     buckets: dict[str, list[str]] = {category: [] for category in CATEGORIES}
     rejected_low_top_score = 0
     rejected_unmapped = 0
@@ -730,6 +757,7 @@ def classify_candidates(
 
 
 def trim_buckets(buckets: dict[str, list[str]], max_per_bucket: int, seed: int) -> dict[str, list[str]]:
+    """Limit each final bucket while keeping deterministic ordering."""
     rng = random.Random(seed)
     trimmed: dict[str, list[str]] = {}
     for category, values in buckets.items():
@@ -742,6 +770,7 @@ def trim_buckets(buckets: dict[str, list[str]], max_per_bucket: int, seed: int) 
 
 
 def build_reaction_json(args: argparse.Namespace) -> dict[str, Any]:
+    """Build the full hybrid reaction JSON and metadata report."""
     torch, load_dataset, pipeline = require_runtime_deps()
     if args.torch_threads > 0:
         torch.set_num_threads(args.torch_threads)
@@ -838,6 +867,7 @@ def build_reaction_json(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def main() -> int:
+    """Command-line entrypoint."""
     args = parse_args()
     started = time.perf_counter()
     output = build_reaction_json(args)
