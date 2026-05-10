@@ -1,0 +1,185 @@
+{
+  "meta": {
+    "version": "fish-speech-cues-v01",
+    "source": "Fish Speech README inline control examples",
+    "model": "joeddav/distilbert-base-uncased-go-emotions-student",
+    "labeling_method": "DistilBERT top-1 label on plain English cue text, then mapped to FastTrack categories",
+    "note": "Pause/breath cues are paralinguistic controls, so DistilBERT confidence can be low. The final_category field is the runtime bucket used by FastTrack."
+  },
+  "Positive": [
+    {
+      "tag": "[chuckle]",
+      "cue_text": "chuckle",
+      "distilbert_label": "amusement",
+      "distilbert_score": 0.647,
+      "final_category": "Positive",
+      "weight": 1.0
+    },
+    {
+      "tag": "[laughing]",
+      "cue_text": "laughing",
+      "distilbert_label": "amusement",
+      "distilbert_score": 0.4549,
+      "final_category": "Positive",
+      "weight": 0.85
+    },
+    {
+      "tag": "[excited]",
+      "cue_text": "excited",
+      "distilbert_label": "excitement",
+      "distilbert_score": 0.3437,
+      "final_category": "Positive",
+      "weight": 0.8
+    },
+    {
+      "tag": "[delight]",
+      "cue_text": "delight",
+      "distilbert_label": "joy",
+      "distilbert_score": 0.323,
+      "final_category": "Positive",
+      "weight": 0.75
+    },
+    {
+      "tag": "[relieved sigh]",
+      "cue_text": "relieved sigh",
+      "distilbert_label": "relief",
+      "distilbert_score": 0.5291,
+      "final_category": "Positive",
+      "weight": 0.65
+    },
+    {
+      "tag": "[excited inhale]",
+      "cue_text": "excited inhale",
+      "distilbert_label": "excitement",
+      "distilbert_score": 0.3461,
+      "final_category": "Positive",
+      "weight": 0.6
+    }
+  ],
+  "Negative": [
+    {
+      "tag": "[sad sigh]",
+      "cue_text": "sad sigh",
+      "distilbert_label": "sadness",
+      "distilbert_score": 0.377,
+      "final_category": "Negative",
+      "weight": 1.0
+    },
+    {
+      "tag": "[sigh]",
+      "cue_text": "sigh",
+      "distilbert_label": "sadness",
+      "distilbert_score": 0.3737,
+      "final_category": "Negative",
+      "weight": 0.95
+    },
+    {
+      "tag": "[soft sigh]",
+      "cue_text": "soft sigh",
+      "distilbert_label": "sadness",
+      "distilbert_score": 0.4012,
+      "final_category": "Negative",
+      "weight": 0.9
+    },
+    {
+      "tag": "[sad]",
+      "cue_text": "sad",
+      "distilbert_label": "sadness",
+      "distilbert_score": 0.3364,
+      "final_category": "Negative",
+      "weight": 0.75
+    },
+    {
+      "tag": "[whisper]",
+      "cue_text": "whisper",
+      "distilbert_label": "nervousness",
+      "distilbert_score": 0.1148,
+      "final_category": "Negative",
+      "weight": 0.45
+    },
+    {
+      "tag": "[low voice]",
+      "cue_text": "low voice",
+      "distilbert_label": "disapproval",
+      "distilbert_score": 0.1144,
+      "final_category": "Negative",
+      "weight": 0.35
+    }
+  ],
+  "Ambiguous": [
+    {
+      "tag": "[surprised]",
+      "cue_text": "surprised",
+      "distilbert_label": "surprise",
+      "distilbert_score": 0.6371,
+      "final_category": "Ambiguous",
+      "weight": 1.0
+    },
+    {
+      "tag": "[shocked]",
+      "cue_text": "shocked",
+      "distilbert_label": "surprise",
+      "distilbert_score": 0.6252,
+      "final_category": "Ambiguous",
+      "weight": 0.9
+    },
+    {
+      "tag": "[surprised gasp]",
+      "cue_text": "surprised gasp",
+      "distilbert_label": "surprise",
+      "distilbert_score": 0.6046,
+      "final_category": "Ambiguous",
+      "weight": 0.9
+    },
+    {
+      "tag": "[pause]",
+      "cue_text": "pause",
+      "distilbert_label": "confusion",
+      "distilbert_score": 0.0725,
+      "final_category": "Ambiguous",
+      "weight": 0.55
+    },
+    {
+      "tag": "[clearing throat]",
+      "cue_text": "clearing throat",
+      "distilbert_label": "realization",
+      "distilbert_score": 0.202,
+      "final_category": "Ambiguous",
+      "weight": 0.4
+    }
+  ],
+  "Neutral": [
+    {
+      "tag": "[short pause]",
+      "cue_text": "short pause",
+      "distilbert_label": "annoyance",
+      "distilbert_score": 0.0661,
+      "final_category": "Neutral",
+      "weight": 1.0
+    },
+    {
+      "tag": "[pause]",
+      "cue_text": "pause",
+      "distilbert_label": "confusion",
+      "distilbert_score": 0.0725,
+      "final_category": "Neutral",
+      "weight": 0.75
+    },
+    {
+      "tag": "[exhale]",
+      "cue_text": "exhale",
+      "distilbert_label": "relief",
+      "distilbert_score": 0.1631,
+      "final_category": "Neutral",
+      "weight": 0.55
+    },
+    {
+      "tag": "[inhale]",
+      "cue_text": "inhale",
+      "distilbert_label": "sadness",
+      "distilbert_score": 0.1075,
+      "final_category": "Neutral",
+      "weight": 0.45
+    }
+  ]
+}

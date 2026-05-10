@@ -1,22 +1,56 @@
-# Reaction Source Pack (Open-source references)
+# Reaction Sources
 
-This folder tracks credible open datasets/papers for empathy-oriented short responses.
+This folder keeps the raw source datasets and the current merged FastTrack
+reaction artifacts in one place.
 
-## Referenced open sources
-1. **EmpatheticDialogues** (Rashkin et al., ACL 2019)
-   - Paper: https://aclanthology.org/P19-1534/
-   - HF dataset: https://huggingface.co/datasets/empathetic_dialogues
-2. **DailyDialog** (Li et al., IJCNLP 2017)
-   - Paper: https://aclanthology.org/I17-1099/
-   - HF dataset: https://huggingface.co/datasets/daily_dialog
-3. **GoEmotions** (Demszky et al., ACL 2020)
-   - Paper: https://aclanthology.org/2020.acl-main.372/
-   - HF dataset: https://huggingface.co/datasets/go_emotions
+## Layout
 
-## What is included here
-- `reaction_source_index.json`: source metadata and intended usage
-- `reaction_candidates_v01.json`: curated short reaction candidates grouped by positive/negative/neutral/ambiguous/bridge
+```text
+raw/daily_dialog/
+  train.zip
+  validation.zip
+  test.zip
+  README.md
 
-## Notes
-- These are **curated fast-lane snippets** informed by open datasets/literature style.
-- Do not directly copy long dialogue turns; keep short and latency-safe.
+raw/go_emotions/
+  goemotions_1.csv
+  goemotions_2.csv
+  goemotions_3.csv
+  README.md
+
+merged/
+  hybrid_reactions.json
+  fish_speech_nonverbal_cues.json
+  source_verification.json
+
+scripts/
+  build_reaction_dataset.py
+  build_tts_cues.py
+  verify_merged_sources.py
+
+SHA256SUMS.txt
+```
+
+## Source Meaning
+
+`hybrid_reactions.json` keeps the runtime data compact:
+
+- `everyday` buckets are extracted from DailyDialog.
+- `stream` buckets are extracted from GoEmotions raw text.
+
+The file does not store row-level metadata because FastTrack needs a light
+runtime list. To verify that the current merged strings exist in the downloaded
+raw files, run:
+
+```bash
+python3 reaction_sources/scripts/verify_merged_sources.py
+```
+
+The latest verification summary is stored at:
+
+```text
+reaction_sources/merged/source_verification.json
+```
+
+All current merged reactions were found in their expected local raw source
+dataset at bucket level.
