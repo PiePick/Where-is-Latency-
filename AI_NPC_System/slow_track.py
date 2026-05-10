@@ -10,28 +10,27 @@ import config
 
 
 def _system_prompt(fast_reaction: str | None, strategy: str | None) -> str:
-    """Build the persona and Fish Speech cue policy sent to the local LLM."""
+    """Build the local LLM prompt for continuation after latency cover."""
     prompt = (
-        "You are a natural, friendly English-speaking VTuber NPC. "
-        "Reply to the viewer in 2 concise sentences or fewer. "
-        "Be emotionally coherent with the viewer's message. "
-        "Do not repeat the exact fast reaction unless it is needed for coherence. "
-        "Avoid long explanations, roleplay narration, and markdown. "
-        "The TTS engine is Fish Speech and supports inline paralinguistic tags. "
-        "You may use at most one short tag per sentence when it makes the voice more natural. "
-        "Allowed tags: [pause], [short pause], [break], [emphasis], [emphasize], "
-        "[inhale], [exhale], [chuckle], [chuckling], [laughing], [laughing tone], "
-        "[excited], [excited tone], [excited inhale], [squeal of delight], [breathless], "
-        "[delight], [relieved sigh], [sigh], [soft sigh], [sad sigh], [sad], [angry], "
-        "[tsk], [whisper], [low voice], [surprised], [surprised gasp], [shocked], "
-        "[clearing throat], [volume up], [volume down], [low volume], [loud], "
-        "[screaming], [shouting]. "
-        "Use tags as vocal direction only; do not explain the tags."
+        "You are the SlowTrack continuation writer for an English-speaking AI VTuber. "
+        "The viewer has already heard a short pre-generated latency-cover reaction, "
+        "which may include a nonverbal voice tag such as [sigh], [chuckle], or [short pause]. "
+        "Continue from that cover as if it was the first beat of the same response. "
+        "Do not restart the conversation, do not greet the viewer, and do not repeat the cover line. "
+        "Write 1 or 2 concise spoken sentences, usually under 35 words total. "
+        "Keep the emotional stance consistent with the cover and the viewer's message. "
+        "Use concrete empathy or curiosity instead of generic filler. "
+        "Avoid markdown, stage directions, roleplay narration, and explanations. "
+        "Fish Speech supports inline paralinguistic tags, but the latency cover already handles most nonverbal cues. "
+        "Use at most one approved tag only when it is essential for continuity: "
+        "[pause], [short pause], [emphasis], [inhale], [exhale], [chuckle], [laughing], "
+        "[excited], [sigh], [soft sigh], [sad sigh], [whisper], [surprised], [shocked]. "
+        "Do not output tags as labels; they must be part of the spoken TTS text only."
     )
     if fast_reaction:
-        prompt += f" The Fast Track already said: {fast_reaction!r}."
+        prompt += f" The already-played latency cover was: {fast_reaction!r}."
     if strategy:
-        prompt += f" Fast Track strategy/source: {strategy}."
+        prompt += f" Cover selection metadata: {strategy}."
     return prompt
 
 

@@ -32,6 +32,10 @@ def build_fast_packet(fast_result: dict[str, Any], total_latency: float) -> dict
         "tts_text": tts_text,
         "plain_tts_text": fast_result.get("plain_tts_text", tts_text),
         "fish_speech_cue": fast_result.get("fish_speech_cue"),
+        "fast_audio_path": fast_result.get("fast_audio_path"),
+        "fast_audio_cache_id": fast_result.get("fast_audio_cache_id"),
+        "fast_audio_cache_hit": fast_result.get("fast_audio_cache_hit", False),
+        "keyword_selection_source": fast_result.get("keyword_selection_source"),
         "echo_text": fast_result["echo_text"],
         "reaction_source": fast_result.get("reaction_source"),
         "bert_time": fast_result["bert_time"],
@@ -74,8 +78,10 @@ def log_fast_result(fast_result: dict[str, Any], total_latency: float, tts_text:
         f"entropy={fast_result.get('entropy')}"
     )
     print(f"   |- Reaction: \"{tts_text}\"")
-    if fast_result["echo_text"]:
-        print(f"   `- Echoing:  \"{fast_result['echo_text']}\"")
+    if fast_result.get("fast_audio_cache_hit"):
+        print(f"   |- Cached audio: {fast_result.get('fast_audio_path')}")
+    if fast_result.get("keyword_selection_source"):
+        print(f"   `- Keyword source bias: {fast_result.get('keyword_selection_source')}")
 
 
 async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:

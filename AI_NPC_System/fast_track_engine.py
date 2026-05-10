@@ -22,11 +22,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from fast_track_audio_cache import FastTrackAudioCache
 from tts_cues import DEFAULT_CUE_PATH, FishSpeechCueSelector
 
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_REACTION_PATH = ROOT / "hybrid_reactions.json"
+DEFAULT_FAST_TRACK_AUDIO_CACHE_PATH = ROOT / "fast_track_audio_cache" / "manifest.json"
 MODEL_NAME = "joeddav/distilbert-base-uncased-go-emotions-student"
 
 LABEL_TO_CATEGORY = {
@@ -67,6 +69,18 @@ FALLBACK_REACTIONS = {
     "Neutral": ["Got it.", "I see.", "Okay."],
 }
 
+STREAM_KEYWORD_HINTS = {
+    "chat", "stream", "viewer", "clip", "meme", "game", "rank", "match", "boss",
+    "level", "win", "loss", "queue", "lag", "server", "discord", "youtube", "twitch",
+    "subs", "donation", "raid", "pog", "gg", "npc", "vtuber",
+}
+
+EVERYDAY_KEYWORD_HINTS = {
+    "mom", "dad", "mother", "father", "sister", "brother", "friend", "family", "money",
+    "school", "class", "exam", "homework", "work", "job", "teacher", "doctor",
+    "health", "sleep", "food", "relationship", "birthday", "house", "home",
+}
+
 
 @dataclass(frozen=True)
 class HybridFastTrackConfig:
@@ -81,6 +95,9 @@ class HybridFastTrackConfig:
     fish_speech_cue_path: Path = DEFAULT_CUE_PATH
     fish_speech_cues_enabled: bool = True
     fish_speech_cue_probability: float = 0.65
+    audio_cache_path: Path = DEFAULT_FAST_TRACK_AUDIO_CACHE_PATH
+    audio_cache_enabled: bool = True
+    keyword_source_bias_enabled: bool = True
 
 
 def require_runtime_deps() -> tuple[Any, Any, Any]:
@@ -159,6 +176,11 @@ class HybridFastTrack:
             probability=self.config.fish_speech_cue_probability,
             seed=self.config.seed,
         )
+        self.audio_cache = FastTrackAudioCache(
+            self.config.audio_cache_path,
+            enabled=self.config.audio_cache_enabled,
+            seed=self.config.seed,
+        )
         self.device = choose_device(torch, self.config.device)
         self.classifier = pipeline(
             "text-classification",
@@ -200,7 +222,7 @@ class HybridFastTrack:
         }
 
     def extract_keywords(self, text: str) -> list[str]:
-        """Extract noun-like terms for short echoing."""
+        """Extract noun-like terms for source-selection hints."""
         doc = self.nlp(text)
         keywords = []
         for token in doc:
@@ -208,12 +230,27 @@ class HybridFastTrack:
                 keywords.append(token.text)
         return keywords
 
-    def choose_reaction(self, category: str) -> tuple[str, str]:
-        """Sample everyday or stream reactions according to configured weights."""
+    def preferred_source_from_keywords(self, keywords: list[str]) -> str | None:
+        """Use keywords as a selection hint, not as text echoed to the user."""
+        if not self.config.keyword_source_bias_enabled:
+            return None
+        normalized = {kw.strip(".,!?;:\"'()").lower() for kw in keywords}
+        normalized.discard("")
+        if normalized & STREAM_KEYWORD_HINTS:
+            return "stream"
+        if normalized & EVERYDAY_KEYWORD_HINTS:
+            return "everyday"
+        return None
+
+    def choose_reaction(self, category: str, preferred_source: str | None = None) -> tuple[str, str]:
+        """Sample reactions, optionally biased by keyword-derived source hints."""
         bucket = self.reactions.get(category, {})
         if isinstance(bucket, dict):
             everyday = bucket.get("everyday") or []
             stream = bucket.get("stream") or []
+            source_lists = {"everyday": everyday, "stream": stream}
+            if preferred_source in source_lists and source_lists[preferred_source]:
+                return self.rng.choice(source_lists[preferred_source]), preferred_source
             if everyday and stream:
                 total_weight = max(0.0, self.config.everyday_weight) + max(0.0, self.config.stream_weight)
                 everyday_probability = self.config.everyday_weight / total_weight if total_weight else 0.5
@@ -229,18 +266,9 @@ class HybridFastTrack:
         return self.rng.choice(candidates), "fallback"
 
     def make_tts_text(self, reaction: str, keywords: list[str]) -> str:
-        """Attach a lightweight keyword echo without delaying FastTrack."""
-        reaction = reaction.strip()
-        if not keywords:
-            return reaction
-        keyword = keywords[-1].strip(".,!?;:\"'()")
-        if not keyword:
-            return reaction
-        if reaction.endswith("?"):
-            return reaction
-        if reaction.endswith((".", "!")):
-            return f"{reaction} About {keyword}?"
-        return f"{reaction} {keyword}?"
+        """Return the cover line without directly echoing extracted keywords."""
+        del keywords
+        return reaction.strip()
 
     def generate(self, user_text: str) -> dict[str, Any]:
         """Generate a complete FastTrack packet and timing metrics."""
@@ -254,10 +282,29 @@ class HybridFastTrack:
         keywords = self.extract_keywords(user_text)
         keyword_ms = (time.perf_counter() - keyword_started) * 1000.0
 
-        reaction, source = self.choose_reaction(emotion["category"])
-        plain_tts_text = self.make_tts_text(reaction, keywords)
-        fish_speech_cue = self.cue_selector.choose(emotion["category"])
-        tts_text = self.cue_selector.apply(plain_tts_text, fish_speech_cue)
+        preferred_source = self.preferred_source_from_keywords(keywords)
+        cached_cover = self.audio_cache.choose(
+            emotion["category"],
+            preferred_source=preferred_source,
+        )
+        if cached_cover:
+            reaction = cached_cover.reaction
+            source = cached_cover.source
+            plain_tts_text = cached_cover.plain_tts_text
+            tts_text = cached_cover.tts_text
+            fish_speech_cue = cached_cover.cue
+            fast_audio_path = str(cached_cover.audio_path)
+            fast_audio_cache_id = cached_cover.cache_id
+            fast_audio_cache_hit = True
+        else:
+            reaction, source = self.choose_reaction(emotion["category"], preferred_source)
+            plain_tts_text = self.make_tts_text(reaction, keywords)
+            selected_cue = self.cue_selector.choose(emotion["category"])
+            fish_speech_cue = self.cue_selector.cue_to_dict(selected_cue)
+            tts_text = self.cue_selector.apply(plain_tts_text, selected_cue)
+            fast_audio_path = None
+            fast_audio_cache_id = None
+            fast_audio_cache_hit = False
         total_ms = (time.perf_counter() - started) * 1000.0
 
         return {
@@ -265,7 +312,11 @@ class HybridFastTrack:
             "plain_tts_text": plain_tts_text,
             "reaction": reaction,
             "reaction_source": source,
-            "fish_speech_cue": self.cue_selector.cue_to_dict(fish_speech_cue),
+            "fish_speech_cue": fish_speech_cue,
+            "fast_audio_path": fast_audio_path,
+            "fast_audio_cache_id": fast_audio_cache_id,
+            "fast_audio_cache_hit": fast_audio_cache_hit,
+            "keyword_selection_source": preferred_source,
             "keyword": keywords[-1] if keywords else None,
             "keywords": keywords,
             "emotion": emotion["category"],
@@ -306,6 +357,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--stream-weight", type=float, default=0.40)
     parser.add_argument("--disable-fish-speech-cues", action="store_true")
     parser.add_argument("--fish-speech-cue-probability", type=float, default=0.65)
+    parser.add_argument("--audio-cache-path", type=Path, default=DEFAULT_FAST_TRACK_AUDIO_CACHE_PATH)
+    parser.add_argument("--disable-audio-cache", action="store_true")
+    parser.add_argument("--disable-keyword-source-bias", action="store_true")
     return parser.parse_args()
 
 
@@ -321,6 +375,9 @@ def main() -> int:
             stream_weight=args.stream_weight,
             fish_speech_cues_enabled=not args.disable_fish_speech_cues,
             fish_speech_cue_probability=args.fish_speech_cue_probability,
+            audio_cache_path=args.audio_cache_path,
+            audio_cache_enabled=not args.disable_audio_cache,
+            keyword_source_bias_enabled=not args.disable_keyword_source_bias,
         )
     )
     print(json.dumps(engine.generate(args.text), ensure_ascii=False, indent=2))
