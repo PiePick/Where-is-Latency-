@@ -43,30 +43,47 @@ LABEL_TO_CATEGORY = {
     "neutral": "Neutral",
 }
 
-# Fish Speech supports free-form tags, but these are conservative runtime cues
-# derived from the README's inline control examples.
+# Fish Speech supports free-form tags. Keep this list broad enough to use the
+# README/WebUI examples, but exclude cues that are too context-bound for FastTrack.
 CANDIDATES = [
     {"tag": "[chuckle]", "cue_text": "chuckle", "weight": 1.0},
     {"tag": "[laughing]", "cue_text": "laughing", "weight": 0.85},
+    {"tag": "[laughing tone]", "cue_text": "laughing tone", "weight": 0.82, "override": "Positive"},
+    {"tag": "[chuckling]", "cue_text": "chuckling", "weight": 0.82, "override": "Positive"},
     {"tag": "[excited]", "cue_text": "excited", "weight": 0.8},
+    {"tag": "[excited tone]", "cue_text": "excited tone", "weight": 0.78, "override": "Positive"},
     {"tag": "[delight]", "cue_text": "delight", "weight": 0.75},
+    {"tag": "[squeal of delight]", "cue_text": "squeal of delight", "weight": 0.55, "override": "Positive"},
     {"tag": "[relieved sigh]", "cue_text": "relieved sigh", "weight": 0.65},
     {"tag": "[excited inhale]", "cue_text": "excited inhale", "weight": 0.6},
+    {"tag": "[breathless]", "cue_text": "breathless", "weight": 0.45, "override": "Positive"},
+    {"tag": "[angry]", "cue_text": "angry", "weight": 1.0, "override": "Negative"},
     {"tag": "[sad sigh]", "cue_text": "sad sigh", "weight": 1.0},
     {"tag": "[sigh]", "cue_text": "sigh", "weight": 0.95},
     {"tag": "[soft sigh]", "cue_text": "soft sigh", "weight": 0.9},
     {"tag": "[sad]", "cue_text": "sad", "weight": 0.75},
+    {"tag": "[tsk]", "cue_text": "tsk", "weight": 0.62, "override": "Negative"},
     {"tag": "[whisper]", "cue_text": "whisper", "weight": 0.45},
     {"tag": "[low voice]", "cue_text": "low voice", "weight": 0.35},
+    {"tag": "[screaming]", "cue_text": "screaming", "weight": 0.25, "override": "Negative"},
+    {"tag": "[shouting]", "cue_text": "shouting", "weight": 0.25, "override": "Negative"},
     {"tag": "[surprised]", "cue_text": "surprised", "weight": 1.0},
     {"tag": "[shocked]", "cue_text": "shocked", "weight": 0.9},
     {"tag": "[surprised gasp]", "cue_text": "surprised gasp", "weight": 0.9},
     {"tag": "[pause]", "cue_text": "pause", "weight": 0.55},
     {"tag": "[clearing throat]", "cue_text": "clearing throat", "weight": 0.4},
+    {"tag": "[inhale]", "cue_text": "inhale", "weight": 0.35, "override": "Ambiguous"},
     {"tag": "[short pause]", "cue_text": "short pause", "weight": 1.0, "override": "Neutral"},
     {"tag": "[pause]", "cue_text": "pause", "weight": 0.75, "override": "Neutral"},
+    {"tag": "[break]", "cue_text": "break", "weight": 0.72, "override": "Neutral"},
+    {"tag": "[emphasis]", "cue_text": "emphasis", "weight": 0.65, "override": "Neutral"},
+    {"tag": "[emphasize]", "cue_text": "emphasize", "weight": 0.6, "override": "Neutral"},
     {"tag": "[exhale]", "cue_text": "exhale", "weight": 0.55, "override": "Neutral"},
     {"tag": "[inhale]", "cue_text": "inhale", "weight": 0.45, "override": "Neutral"},
+    {"tag": "[volume up]", "cue_text": "volume up", "weight": 0.35, "override": "Neutral"},
+    {"tag": "[volume down]", "cue_text": "volume down", "weight": 0.35, "override": "Neutral"},
+    {"tag": "[low volume]", "cue_text": "low volume", "weight": 0.3, "override": "Neutral"},
+    {"tag": "[loud]", "cue_text": "loud", "weight": 0.25, "override": "Neutral"},
 ]
 
 
@@ -130,11 +147,20 @@ def main() -> int:
 
     output = {
         "meta": {
-            "version": "fish-speech-cues-v01",
-            "source": "Fish Speech README inline control examples",
+            "version": "fish-speech-cues-v02",
+            "source": "Fish Speech README inline control examples plus Fish Speech WebUI examples",
             "model": args.model,
-            "labeling_method": "DistilBERT top-1 label on plain English cue text, then mapped to FastTrack categories",
-            "note": "Pause/breath cues are paralinguistic controls, so DistilBERT confidence can be low. The final_category field is the runtime bucket used by FastTrack.",
+            "labeling_method": "DistilBERT top-1 label on plain English cue text, then mapped to FastTrack categories; override marks voice-control tags whose emotion bucket is semantic.",
+            "excluded_tags": [
+                "[singing]",
+                "[interrupting]",
+                "[echo]",
+                "[audience laughter]",
+                "[with strong accent]",
+                "[panting]",
+                "[moaning]",
+            ],
+            "note": "Pause, volume, emphasis, and breath cues are paralinguistic controls, so DistilBERT confidence can be low. The final_category field is the runtime bucket used by FastTrack.",
         },
         **buckets,
     }

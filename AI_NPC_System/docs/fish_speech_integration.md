@@ -59,6 +59,8 @@ FISH_SPEECH_CUES_ENABLED=1
 FISH_SPEECH_CUE_PROBABILITY=0.65
 ```
 
+The FastTrack cue list now uses most stable Fish Speech README/WebUI tags. It excludes tags that are too context-bound or risky for automatic short reactions, such as `[singing]`, `[echo]`, `[audience laughter]`, `[with strong accent]`, `[moaning]`, `[interrupting]`, and `[panting]`.
+
 ## SlowTrack Behavior
 
 SlowTrack system prompts now tell the local LLM that Fish Speech supports inline tags. The model is allowed to use at most one short tag per sentence from the approved tag set.
