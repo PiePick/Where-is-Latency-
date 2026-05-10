@@ -1,0 +1,150 @@
+{
+  "version": "fast-track-tts-cache-v01",
+  "generated_at": "2026-05-10T21:20:35.059085+00:00",
+  "generator": "AI_NPC_System/scripts/prebuild_fast_track_tts_cache.py",
+  "reaction_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/hybrid_reactions.json",
+  "cue_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fish_speech_nonverbal_cues.json",
+  "policy": {
+    "max_reactions_per_source": 1,
+    "cues_per_category": 1,
+    "keyword_usage": "Keywords are used only to bias everyday vs stream cache selection."
+  },
+  "items": [
+    {
+      "id": "bd103151cfbbbb32",
+      "category": "Positive",
+      "source": "everyday",
+      "reaction": "Great.",
+      "plain_tts_text": "Great.",
+      "tts_text": "[chuckle] Great.",
+      "cue": {
+        "tag": "[chuckle]",
+        "cue_text": "chuckle",
+        "distilbert_label": "amusement",
+        "distilbert_score": 0.647,
+        "final_category": "Positive",
+        "weight": 1.0
+      },
+      "audio_path": "Positive/everyday/bd103151cfbbbb32.wav"
+    },
+    {
+      "id": "e551e29fc1249359",
+      "category": "Positive",
+      "source": "stream",
+      "reaction": "Good work, friend.",
+      "plain_tts_text": "Good work, friend.",
+      "tts_text": "[chuckle] Good work, friend.",
+      "cue": {
+        "tag": "[chuckle]",
+        "cue_text": "chuckle",
+        "distilbert_label": "amusement",
+        "distilbert_score": 0.647,
+        "final_category": "Positive",
+        "weight": 1.0
+      },
+      "audio_path": "Positive/stream/e551e29fc1249359.wav"
+    },
+    {
+      "id": "4928acbdfe8a19ab",
+      "category": "Negative",
+      "source": "everyday",
+      "reaction": "I feel sorry for you.",
+      "plain_tts_text": "I feel sorry for you.",
+      "tts_text": "[sigh] I feel sorry for you.",
+      "cue": {
+        "tag": "[sigh]",
+        "cue_text": "sigh",
+        "distilbert_label": "sadness",
+        "distilbert_score": 0.3737,
+        "final_category": "Negative",
+        "weight": 0.95
+      },
+      "audio_path": "Negative/everyday/4928acbdfe8a19ab.wav"
+    },
+    {
+      "id": "c60438b2d9669fae",
+      "category": "Negative",
+      "source": "stream",
+      "reaction": "I'm so sorry",
+      "plain_tts_text": "I'm so sorry",
+      "tts_text": "[sigh] I'm so sorry",
+      "cue": {
+        "tag": "[sigh]",
+        "cue_text": "sigh",
+        "distilbert_label": "sadness",
+        "distilbert_score": 0.3737,
+        "final_category": "Negative",
+        "weight": 0.95
+      },
+      "audio_path": "Negative/stream/c60438b2d9669fae.wav"
+    },
+    {
+      "id": "ae01f8b8e6244f84",
+      "category": "Ambiguous",
+      "source": "everyday",
+      "reaction": "Could you elaborate on that?",
+      "plain_tts_text": "Could you elaborate on that?",
+      "tts_text": "[surprised] Could you elaborate on that?",
+      "cue": {
+        "tag": "[surprised]",
+        "cue_text": "surprised",
+        "distilbert_label": "surprise",
+        "distilbert_score": 0.6371,
+        "final_category": "Ambiguous",
+        "weight": 1.0
+      },
+      "audio_path": "Ambiguous/everyday/ae01f8b8e6244f84.wav"
+    },
+    {
+      "id": "aaa4dce644ea78f7",
+      "category": "Ambiguous",
+      "source": "stream",
+      "reaction": "Huh. Weird.",
+      "plain_tts_text": "Huh. Weird.",
+      "tts_text": "[surprised] Huh. Weird.",
+      "cue": {
+        "tag": "[surprised]",
+        "cue_text": "surprised",
+        "distilbert_label": "surprise",
+        "distilbert_score": 0.6371,
+        "final_category": "Ambiguous",
+        "weight": 1.0
+      },
+      "audio_path": "Ambiguous/stream/aaa4dce644ea78f7.wav"
+    },
+    {
+      "id": "41f42f8fd64754ba",
+      "category": "Neutral",
+      "source": "everyday",
+      "reaction": "No problem, anytime.",
+      "plain_tts_text": "No problem, anytime.",
+      "tts_text": "[short pause] No problem, anytime.",
+      "cue": {
+        "tag": "[short pause]",
+        "cue_text": "short pause",
+        "distilbert_label": "annoyance",
+        "distilbert_score": 0.0661,
+        "final_category": "Neutral",
+        "weight": 1.0
+      },
+      "audio_path": "Neutral/everyday/41f42f8fd64754ba.wav"
+    },
+    {
+      "id": "8cbbaa5f2ddb319e",
+      "category": "Neutral",
+      "source": "stream",
+      "reaction": "Fair enough.",
+      "plain_tts_text": "Fair enough.",
+      "tts_text": "[short pause] Fair enough.",
+      "cue": {
+        "tag": "[short pause]",
+        "cue_text": "short pause",
+        "distilbert_label": "annoyance",
+        "distilbert_score": 0.0661,
+        "final_category": "Neutral",
+        "weight": 1.0
+      },
+      "audio_path": "Neutral/stream/8cbbaa5f2ddb319e.wav"
+    }
+  ]
+}

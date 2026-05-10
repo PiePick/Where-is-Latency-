@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import time
+from pathlib import Path
 
 import fast_track
 import slow_track
-from tts_client import FishSpeechTTSClient
+from tts_client import FishSpeechTTSClient, play_audio
 
 
 def _read_user_text() -> str | None:
@@ -30,6 +31,20 @@ def _speak_or_log(tts: FishSpeechTTSClient, text: str, prefix: str) -> None:
         print(f"{prefix} audio: {audio_path}")
     except Exception as exc:
         print(f"{prefix} TTS skipped: {exc}")
+
+
+def _play_fast_cover_or_synthesize(tts: FishSpeechTTSClient, fast_result: dict, text: str) -> None:
+    """Play cached FastTrack audio before falling back to live TTS synthesis."""
+    audio_path = fast_result.get("fast_audio_path")
+    if audio_path:
+        path = Path(audio_path)
+        if path.exists():
+            played = play_audio(path)
+            status = "played" if played else "ready; no local player found"
+            print(f"fast cached audio {status}: {path}")
+            return
+        print(f"fast cached audio unavailable: {audio_path}")
+    _speak_or_log(tts, text, "fast")
 
 
 async def run_cycle() -> None:
@@ -57,9 +72,10 @@ async def run_cycle() -> None:
             f"{fast_text} "
             f"(emotion={fast_result['emotion_label']}, "
             f"source={fast_result.get('reaction_source')}, "
+            f"cache={fast_result.get('fast_audio_cache_hit')}, "
             f"cue={fast_result.get('fish_speech_cue')})"
         )
-        _speak_or_log(tts, fast_text, "fast")
+        _play_fast_cover_or_synthesize(tts, fast_result, fast_text)
 
         # SlowTrack can spend more time on a natural full response.
         slow_text = await slow_track.generate_response(
