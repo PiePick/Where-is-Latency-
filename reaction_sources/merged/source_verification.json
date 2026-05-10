@@ -1,0 +1,57 @@
+{
+  "source_map": {
+    "everyday": "daily_dialog",
+    "stream": "go_emotions"
+  },
+  "summary": {
+    "Positive": {
+      "everyday": {
+        "total": 99,
+        "found_in_raw": 99,
+        "missing": 0
+      },
+      "stream": {
+        "total": 129,
+        "found_in_raw": 129,
+        "missing": 0
+      }
+    },
+    "Negative": {
+      "everyday": {
+        "total": 134,
+        "found_in_raw": 134,
+        "missing": 0
+      },
+      "stream": {
+        "total": 84,
+        "found_in_raw": 84,
+        "missing": 0
+      }
+    },
+    "Ambiguous": {
+      "everyday": {
+        "total": 92,
+        "found_in_raw": 92,
+        "missing": 0
+      },
+      "stream": {
+        "total": 101,
+        "found_in_raw": 101,
+        "missing": 0
+      }
+    },
+    "Neutral": {
+      "everyday": {
+        "total": 47,
+        "found_in_raw": 47,
+        "missing": 0
+      },
+      "stream": {
+        "total": 15,
+        "found_in_raw": 15,
+        "missing": 0
+      }
+    }
+  },
+  "missing": []
+}
