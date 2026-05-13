@@ -82,6 +82,13 @@ OLLAMA_MODEL = FALLBACK_LOCAL_LLM_MODEL
 # Slow lane ETA hint for clients/logging.
 EXPECTED_SLOW_LANE_MS = _env_int("EXPECTED_SLOW_LANE_MS", 3500)
 
+# External memory. The LLM stays stateless; this file is injected into prompts.
+MEMORY_ENABLED = _env_bool("MEMORY_ENABLED", True)
+MEMORY_FILE = os.getenv("MEMORY_FILE", "memory/user_memory.json")
+MEMORY_PATH = ROOT_DIR / MEMORY_FILE
+MEMORY_MAX_RECENT_TURNS = _env_int("MEMORY_MAX_RECENT_TURNS", 6)
+MEMORY_MAX_EVENTS = _env_int("MEMORY_MAX_EVENTS", 12)
+
 # Fish Speech TTS HTTP server. The base model is selected when that server starts.
 FISH_SPEECH_BASE_URL = os.getenv("FISH_SPEECH_BASE_URL", "http://127.0.0.1:8080")
 FISH_SPEECH_TTS_URL = os.getenv("FISH_SPEECH_TTS_URL", f"{FISH_SPEECH_BASE_URL}/v1/tts")

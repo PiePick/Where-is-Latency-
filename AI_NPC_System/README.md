@@ -10,6 +10,7 @@ tcp_server.py           TCP server for Unity or another local client.
 fast_track.py           Stable FastTrack facade.
 fast_track_engine.py    DistilBERT, spaCy, cache-aware reaction sampling, and TTS cue mixing.
 fast_track_audio_cache.py  Manifest loader for pre-generated FastTrack cover audio.
+memory_store.py        JSON-backed user profile, recent-turn, and emotional-event memory.
 slow_track.py           Local OpenAI-compatible LLM caller.
 tts_client.py           Fish Speech HTTP TTS client and local playback helper.
 tts_cues.py             Emotion-aware Fish Speech cue selector.
@@ -22,6 +23,7 @@ config.py               Environment-variable based runtime settings.
 hybrid_reactions.json               Final FastTrack reaction list.
 fish_speech_nonverbal_cues.json     Fish Speech nonverbal cue buckets.
 fast_track_audio_cache/manifest.json    Pre-generated FastTrack audio cache manifest.
+memory/user_memory.json                 Runtime memory file, ignored by git.
 ```
 
 ## Scripts
@@ -59,3 +61,11 @@ falls back to live Fish Speech text generation.
 The default generated cache is intentionally small: one safe cover per emotion
 and source pair, for eight wav files total. Increase `--max-reactions-per-source`
 and `--cues-per-category` only when a larger video stimulus set is needed.
+
+## Memory
+
+The local LLM is stateless, so persistent memory is stored outside the model in
+`memory/user_memory.json`. The memory module keeps a small user profile, recent
+turns, and emotionally important events, then injects a compact memory context
+into SlowTrack prompts. Disable it with `MEMORY_ENABLED=0` when a controlled
+experiment should not include prior context.
