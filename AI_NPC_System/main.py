@@ -6,8 +6,10 @@ import asyncio
 import time
 from pathlib import Path
 
+import config
 import fast_track
 import slow_track
+from memory_store import MemoryStore
 from tts_client import FishSpeechTTSClient, play_audio
 
 
@@ -51,10 +53,13 @@ async def run_cycle() -> None:
     """Run a local chat loop: FastTrack first, SlowTrack second."""
     print("AI NPC local chat started. Type exit to quit.")
     tts = FishSpeechTTSClient()
+    memory = MemoryStore() if config.MEMORY_ENABLED else None
     if tts.is_healthy():
         print("Fish Speech TTS server is ready.")
     else:
         print("Fish Speech TTS server is not reachable; text generation will still run.")
+    if memory:
+        print(f"Memory enabled: {config.MEMORY_PATH}")
 
     while True:
         user_input = _read_user_text()
@@ -82,9 +87,19 @@ async def run_cycle() -> None:
             user_input,
             fast_text,
             fast_result.get("strategy"),
+            memory.build_prompt_context() if memory else None,
         )
         print(f"SlowTrack: {slow_text}")
         _speak_or_log(tts, slow_text, "slow")
+
+        if memory:
+            memory.record_turn(
+                user_text=user_input,
+                assistant_text=slow_text,
+                fast_reaction=fast_text,
+                emotion=fast_result.get("emotion_label"),
+                keywords=fast_result.get("keywords") or [],
+            )
 
         elapsed = time.time() - started
         print(f"cycle_seconds={elapsed:.3f}")

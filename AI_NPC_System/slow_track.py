@@ -9,7 +9,11 @@ import urllib.request
 import config
 
 
-def _system_prompt(fast_reaction: str | None, strategy: str | None) -> str:
+def _system_prompt(
+    fast_reaction: str | None,
+    strategy: str | None,
+    memory_context: str | None = None,
+) -> str:
     """Build the local LLM prompt for continuation after latency cover."""
     prompt = (
         "You are the SlowTrack continuation writer for an English-speaking AI VTuber. "
@@ -27,6 +31,12 @@ def _system_prompt(fast_reaction: str | None, strategy: str | None) -> str:
         "[excited], [sigh], [soft sigh], [sad sigh], [whisper], [surprised], [shocked]. "
         "Do not output tags as labels; they must be part of the spoken TTS text only."
     )
+    if memory_context:
+        prompt += (
+            " The following memory is external context, not a script. "
+            "Use it only if it is relevant to the viewer's current message:\n"
+            f"{memory_context}"
+        )
     if fast_reaction:
         prompt += f" The already-played latency cover was: {fast_reaction!r}."
     if strategy:
@@ -43,13 +53,17 @@ async def _call_openai_compatible(
     user_input: str,
     fast_reaction: str | None,
     strategy: str | None,
+    memory_context: str | None,
 ) -> str:
     """Call an OpenAI-compatible local server with only stdlib HTTP."""
     endpoint = f"{base_url.rstrip('/')}/chat/completions"
     payload = {
         "model": model,
         "messages": [
-            {"role": "system", "content": _system_prompt(fast_reaction, strategy)},
+            {
+                "role": "system",
+                "content": _system_prompt(fast_reaction, strategy, memory_context),
+            },
             {"role": "user", "content": user_input},
         ],
         "temperature": config.LOCAL_LLM_TEMPERATURE,
@@ -74,7 +88,7 @@ async def _call_openai_compatible(
     return content.strip() or "I hear you."
 
 
-async def generate_response(user_input, fast_reaction=None, strategy=None):
+async def generate_response(user_input, fast_reaction=None, strategy=None, memory_context=None):
     """Generate the Slow Track answer.
 
     Primary model is the higher-quality local Llama 70B AWQ vLLM server.
@@ -105,6 +119,7 @@ async def generate_response(user_input, fast_reaction=None, strategy=None):
                 user_input=user_input,
                 fast_reaction=fast_reaction,
                 strategy=strategy,
+                memory_context=memory_context,
             )
             print(f"[Slow Track] Used local LLM: {model} ({base_url})")
             return reply
@@ -118,7 +133,10 @@ async def generate_response(user_input, fast_reaction=None, strategy=None):
 
             genai.configure(api_key=config.GEMINI_API_KEY)
             model = genai.GenerativeModel(config.GEMINI_MODEL)
-            full_prompt = f"{_system_prompt(fast_reaction, strategy)}\n\nUser: {user_input}"
+            full_prompt = (
+                f"{_system_prompt(fast_reaction, strategy, memory_context)}\n\n"
+                f"User: {user_input}"
+            )
             response = await model.generate_content_async(full_prompt)
             print(f"[Slow Track] Used cloud Gemini: {config.GEMINI_MODEL}")
             return response.text.strip()

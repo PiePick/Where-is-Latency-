@@ -1,4 +1,7 @@
 __pycache__/
 *.py[cod]
+memory/*.json
+memory/*.tmp
+memory/*.broken.json
 tts_outputs/
 tts_benchmarks/

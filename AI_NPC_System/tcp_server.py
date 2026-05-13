@@ -12,12 +12,15 @@ import json
 import time
 from typing import Any
 
+import config
 import fast_track
 import slow_track
+from memory_store import MemoryStore
 
 
 HOST = "127.0.0.1"
 PORT = 5000
+MEMORY = MemoryStore() if config.MEMORY_ENABLED else None
 
 
 def build_fast_packet(fast_result: dict[str, Any], total_latency: float) -> dict[str, Any]:
@@ -117,10 +120,19 @@ async def handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWrit
                 user_text,
                 tts_text,
                 fast_result.get("strategy"),
+                MEMORY.build_prompt_context() if MEMORY else None,
             )
 
             latency_slow = time.time() - start_time
             await send_json(writer, build_slow_packet(llm_reply, latency_slow))
+            if MEMORY:
+                MEMORY.record_turn(
+                    user_text=user_text,
+                    assistant_text=llm_reply,
+                    fast_reaction=tts_text,
+                    emotion=fast_result.get("emotion_label"),
+                    keywords=fast_result.get("keywords") or [],
+                )
             print(f"[Slow Sent] {llm_reply} (Total: {latency_slow:.4f}s)")
             print("=" * 30)
 
@@ -143,6 +155,8 @@ async def main() -> None:
     """Start the localhost TCP server."""
     server = await asyncio.start_server(handle_client, HOST, PORT)
     print(f"[Pipeline Server] running at {HOST}:{PORT}")
+    if MEMORY:
+        print(f"   Memory enabled: {config.MEMORY_PATH}")
     print("   Waiting for Unity or local client...")
     async with server:
         await server.serve_forever()
