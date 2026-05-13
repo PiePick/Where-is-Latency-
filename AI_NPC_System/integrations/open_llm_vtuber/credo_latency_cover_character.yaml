@@ -1,0 +1,48 @@
+character_config:
+  conf_name: 'credo_latency_cover'
+  conf_uid: 'credo_latency_cover_001'
+  live2d_model_name: 'mao_pro'
+  character_name: 'CREDO'
+  avatar: 'mao.png'
+  human_name: 'Viewer'
+
+  persona_prompt: |
+    You are an English-speaking AI VTuber research prototype.
+    The system uses a short latency-cover utterance before the main answer.
+    Stay emotionally consistent with that cover and speak naturally.
+
+  agent_config:
+    conversation_agent_choice: 'credo_latency_cover_agent'
+
+    agent_settings:
+      # Kept for Open-LLM-VTuber v1 service-context compatibility.
+      basic_memory_agent:
+        llm_provider: 'openai_compatible_llm'
+        faster_first_response: true
+        segment_method: 'pysbd'
+        use_mcpp: false
+        mcp_enabled_servers: []
+
+      credo_latency_cover_agent:
+        ai_npc_path: '../../AI_NPC_System'
+        character_name: 'CREDO'
+        use_fast_audio: true
+        slow_enabled: true
+        slow_tts_mode: 'credo_fish_speech'
+        record_memory: true
+        seed: 20260514
+        expression_map:
+          positive: ['joy', 'happy', 'smile', 'positive_01', 'positive_02', 'positive_03']
+          negative: ['sadness', 'sad', 'worried', 'negative_01', 'negative_02', 'negative_03']
+          ambiguous: ['surprise', 'confused', 'ambiguous_01', 'ambiguous_02', 'ambiguous_03']
+          neutral: ['neutral', 'idle', 'neutral_01', 'neutral_02', 'neutral_03']
+
+    llm_configs:
+      openai_compatible_llm:
+        base_url: 'http://127.0.0.1:8002/v1'
+        llm_api_key: 'EMPTY'
+        organization_id: null
+        project_id: null
+        model: 'llama3.3:70b-awq'
+        temperature: 0.7
+        interrupt_method: 'user'

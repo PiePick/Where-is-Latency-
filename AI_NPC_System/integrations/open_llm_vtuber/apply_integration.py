@@ -1,0 +1,247 @@
+"""Install the CREDO latency-cover adapter into a local Open-LLM-VTuber clone."""
+
+from __future__ import annotations
+
+import argparse
+import re
+import shutil
+from pathlib import Path
+
+import yaml
+
+
+INTEGRATION_DIR = Path(__file__).resolve().parent
+CREDO_ROOT = INTEGRATION_DIR.parents[2]
+DEFAULT_VENDOR = CREDO_ROOT / "vendor" / "open-llm-vtuber"
+
+
+def replace_once(text: str, old: str, new: str, label: str) -> str:
+    """Replace a marker once unless the target text already exists."""
+    if new.strip() in text:
+        return text
+    if old not in text:
+        raise RuntimeError(f"Patch marker not found: {label}")
+    return text.replace(old, new, 1)
+
+
+def patch_agent_factory(vendor: Path) -> None:
+    """Register CredoLatencyCoverAgent in Open-LLM-VTuber's AgentFactory."""
+    path = vendor / "src" / "open_llm_vtuber" / "agent" / "agent_factory.py"
+    text = path.read_text(encoding="utf-8")
+    text = replace_once(
+        text,
+        "from .agents.letta_agent import LettaAgent\n",
+        "from .agents.letta_agent import LettaAgent\n"
+        "from .agents.credo_latency_cover_agent import CredoLatencyCoverAgent\n",
+        "agent_factory import",
+    )
+    branch = """        elif conversation_agent_choice == "credo_latency_cover_agent":
+            settings = agent_settings.get("credo_latency_cover_agent", {})
+            return CredoLatencyCoverAgent(
+                settings=settings,
+                system_prompt=system_prompt,
+                live2d_model=live2d_model,
+                character_avatar=kwargs.get("character_avatar", ""),
+            )
+
+"""
+    text = replace_once(
+        text,
+        "        elif conversation_agent_choice == \"mem0_agent\":\n",
+        branch + "        elif conversation_agent_choice == \"mem0_agent\":\n",
+        "agent_factory branch",
+    )
+    path.write_text(text, encoding="utf-8")
+
+
+def patch_agent_config(vendor: Path) -> None:
+    """Teach the pydantic config schema about the CREDO agent settings."""
+    path = vendor / "src" / "open_llm_vtuber" / "config_manager" / "agent.py"
+    text = path.read_text(encoding="utf-8")
+    class_block = '''
+class CredoLatencyCoverAgentConfig(I18nMixin, BaseModel):
+    """Configuration for the CREDO latency-cover research agent."""
+
+    ai_npc_path: str = Field("../../AI_NPC_System", alias="ai_npc_path")
+    character_name: str = Field("CREDO", alias="character_name")
+    use_fast_audio: bool = Field(True, alias="use_fast_audio")
+    slow_enabled: bool = Field(True, alias="slow_enabled")
+    slow_tts_mode: str = Field("credo_fish_speech", alias="slow_tts_mode")
+    record_memory: bool = Field(True, alias="record_memory")
+    seed: Optional[int] = Field(None, alias="seed")
+    expression_map: Dict[str, List[str]] = Field(default_factory=dict, alias="expression_map")
+
+    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
+        "ai_npc_path": Description(
+            en="Path to the CREDO AI_NPC_System runtime folder",
+            zh="CREDO AI_NPC_System 运行目录路径",
+        ),
+        "use_fast_audio": Description(
+            en="Use pre-generated FastTrack audio files when available",
+            zh="可用时使用预生成的 FastTrack 音频",
+        ),
+        "slow_tts_mode": Description(
+            en="Slow response TTS mode: credo_fish_speech or open_llm",
+            zh="慢速回应 TTS 模式：credo_fish_speech 或 open_llm",
+        ),
+    }
+
+
+'''
+    text = replace_once(
+        text,
+        "# =================================\n\n\nclass HumeAIConfig",
+        "# =================================\n\n\n" + class_block + "class HumeAIConfig",
+        "CredoLatencyCoverAgentConfig",
+    )
+    text = replace_once(
+        text,
+        "    letta_agent: Optional[LettaConfig] = Field(None, alias=\"letta_agent\")\n",
+        "    letta_agent: Optional[LettaConfig] = Field(None, alias=\"letta_agent\")\n"
+        "    credo_latency_cover_agent: Optional[CredoLatencyCoverAgentConfig] = Field(\n"
+        "        None, alias=\"credo_latency_cover_agent\"\n"
+        "    )\n",
+        "AgentSettings field",
+    )
+    text = replace_once(
+        text,
+        "        \"basic_memory_agent\", \"mem0_agent\", \"hume_ai_agent\", \"letta_agent\"\n",
+        "        \"basic_memory_agent\",\n"
+        "        \"mem0_agent\",\n"
+        "        \"hume_ai_agent\",\n"
+        "        \"letta_agent\",\n"
+        "        \"credo_latency_cover_agent\",\n",
+        "conversation_agent_choice literal",
+    )
+    text = replace_once(
+        text,
+        "        \"letta_agent\": Description(\n"
+        "            en=\"Configuration for Letta agent\", zh=\"Letta 代理配置\"\n"
+        "        ),\n",
+        "        \"letta_agent\": Description(\n"
+        "            en=\"Configuration for Letta agent\", zh=\"Letta 代理配置\"\n"
+        "        ),\n"
+        "        \"credo_latency_cover_agent\": Description(\n"
+        "            en=\"Configuration for CREDO latency-cover research agent\",\n"
+        "            zh=\"CREDO 延迟遮蔽研究代理配置\",\n"
+        "        ),\n",
+        "AgentSettings description",
+    )
+    path.write_text(text, encoding="utf-8")
+
+
+def patch_service_context(vendor: Path) -> None:
+    """Avoid assuming every custom agent has BasicMemoryAgent settings."""
+    path = vendor / "src" / "open_llm_vtuber" / "service_context.py"
+    text = path.read_text(encoding="utf-8")
+    text = replace_once(
+        text,
+        "    # ==== Initializers\n",
+        "    # ==== Initializers\n"
+        "    def _basic_memory_settings(self, agent_config=None):\n"
+        "        \"\"\"Return BasicMemoryAgent settings when the selected agent has them.\"\"\"\n"
+        "        if agent_config is None:\n"
+        "            agent_config = self.character_config.agent_config\n"
+        "        if not agent_config or not agent_config.agent_settings:\n"
+        "            return None\n"
+        "        return agent_config.agent_settings.basic_memory_agent\n\n",
+        "service_context helper",
+    )
+    text = text.replace(
+        "self.character_config.agent_config.agent_settings.basic_memory_agent.use_mcpp,\n"
+        "            self.character_config.agent_config.agent_settings.basic_memory_agent.mcp_enabled_servers,",
+        "(self._basic_memory_settings().use_mcpp if self._basic_memory_settings() else False),\n"
+        "            (self._basic_memory_settings().mcp_enabled_servers if self._basic_memory_settings() else []),",
+    )
+    text = text.replace(
+        "config.character_config.agent_config.agent_settings.basic_memory_agent.use_mcpp",
+        "(self._basic_memory_settings(config.character_config.agent_config).use_mcpp if self._basic_memory_settings(config.character_config.agent_config) else False)",
+    )
+    text = text.replace(
+        "config.character_config.agent_config.agent_settings.basic_memory_agent.mcp_enabled_servers",
+        "(self._basic_memory_settings(config.character_config.agent_config).mcp_enabled_servers if self._basic_memory_settings(config.character_config.agent_config) else [])",
+    )
+    path.write_text(text, encoding="utf-8")
+
+
+def copy_files(vendor: Path) -> None:
+    """Copy the custom agent and character config into the vendor clone."""
+    agent_dst = vendor / "src" / "open_llm_vtuber" / "agent" / "agents" / "credo_latency_cover_agent.py"
+    shutil.copy2(INTEGRATION_DIR / "credo_latency_cover_agent.py", agent_dst)
+
+    character_dst = vendor / "characters" / "credo_latency_cover.yaml"
+    text = (INTEGRATION_DIR / "credo_latency_cover_character.yaml").read_text(encoding="utf-8")
+    text = re.sub(
+        r"ai_npc_path: '.*'",
+        f"ai_npc_path: '{(CREDO_ROOT / 'AI_NPC_System').as_posix()}'",
+        text,
+    )
+    character_dst.write_text(text, encoding="utf-8")
+
+
+def deep_merge(base: dict, patch: dict) -> dict:
+    """Merge nested dictionaries without deleting unspecified default config."""
+    for key, value in patch.items():
+        if isinstance(value, dict) and isinstance(base.get(key), dict):
+            deep_merge(base[key], value)
+        else:
+            base[key] = value
+    return base
+
+
+def write_full_config(vendor: Path, *, activate: bool) -> None:
+    """Write a runnable full config derived from Open-LLM-VTuber's default."""
+    default_path = vendor / "config_templates" / "conf.default.yaml"
+    character_path = vendor / "characters" / "credo_latency_cover.yaml"
+    default_config = yaml.safe_load(default_path.read_text(encoding="utf-8"))
+    character_patch = yaml.safe_load(character_path.read_text(encoding="utf-8"))
+    merged = deep_merge(default_config, character_patch)
+
+    full_path = vendor / "conf.credo.yaml"
+    full_path.write_text(
+        yaml.safe_dump(merged, sort_keys=False, allow_unicode=True),
+        encoding="utf-8",
+    )
+
+    if activate:
+        conf_path = vendor / "conf.yaml"
+        if conf_path.exists():
+            backup_path = vendor / "conf.yaml.before_credo"
+            if not backup_path.exists():
+                shutil.copy2(conf_path, backup_path)
+        shutil.copy2(full_path, conf_path)
+
+
+def ensure_vendor(vendor: Path) -> None:
+    """Check that the target clone is the expected Open-LLM-VTuber tree."""
+    if not (vendor / "run_server.py").exists():
+        raise FileNotFoundError(f"Open-LLM-VTuber clone not found: {vendor}")
+    if not (vendor / "src" / "open_llm_vtuber").exists():
+        raise FileNotFoundError(f"Unexpected Open-LLM-VTuber layout: {vendor}")
+
+
+def apply(vendor: Path, *, activate: bool = False) -> None:
+    """Apply all integration files and idempotent source patches."""
+    ensure_vendor(vendor)
+    copy_files(vendor)
+    patch_agent_factory(vendor)
+    patch_agent_config(vendor)
+    patch_service_context(vendor)
+    write_full_config(vendor, activate=activate)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--vendor", type=Path, default=DEFAULT_VENDOR)
+    parser.add_argument(
+        "--activate",
+        action="store_true",
+        help="Also write conf.yaml from the generated CREDO config.",
+    )
+    args = parser.parse_args()
+    apply(args.vendor.resolve(), activate=args.activate)
+    print(f"CREDO Open-LLM-VTuber integration applied to {args.vendor.resolve()}")
+
+
+if __name__ == "__main__":
+    main()

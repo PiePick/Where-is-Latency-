@@ -15,6 +15,7 @@ slow_track.py           Local OpenAI-compatible LLM caller.
 tts_client.py           Fish Speech HTTP TTS client and local playback helper.
 tts_cues.py             Emotion-aware Fish Speech cue selector.
 config.py               Environment-variable based runtime settings.
+integrations/open_llm_vtuber/  Open-LLM-VTuber agent adapter and installer.
 ```
 
 ## Data Files
@@ -47,7 +48,17 @@ FAST_TRACK_DEVICE=cpu python3 AI_NPC_System/main.py
 python3 AI_NPC_System/tcp_server.py
 AI_NPC_System/scripts/start_fish_speech_server.sh
 python3 AI_NPC_System/scripts/prebuild_fast_track_tts_cache.py --max-reactions-per-source 1 --cues-per-category 1
+python3 AI_NPC_System/integrations/open_llm_vtuber/apply_integration.py --activate
 ```
+
+## Open-LLM-VTuber Platform
+
+Open-LLM-VTuber can run the same research logic through the CREDO integration
+agent. The platform handles the Live2D UI and websocket conversation loop. The
+agent calls `AI_NPC_System` for DistilBERT emotion classification, cached
+FastTrack audio, SlowTrack local LLM generation, Fish Speech synthesis, and JSON
+memory. See `integrations/open_llm_vtuber/README.md` for the installation and
+expression-map details.
 
 ## FastTrack Audio Cache
 
