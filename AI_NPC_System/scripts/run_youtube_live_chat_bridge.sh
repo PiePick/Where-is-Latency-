@@ -3,6 +3,14 @@ set -euo pipefail
 
 # Run with the Open-LLM-VTuber venv because it already has websockets installed.
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+CONFIG_FILE="${CREDO_PROJECT_CONFIG:-${ROOT_DIR}/AI_NPC_System/project_config.sh}"
+if [ -f "${CONFIG_FILE}" ]; then
+  set -a
+  # shellcheck source=/dev/null
+  source "${CONFIG_FILE}"
+  set +a
+fi
+
 OLV_VENV_PYTHON="${ROOT_DIR}/vendor/open-llm-vtuber/.venv/bin/python"
 PYTHON_BIN="${YOUTUBE_CHAT_BRIDGE_PYTHON:-${OLV_VENV_PYTHON}}"
 

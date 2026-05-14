@@ -14,7 +14,8 @@ memory_store.py        JSON-backed user profile, recent-turn, and emotional-even
 slow_track.py           Local OpenAI-compatible LLM caller.
 tts_client.py           Fish Speech HTTP TTS client and local playback helper.
 tts_cues.py             Emotion-aware Fish Speech cue selector.
-config.py               Environment-variable based runtime settings.
+config.py               Python loader for the shared project settings.
+project_config.sh       Single editable experiment config for LLM, prompts, TTS, data, and runtime paths.
 integrations/open_llm_vtuber/  Open-LLM-VTuber agent adapter and installer.
 ```
 
@@ -45,6 +46,20 @@ scripts/requirements.txt                Dataset/FastTrack build dependencies.
 ```
 
 ## Common Commands
+
+Change experiment components in one place first:
+
+```bash
+nano AI_NPC_System/project_config.sh
+```
+
+The shell launchers source this file, and Python runtime modules load the same
+file before reading environment variables. A one-off environment variable still
+overrides the file, for example:
+
+```bash
+LOCAL_LLM_MODEL="other-served-name" AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
+```
 
 ```bash
 python3 -m pip install -r AI_NPC_System/scripts/requirements.txt

@@ -20,12 +20,13 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+import config  # noqa: E402
 from tts_client import FishSpeechTTSClient, FishSpeechTTSConfig  # noqa: E402
 
 
-DEFAULT_REACTION_PATH = ROOT / "hybrid_reactions.json"
-DEFAULT_CUE_PATH = ROOT / "fish_speech_nonverbal_cues.json"
-DEFAULT_OUTPUT_DIR = ROOT / "fast_track_audio_cache"
+DEFAULT_REACTION_PATH = config.REACTION_DB_PATH
+DEFAULT_CUE_PATH = config.FISH_SPEECH_CUE_PATH
+DEFAULT_OUTPUT_DIR = config.FAST_TRACK_AUDIO_CACHE_PATH.parent
 CATEGORIES = ("Positive", "Negative", "Ambiguous", "Neutral")
 SOURCES = ("everyday", "stream")
 

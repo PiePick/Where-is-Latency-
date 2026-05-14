@@ -3,11 +3,21 @@ set -euo pipefail
 
 # Launch the Fish Speech HTTP API from the vendored repository.
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+CONFIG_FILE="${CREDO_PROJECT_CONFIG:-${ROOT_DIR}/AI_NPC_System/project_config.sh}"
+if [ -f "${CONFIG_FILE}" ]; then
+  set -a
+  # shellcheck source=/dev/null
+  source "${CONFIG_FILE}"
+  set +a
+fi
+
 FISH_DIR="${FISH_SPEECH_REPO_DIR:-${ROOT_DIR}/vendor/fish-speech}"
 HOST="${FISH_SPEECH_HOST:-127.0.0.1}"
 PORT="${FISH_SPEECH_PORT:-8080}"
 CUDA_DEVICES="${FISH_SPEECH_CUDA_VISIBLE_DEVICES:-0}"
-CHECKPOINT_DIR="${FISH_SPEECH_CHECKPOINT_DIR:-${FISH_DIR}/checkpoints/s2-pro}"
+CHECKPOINT_NAME="${FISH_SPEECH_CHECKPOINT_NAME:-s2-pro}"
+CHECKPOINT_DIR="${FISH_SPEECH_CHECKPOINT_DIR:-${FISH_DIR}/checkpoints/${CHECKPOINT_NAME}}"
+MODEL_REPO="${FISH_SPEECH_MODEL_REPO:-fishaudio/s2-pro}"
 API_KEY="${FISH_SPEECH_API_KEY:-}"
 EXTRA_ARGS="${FISH_SPEECH_EXTRA_ARGS:-}"
 DEFAULT_VENV_PYTHON="${FISH_DIR}/.venv/bin/python"
@@ -31,7 +41,7 @@ mkdir -p "${MPLCONFIGDIR}"
 if [ ! -d "${CHECKPOINT_DIR}" ]; then
   echo "Missing Fish Speech checkpoint: ${CHECKPOINT_DIR}" >&2
   echo "Download first:" >&2
-  echo "  cd ${FISH_DIR} && hf download fishaudio/s2-pro --local-dir checkpoints/s2-pro" >&2
+  echo "  cd ${FISH_DIR} && hf download ${MODEL_REPO} --local-dir checkpoints/${CHECKPOINT_NAME}" >&2
   exit 2
 fi
 
@@ -60,5 +70,6 @@ fi
 echo "Starting Fish Speech server on http://${HOST}:${PORT}"
 echo "Using CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 echo "Using Python: ${PYTHON_BIN}"
+echo "Using Fish Speech checkpoint: ${CHECKPOINT_DIR}"
 echo "Using Fish Speech reference voice: ${REFERENCE_ID}"
 "${cmd[@]}" ${EXTRA_ARGS}

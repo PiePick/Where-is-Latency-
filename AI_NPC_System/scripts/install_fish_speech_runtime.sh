@@ -5,6 +5,14 @@ set -euo pipefail
 # PyAudio is intentionally skipped because the HTTP API server does not need
 # local microphone capture and PyAudio requires WSL system headers.
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+CONFIG_FILE="${CREDO_PROJECT_CONFIG:-${ROOT_DIR}/AI_NPC_System/project_config.sh}"
+if [ -f "${CONFIG_FILE}" ]; then
+  set -a
+  # shellcheck source=/dev/null
+  source "${CONFIG_FILE}"
+  set +a
+fi
+
 FISH_DIR="${FISH_SPEECH_REPO_DIR:-${ROOT_DIR}/vendor/fish-speech}"
 VENV_DIR="${FISH_SPEECH_VENV_DIR:-${FISH_DIR}/.venv}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"

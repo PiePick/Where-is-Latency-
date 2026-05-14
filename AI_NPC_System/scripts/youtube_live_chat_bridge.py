@@ -35,7 +35,7 @@ except ImportError as exc:  # pragma: no cover - runtime guidance
 
 
 YOUTUBE_API = "https://www.googleapis.com/youtube/v3"
-DEFAULT_PROXY_URL = "ws://localhost:12393/proxy-ws"
+DEFAULT_PROXY_URL = os.getenv("YOUTUBE_CHAT_PROXY_URL", "ws://localhost:12393/proxy-ws")
 
 
 @dataclass(frozen=True)
@@ -229,10 +229,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--live-chat-id", default="", help="Known activeLiveChatId.")
     parser.add_argument("--proxy-url", default=DEFAULT_PROXY_URL, help="Open-LLM-VTuber proxy websocket URL.")
     parser.add_argument("--timeout", type=float, default=10.0, help="HTTP request timeout.")
-    parser.add_argument("--min-interval", type=float, default=2.0, help="Minimum polling interval.")
-    parser.add_argument("--error-interval", type=float, default=10.0, help="Polling interval after an error.")
-    parser.add_argument("--send-gap", type=float, default=1.0, help="Delay between forwarded messages.")
-    parser.add_argument("--min-chars", type=int, default=2, help="Ignore messages shorter than this.")
+    parser.add_argument("--min-interval", type=float, default=float(os.getenv("YOUTUBE_CHAT_MIN_INTERVAL", "2.0")), help="Minimum polling interval.")
+    parser.add_argument("--error-interval", type=float, default=float(os.getenv("YOUTUBE_CHAT_ERROR_INTERVAL", "10.0")), help="Polling interval after an error.")
+    parser.add_argument("--send-gap", type=float, default=float(os.getenv("YOUTUBE_CHAT_SEND_GAP", "1.0")), help="Delay between forwarded messages.")
+    parser.add_argument("--min-chars", type=int, default=int(os.getenv("YOUTUBE_CHAT_MIN_CHARS", "2")), help="Ignore messages shorter than this.")
     parser.add_argument("--max-seen", type=int, default=2000, help="Deduplication window size.")
     parser.add_argument("--include-author", action="store_true", help="Include the author name in text sent to VTuber.")
     parser.add_argument(

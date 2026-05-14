@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
-import re
 import shutil
 from pathlib import Path
 
@@ -14,7 +14,17 @@ import yaml
 INTEGRATION_DIR = Path(__file__).resolve().parent
 CREDO_ROOT = INTEGRATION_DIR.parents[2]
 DEFAULT_VENDOR = CREDO_ROOT / "vendor" / "open-llm-vtuber"
-CREDO_LIVE2D_NAME = "credo_avatar"
+
+
+def load_credo_config():
+    """Load AI_NPC_System/config.py so generated vendor config uses one source."""
+    config_path = CREDO_ROOT / "AI_NPC_System" / "config.py"
+    spec = importlib.util.spec_from_file_location("credo_runtime_config", config_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Cannot load CREDO config: {config_path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -230,39 +240,67 @@ def patch_audio_pipeline(vendor: Path) -> None:
 
 def copy_files(vendor: Path) -> None:
     """Copy the custom agent, character config, and Live2D assets."""
+    cfg = load_credo_config()
     agent_dst = vendor / "src" / "open_llm_vtuber" / "agent" / "agents" / "credo_latency_cover_agent.py"
     shutil.copy2(INTEGRATION_DIR / "credo_latency_cover_agent.py", agent_dst)
 
     character_dst = vendor / "characters" / "credo_latency_cover.yaml"
-    text = (INTEGRATION_DIR / "credo_latency_cover_character.yaml").read_text(encoding="utf-8")
-    text = re.sub(
-        r"ai_npc_path: '.*'",
-        f"ai_npc_path: '{(CREDO_ROOT / 'AI_NPC_System').as_posix()}'",
-        text,
-    )
-    character_dst.write_text(text, encoding="utf-8")
+    character = yaml.safe_load((INTEGRATION_DIR / "credo_latency_cover_character.yaml").read_text(encoding="utf-8"))
+    character_config = character["character_config"]
+    character_config["character_name"] = cfg.OPEN_LLM_VTUBER_CHARACTER_NAME
+    character_config["human_name"] = cfg.OPEN_LLM_VTUBER_HUMAN_NAME
+    character_config["live2d_model_name"] = cfg.OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME
+    character_config["avatar"] = cfg.OPEN_LLM_VTUBER_AVATAR
+    character_config["persona_prompt"] = cfg.OPEN_LLM_VTUBER_PERSONA_PROMPT
 
-    live2d_src = INTEGRATION_DIR / "live2d_models" / CREDO_LIVE2D_NAME
-    live2d_dst = vendor / "live2d-models" / CREDO_LIVE2D_NAME
+    agent_settings = character_config["agent_config"]["agent_settings"]["credo_latency_cover_agent"]
+    agent_settings["ai_npc_path"] = (CREDO_ROOT / "AI_NPC_System").as_posix()
+    agent_settings["character_name"] = cfg.OPEN_LLM_VTUBER_CHARACTER_NAME
+    agent_settings["use_fast_audio"] = cfg.OPEN_LLM_VTUBER_USE_FAST_AUDIO
+    agent_settings["slow_enabled"] = cfg.OPEN_LLM_VTUBER_SLOW_ENABLED
+    agent_settings["slow_tts_mode"] = cfg.OPEN_LLM_VTUBER_SLOW_TTS_MODE
+    agent_settings["record_memory"] = cfg.OPEN_LLM_VTUBER_RECORD_MEMORY
+    agent_settings["seed"] = cfg.OPEN_LLM_VTUBER_AGENT_SEED
+
+    llm_config = character_config["agent_config"]["llm_configs"]["openai_compatible_llm"]
+    llm_config["base_url"] = cfg.LOCAL_LLM_BASE_URL
+    llm_config["llm_api_key"] = cfg.LOCAL_LLM_API_KEY
+    llm_config["model"] = cfg.LOCAL_LLM_MODEL
+    llm_config["temperature"] = cfg.LOCAL_LLM_TEMPERATURE
+
+    tts_config = character_config["tts_config"]
+    tts_config["tts_model"] = cfg.OPEN_LLM_VTUBER_TTS_MODEL
+    tts_config.setdefault("edge_tts", {})["voice"] = cfg.OPEN_LLM_VTUBER_EDGE_TTS_VOICE
+
+    character_dst.write_text(
+        yaml.safe_dump(character, sort_keys=False, allow_unicode=True),
+        encoding="utf-8",
+    )
+
+    live2d_name = cfg.OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME
+    live2d_src = INTEGRATION_DIR / "live2d_models" / live2d_name
+    live2d_dst = vendor / "live2d-models" / live2d_name
     if live2d_dst.exists():
         shutil.rmtree(live2d_dst)
     shutil.copytree(live2d_src, live2d_dst)
 
     avatars_dst = vendor / "avatars"
     avatars_dst.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(live2d_src / f"{CREDO_LIVE2D_NAME}.png", avatars_dst / f"{CREDO_LIVE2D_NAME}.png")
+    shutil.copy2(live2d_src / cfg.OPEN_LLM_VTUBER_AVATAR, avatars_dst / cfg.OPEN_LLM_VTUBER_AVATAR)
 
 
 def patch_model_dict(vendor: Path) -> None:
     """Register the CREDO Live2D model in Open-LLM-VTuber's model dictionary."""
+    cfg = load_credo_config()
+    live2d_name = cfg.OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME
     path = vendor / "model_dict.json"
     models = json.loads(path.read_text(encoding="utf-8"))
-    models = [model for model in models if model.get("name") != CREDO_LIVE2D_NAME]
+    models = [model for model in models if model.get("name") != live2d_name]
     models.append(
         {
-            "name": CREDO_LIVE2D_NAME,
+            "name": live2d_name,
             "description": "CREDO custom Live2D avatar",
-            "url": f"/live2d-models/{CREDO_LIVE2D_NAME}/{CREDO_LIVE2D_NAME}.model3.json",
+            "url": f"/live2d-models/{live2d_name}/{live2d_name}.model3.json",
             "kScale": 0.5,
             "initialXshift": 0,
             "initialYshift": 0,

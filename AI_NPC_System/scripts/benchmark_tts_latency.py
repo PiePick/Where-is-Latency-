@@ -5,14 +5,21 @@ from __future__ import annotations
 import argparse
 import json
 import statistics
+import sys
 import time
 import urllib.error
 import urllib.request
 from pathlib import Path
 
 
-DEFAULT_TTS_URL = "http://127.0.0.1:8080/v1/tts"
-DEFAULT_HEALTH_URL = "http://127.0.0.1:8080/v1/health"
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+import config  # noqa: E402
+
+
+DEFAULT_TTS_URL = config.FISH_SPEECH_TTS_URL
+DEFAULT_HEALTH_URL = config.FISH_SPEECH_HEALTH_URL
 
 
 def parse_args() -> argparse.Namespace:
@@ -26,9 +33,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--format", choices=("wav", "mp3", "opus", "pcm"), default="wav")
     parser.add_argument("--output-dir", type=Path, default=Path("AI_NPC_System/tts_benchmarks"))
     parser.add_argument("--save-audio", action="store_true")
-    parser.add_argument("--reference-id", default=None)
-    parser.add_argument("--api-key", default="")
-    parser.add_argument("--timeout", type=float, default=180.0)
+    parser.add_argument("--reference-id", default=config.FISH_SPEECH_REFERENCE_ID)
+    parser.add_argument("--api-key", default=config.FISH_SPEECH_API_KEY)
+    parser.add_argument("--timeout", type=float, default=config.FISH_SPEECH_TIMEOUT)
     return parser.parse_args()
 
 
@@ -49,11 +56,11 @@ def synthesize(args: argparse.Namespace, index: int, save: bool) -> tuple[float,
         "reference_id": args.reference_id,
         "normalize": True,
         "streaming": False,
-        "max_new_tokens": 1024,
-        "chunk_length": 200,
-        "top_p": 0.8,
-        "repetition_penalty": 1.1,
-        "temperature": 0.8,
+        "max_new_tokens": config.FISH_SPEECH_MAX_NEW_TOKENS,
+        "chunk_length": config.FISH_SPEECH_CHUNK_LENGTH,
+        "top_p": config.FISH_SPEECH_TOP_P,
+        "repetition_penalty": config.FISH_SPEECH_REPETITION_PENALTY,
+        "temperature": config.FISH_SPEECH_TEMPERATURE,
     }
     headers = {
         "Content-Type": "application/json",

@@ -7,10 +7,39 @@ switch models, ports, and output paths without editing runtime code.
 from __future__ import annotations
 
 import os
+import shlex
 from pathlib import Path
 
 
 ROOT_DIR = Path(__file__).resolve().parent
+
+
+def _load_project_config() -> None:
+    """Load defaults from the shared shell config without overriding env vars."""
+    raw_path = os.getenv("CREDO_PROJECT_CONFIG")
+    path = Path(raw_path).expanduser() if raw_path else ROOT_DIR / "project_config.sh"
+    if not path.exists():
+        return
+
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export ") :].strip()
+        try:
+            parts = shlex.split(line, comments=True, posix=True)
+        except ValueError:
+            continue
+        if len(parts) != 1 or "=" not in parts[0]:
+            continue
+
+        key, value = parts[0].split("=", 1)
+        if key and all(char.isalnum() or char == "_" for char in key):
+            os.environ.setdefault(key, value)
+
+
+_load_project_config()
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -29,6 +58,11 @@ def _env_float(name: str, default: float) -> float:
 def _env_int(name: str, default: int) -> int:
     """Read an integer environment variable with a clear fallback."""
     return int(os.getenv(name, str(default)))
+
+
+def _env_text(name: str, default: str) -> str:
+    """Read a text setting and decode literal newline escapes."""
+    return os.getenv(name, default).replace("\\n", "\n")
 
 
 # Cloud fallback is intentionally disabled by default.
@@ -67,6 +101,26 @@ LOCAL_LLM_API_KEY = os.getenv("LOCAL_LLM_API_KEY", "EMPTY")
 LOCAL_LLM_TIMEOUT = _env_float("LOCAL_LLM_TIMEOUT", 20.0)
 LOCAL_LLM_TEMPERATURE = _env_float("LOCAL_LLM_TEMPERATURE", 0.7)
 LOCAL_LLM_MAX_TOKENS = _env_int("LOCAL_LLM_MAX_TOKENS", 180)
+SLOW_TRACK_SYSTEM_PROMPT = _env_text(
+    "SLOW_TRACK_SYSTEM_PROMPT",
+    (
+        "You are the SlowTrack continuation writer for an English-speaking AI VTuber. "
+        "The viewer has already heard a short pre-generated latency-cover reaction, "
+        "which may include a nonverbal voice tag such as [sigh], [chuckle], or [short pause]. "
+        "Continue from that cover as if it was the first beat of the same response. "
+        "Do not restart the conversation, do not greet the viewer, and do not repeat the cover line. "
+        "Write 1 or 2 concise spoken sentences, usually under 35 words total. "
+        "Keep the emotional stance consistent with the cover and the viewer's message. "
+        "Use concrete empathy or curiosity instead of generic filler. "
+        "If the input is an idle/proactive speaking request, create a fresh short line each time and do not mention tests, prototypes, or system state. "
+        "Avoid markdown, stage directions, roleplay narration, and explanations. "
+        "Fish Speech supports inline paralinguistic tags, but the latency cover already handles most nonverbal cues. "
+        "Use at most one approved tag only when it is essential for continuity: "
+        "[pause], [short pause], [emphasis], [inhale], [exhale], [chuckle], [laughing], "
+        "[excited], [sigh], [soft sigh], [sad sigh], [whisper], [surprised], [shocked]. "
+        "Do not output tags as labels; they must be part of the spoken TTS text only."
+    ),
+)
 
 FALLBACK_LOCAL_LLM_BASE_URL = os.getenv(
     "FALLBACK_LOCAL_LLM_BASE_URL",
@@ -91,6 +145,8 @@ MEMORY_MAX_RECENT_TURNS = _env_int("MEMORY_MAX_RECENT_TURNS", 6)
 MEMORY_MAX_EVENTS = _env_int("MEMORY_MAX_EVENTS", 12)
 
 # Fish Speech TTS HTTP server. The base model is selected when that server starts.
+FISH_SPEECH_MODEL_REPO = os.getenv("FISH_SPEECH_MODEL_REPO", "fishaudio/s2-pro")
+FISH_SPEECH_CHECKPOINT_NAME = os.getenv("FISH_SPEECH_CHECKPOINT_NAME", "s2-pro")
 FISH_SPEECH_BASE_URL = os.getenv("FISH_SPEECH_BASE_URL", "http://127.0.0.1:8080")
 FISH_SPEECH_TTS_URL = os.getenv("FISH_SPEECH_TTS_URL", f"{FISH_SPEECH_BASE_URL}/v1/tts")
 FISH_SPEECH_HEALTH_URL = os.getenv("FISH_SPEECH_HEALTH_URL", f"{FISH_SPEECH_BASE_URL}/v1/health")
@@ -106,3 +162,24 @@ FISH_SPEECH_REPETITION_PENALTY = _env_float("FISH_SPEECH_REPETITION_PENALTY", 1.
 FISH_SPEECH_MAX_NEW_TOKENS = _env_int("FISH_SPEECH_MAX_NEW_TOKENS", 1024)
 FISH_SPEECH_CHUNK_LENGTH = _env_int("FISH_SPEECH_CHUNK_LENGTH", 200)
 FISH_SPEECH_AUTO_PLAY = _env_bool("FISH_SPEECH_AUTO_PLAY", True)
+
+# Open-LLM-VTuber generated character config.
+OPEN_LLM_VTUBER_CHARACTER_NAME = os.getenv("OPEN_LLM_VTUBER_CHARACTER_NAME", "CREDO")
+OPEN_LLM_VTUBER_HUMAN_NAME = os.getenv("OPEN_LLM_VTUBER_HUMAN_NAME", "Viewer")
+OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME = os.getenv("OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME", "credo_avatar")
+OPEN_LLM_VTUBER_AVATAR = os.getenv("OPEN_LLM_VTUBER_AVATAR", "credo_avatar.png")
+OPEN_LLM_VTUBER_TTS_MODEL = os.getenv("OPEN_LLM_VTUBER_TTS_MODEL", "edge_tts")
+OPEN_LLM_VTUBER_EDGE_TTS_VOICE = os.getenv("OPEN_LLM_VTUBER_EDGE_TTS_VOICE", "en-US-JennyNeural")
+OPEN_LLM_VTUBER_SLOW_TTS_MODE = os.getenv("OPEN_LLM_VTUBER_SLOW_TTS_MODE", "credo_fish_speech")
+OPEN_LLM_VTUBER_USE_FAST_AUDIO = _env_bool("OPEN_LLM_VTUBER_USE_FAST_AUDIO", True)
+OPEN_LLM_VTUBER_SLOW_ENABLED = _env_bool("OPEN_LLM_VTUBER_SLOW_ENABLED", True)
+OPEN_LLM_VTUBER_RECORD_MEMORY = _env_bool("OPEN_LLM_VTUBER_RECORD_MEMORY", True)
+OPEN_LLM_VTUBER_AGENT_SEED = _env_int("OPEN_LLM_VTUBER_AGENT_SEED", 20260514)
+OPEN_LLM_VTUBER_PERSONA_PROMPT = _env_text(
+    "OPEN_LLM_VTUBER_PERSONA_PROMPT",
+    (
+        "You are an English-speaking AI VTuber research prototype. "
+        "The system uses a short latency-cover utterance before the main answer. "
+        "Stay emotionally consistent with that cover and speak naturally."
+    ),
+)
