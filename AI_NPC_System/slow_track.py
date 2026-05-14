@@ -24,6 +24,7 @@ def _system_prompt(
         "Write 1 or 2 concise spoken sentences, usually under 35 words total. "
         "Keep the emotional stance consistent with the cover and the viewer's message. "
         "Use concrete empathy or curiosity instead of generic filler. "
+        "If the input is an idle/proactive speaking request, create a fresh short line each time and do not mention tests, prototypes, or system state. "
         "Avoid markdown, stage directions, roleplay narration, and explanations. "
         "Fish Speech supports inline paralinguistic tags, but the latency cover already handles most nonverbal cues. "
         "Use at most one approved tag only when it is essential for continuity: "

@@ -51,6 +51,7 @@ class CredoLatencyCoverAgent(AgentInterface):
         self.record_memory = bool(self.settings.get("record_memory", True))
         self.expression_map = self.settings.get("expression_map") or DEFAULT_EXPRESSION_TAGS
         self.rng = random.Random(self.settings.get("seed"))
+        self._proactive_count = 0
 
         self.ai_npc_path = self._resolve_ai_npc_path()
         self._load_credo_modules()
@@ -172,8 +173,33 @@ class CredoLatencyCoverAgent(AgentInterface):
                 for item in input_data.texts
                 if item.source == TextSource.INPUT and item.content
             ]
-            return "\n".join(parts).strip()
+            text = "\n".join(parts).strip()
+            if self._is_proactive_input(input_data, text):
+                return self._build_proactive_prompt()
+            return text
         return str(input_data).strip()
+
+    def _is_proactive_input(self, input_data: BatchInput, text: str) -> bool:
+        """Detect Open-LLM-VTuber's idle/proactive speak request."""
+        metadata = input_data.metadata or {}
+        if metadata.get("proactive_speak"):
+            return True
+        normalized = " ".join(text.lower().split())
+        return normalized.startswith("please say something")
+
+    def _build_proactive_prompt(self) -> str:
+        """Turn a repeated idle trigger into varied conversational intent."""
+        self._proactive_count += 1
+        choices = [
+            "Start a brief upbeat idle comment as an AI VTuber waiting for chat. Do not mention tests or system state.",
+            "Make a short curious remark that invites the viewer to share something. Do not say this is a test phase.",
+            "Offer one playful observation about the quiet moment, then ask a light question.",
+            "Say a concise warm check-in for the viewer, avoiding generic filler and avoiding the word test.",
+            "React as if the stream has gone quiet for a moment; keep it natural, brief, and emotionally positive.",
+            "Make a small self-contained comment that would fit between viewer messages. Do not repeat previous idle lines.",
+        ]
+        prompt = self.rng.choice(choices)
+        return f"{prompt} Idle turn number: {self._proactive_count}."
 
     def _build_actions(self, emotion: str) -> Actions:
         """Map CREDO's four emotions to Live2D expression actions."""

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import shutil
 from pathlib import Path
@@ -13,6 +14,7 @@ import yaml
 INTEGRATION_DIR = Path(__file__).resolve().parent
 CREDO_ROOT = INTEGRATION_DIR.parents[2]
 DEFAULT_VENDOR = CREDO_ROOT / "vendor" / "open-llm-vtuber"
+CREDO_LIVE2D_NAME = "credo_avatar"
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
@@ -164,8 +166,70 @@ def patch_service_context(vendor: Path) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def patch_audio_pipeline(vendor: Path) -> None:
+    """Keep direct audio outputs and fallback mp3 conversion compatible."""
+    conversation_path = vendor / "src" / "open_llm_vtuber" / "conversations" / "conversation_utils.py"
+    text = conversation_path.read_text(encoding="utf-8")
+    text = text.replace(
+        "            actions=actions.to_dict() if actions else None,\n",
+        "            actions=actions,\n",
+    )
+    conversation_path.write_text(text, encoding="utf-8")
+
+    stream_path = vendor / "src" / "open_llm_vtuber" / "utils" / "stream_audio.py"
+    text = stream_path.read_text(encoding="utf-8")
+    text = replace_once(
+        text,
+        "import base64\n",
+        "import base64\nimport io\nimport subprocess\nfrom pathlib import Path\n",
+        "stream_audio conversion imports",
+    )
+    text = text.replace(
+        "import base64\nfrom pathlib import Path\n",
+        "import base64\nimport io\nimport subprocess\nfrom pathlib import Path\n",
+    )
+    text = text.replace(
+        "from pathlib import Path\nfrom pathlib import Path\n",
+        "from pathlib import Path\n",
+    )
+    text = text.replace(
+        "        suffix = Path(str(audio_path)).suffix.lower().lstrip('.') or None\n"
+        "        audio = AudioSegment.from_file(audio_path, format=suffix)\n"
+        "        audio_bytes = audio.export(format=\"wav\").read()\n",
+        "        suffix = Path(str(audio_path)).suffix.lower().lstrip('.')\n"
+        "        if suffix == \"wav\":\n"
+        "            audio = AudioSegment.from_wav(audio_path)\n"
+        "            audio_bytes = audio.export(format=\"wav\").read()\n"
+        "        else:\n"
+        "            cmd = [\"ffmpeg\", \"-v\", \"error\", \"-i\", str(audio_path), \"-f\", \"wav\", \"pipe:1\"]\n"
+        "            audio_bytes = subprocess.check_output(cmd)\n"
+        "            audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format=\"wav\")\n",
+    )
+    text = text.replace(
+        "        audio = AudioSegment.from_file(audio_path)\n"
+        "        audio_bytes = audio.export(format=\"wav\").read()\n",
+        "        suffix = Path(str(audio_path)).suffix.lower().lstrip('.')\n"
+        "        if suffix == \"wav\":\n"
+        "            audio = AudioSegment.from_wav(audio_path)\n"
+        "            audio_bytes = audio.export(format=\"wav\").read()\n"
+        "        else:\n"
+        "            cmd = [\"ffmpeg\", \"-v\", \"error\", \"-i\", str(audio_path), \"-f\", \"wav\", \"pipe:1\"]\n"
+        "            audio_bytes = subprocess.check_output(cmd)\n"
+        "            audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format=\"wav\")\n",
+    )
+    text = text.replace(
+        "            \"actions\": actions.to_dict() if actions else None,\n",
+        "            \"actions\": actions.to_dict() if hasattr(actions, \"to_dict\") else actions,\n",
+    )
+    text = text.replace(
+        "        \"actions\": actions.to_dict() if actions else None,\n",
+        "        \"actions\": actions.to_dict() if hasattr(actions, \"to_dict\") else actions,\n",
+    )
+    stream_path.write_text(text, encoding="utf-8")
+
+
 def copy_files(vendor: Path) -> None:
-    """Copy the custom agent and character config into the vendor clone."""
+    """Copy the custom agent, character config, and Live2D assets."""
     agent_dst = vendor / "src" / "open_llm_vtuber" / "agent" / "agents" / "credo_latency_cover_agent.py"
     shutil.copy2(INTEGRATION_DIR / "credo_latency_cover_agent.py", agent_dst)
 
@@ -177,6 +241,66 @@ def copy_files(vendor: Path) -> None:
         text,
     )
     character_dst.write_text(text, encoding="utf-8")
+
+    live2d_src = INTEGRATION_DIR / "live2d_models" / CREDO_LIVE2D_NAME
+    live2d_dst = vendor / "live2d-models" / CREDO_LIVE2D_NAME
+    if live2d_dst.exists():
+        shutil.rmtree(live2d_dst)
+    shutil.copytree(live2d_src, live2d_dst)
+
+    avatars_dst = vendor / "avatars"
+    avatars_dst.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(live2d_src / f"{CREDO_LIVE2D_NAME}.png", avatars_dst / f"{CREDO_LIVE2D_NAME}.png")
+
+
+def patch_model_dict(vendor: Path) -> None:
+    """Register the CREDO Live2D model in Open-LLM-VTuber's model dictionary."""
+    path = vendor / "model_dict.json"
+    models = json.loads(path.read_text(encoding="utf-8"))
+    models = [model for model in models if model.get("name") != CREDO_LIVE2D_NAME]
+    models.append(
+        {
+            "name": CREDO_LIVE2D_NAME,
+            "description": "CREDO custom Live2D avatar",
+            "url": f"/live2d-models/{CREDO_LIVE2D_NAME}/{CREDO_LIVE2D_NAME}.model3.json",
+            "kScale": 0.5,
+            "initialXshift": 0,
+            "initialYshift": 0,
+            "kXOffset": 1150,
+            "idleMotionGroupName": "Idle",
+            "emotionMap": {
+                "neutral": 0,
+                "idle": 0,
+                "neutral_01": 0,
+                "neutral_02": 0,
+                "neutral_03": 0,
+                "sadness": 1,
+                "sad": 1,
+                "worried": 1,
+                "negative_01": 1,
+                "negative_02": 1,
+                "negative_03": 1,
+                "anger": 2,
+                "disgust": 2,
+                "joy": 3,
+                "happy": 3,
+                "smile": 3,
+                "positive_01": 3,
+                "positive_02": 3,
+                "positive_03": 3,
+                "surprise": 3,
+                "confused": 3,
+                "ambiguous_01": 3,
+                "ambiguous_02": 3,
+                "ambiguous_03": 3,
+            },
+            "tapMotions": {
+                "HitAreaHead": {"": 1},
+                "HitAreaBody": {"": 1},
+            },
+        }
+    )
+    path.write_text(json.dumps(models, ensure_ascii=False, indent=4) + "\n", encoding="utf-8")
 
 
 def deep_merge(base: dict, patch: dict) -> dict:
@@ -224,9 +348,11 @@ def apply(vendor: Path, *, activate: bool = False) -> None:
     """Apply all integration files and idempotent source patches."""
     ensure_vendor(vendor)
     copy_files(vendor)
+    patch_model_dict(vendor)
     patch_agent_factory(vendor)
     patch_agent_config(vendor)
     patch_service_context(vendor)
+    patch_audio_pipeline(vendor)
     write_full_config(vendor, activate=activate)
 
 
