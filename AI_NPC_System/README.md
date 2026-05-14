@@ -40,6 +40,7 @@ scripts/start_local_llm_server.sh       Start the compact local vLLM server.
 scripts/install_open_llm_vtuber_runtime.sh Install Open-LLM-VTuber runtime dependencies.
 scripts/run_open_llm_vtuber_credo.sh    Start Open-LLM-VTuber with the CREDO agent.
 scripts/smoke_open_llm_vtuber_credo.sh  Validate config and FastTrack loading.
+scripts/run_youtube_live_chat_bridge.sh Forward YouTube Live Chat into Open-LLM-VTuber.
 scripts/requirements.txt                Dataset/FastTrack build dependencies.
 ```
 
@@ -56,6 +57,7 @@ python3 AI_NPC_System/scripts/prebuild_fast_track_tts_cache.py --max-reactions-p
 AI_NPC_System/scripts/install_open_llm_vtuber_runtime.sh
 AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
 AI_NPC_System/scripts/smoke_open_llm_vtuber_credo.sh
+YOUTUBE_API_KEY=... AI_NPC_System/scripts/run_youtube_live_chat_bridge.sh --video-id YOUTUBE_VIDEO_ID --ignore-first-page
 ```
 
 ## Open-LLM-VTuber Platform
