@@ -35,7 +35,7 @@ scripts/build_tts_cues.py               Rebuild fish_speech_nonverbal_cues.json.
 scripts/benchmark_tts_latency.py        Measure Fish Speech /v1/tts latency.
 scripts/prebuild_fast_track_tts_cache.py Pre-generate FastTrack latency-cover wav files.
 scripts/start_fish_speech_server.sh     Start the local Fish Speech API server.
-scripts/start_llama70b_judge_server.sh  Start the local Llama 70B judge server.
+scripts/start_local_llm_server.sh       Start the compact local vLLM server.
 scripts/install_open_llm_vtuber_runtime.sh Install Open-LLM-VTuber runtime dependencies.
 scripts/run_open_llm_vtuber_credo.sh    Start Open-LLM-VTuber with the CREDO agent.
 scripts/smoke_open_llm_vtuber_credo.sh  Validate config and FastTrack loading.

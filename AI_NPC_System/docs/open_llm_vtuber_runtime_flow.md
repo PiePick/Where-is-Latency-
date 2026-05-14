@@ -46,8 +46,8 @@ Open-LLM-VTuber 자체 서버는 위 스크립트로 실행된다. 다만 SlowTr
 
 ```text
 Open-LLM-VTuber server: http://localhost:12393
-Primary local LLM:      http://127.0.0.1:8002/v1, llama3.3:70b-awq
-Fallback local LLM:     http://127.0.0.1:8001/v1, qwen2.5:7b
+Primary local LLM:      http://127.0.0.1:8001/v1, qwen2.5:7b
+Fallback local LLM:     same endpoint/model unless overridden
 Fish Speech TTS API:    http://127.0.0.1:8080/v1/tts
 ```
 
@@ -60,6 +60,20 @@ AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
 ```
 
 Fish Speech 서버가 꺼져 있어도 Open-LLM-VTuber의 기본 TTS fallback이 동작하도록 설계되어 있다. 다만 논문 실험에서 비언어 태그 TTS를 다룰 때는 Fish Speech 서버를 켜고 조건을 고정해야 한다.
+
+## 로컬 LLM 선택 기준
+
+초기 설계의 `llama3.3:70b-awq`는 품질 기준으로는 좋지만, Fish Speech가 약 24 GB급 GPU 자원을 요구하는 현재 구조에서는 기본 실시간 모델로 과하다. 따라서 기본 SlowTrack 모델은 `qwen2.5:7b`로 낮춘다.
+
+Open-LLM-VTuber 호환성은 모델 계열 자체보다 OpenAI-compatible server의 `base_url`과 `served-model-name`이 설정과 일치하는지가 더 중요하다. 현재 CREDO agent는 Open-LLM-VTuber의 기본 LLM provider를 직접 쓰지 않고 `AI_NPC_System/slow_track.py`를 통해 같은 OpenAI-compatible endpoint를 호출한다. 따라서 vLLM이 `qwen2.5:7b`라는 이름으로 `/v1/chat/completions`를 제공하면 Open-LLM-VTuber 실행에는 문제가 없다.
+
+더 큰 모델이 필요할 때는 환경변수만 바꿔 실행한다.
+
+```bash
+LOCAL_LLM_BASE_URL=http://127.0.0.1:8002/v1 \
+LOCAL_LLM_MODEL=your-served-model-name \
+AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
+```
 
 ## 런타임 파일 역할
 

@@ -68,8 +68,8 @@ SlowTrack system prompts now tell the local LLM that Fish Speech supports inline
 Primary local LLM:
 
 ```text
-http://127.0.0.1:8002/v1
-llama3.3:70b-awq
+http://127.0.0.1:8001/v1
+qwen2.5:7b
 ```
 
 Fallback local LLM:

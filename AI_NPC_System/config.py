@@ -59,11 +59,12 @@ FAST_TRACK_MIN_RUNTIME_SCORE = _env_float("FAST_TRACK_MIN_RUNTIME_SCORE", 0.0)
 FAST_TRACK_EVERYDAY_WEIGHT = _env_float("FAST_TRACK_EVERYDAY_WEIGHT", 0.60)
 FAST_TRACK_STREAM_WEIGHT = _env_float("FAST_TRACK_STREAM_WEIGHT", 0.40)
 
-# Slow Track: quality local LLM first, smaller local model second.
-LOCAL_LLM_BASE_URL = os.getenv("LOCAL_LLM_BASE_URL", "http://127.0.0.1:8002/v1")
-LOCAL_LLM_MODEL = os.getenv("LOCAL_LLM_MODEL", "llama3.3:70b-awq")
+# Slow Track: use the same OpenAI-compatible local endpoint as Open-LLM-VTuber.
+# Qwen 7B is the practical default because Fish Speech needs most of a 24 GB GPU.
+LOCAL_LLM_BASE_URL = os.getenv("LOCAL_LLM_BASE_URL", "http://127.0.0.1:8001/v1")
+LOCAL_LLM_MODEL = os.getenv("LOCAL_LLM_MODEL", "qwen2.5:7b")
 LOCAL_LLM_API_KEY = os.getenv("LOCAL_LLM_API_KEY", "EMPTY")
-LOCAL_LLM_TIMEOUT = _env_float("LOCAL_LLM_TIMEOUT", 45.0)
+LOCAL_LLM_TIMEOUT = _env_float("LOCAL_LLM_TIMEOUT", 20.0)
 LOCAL_LLM_TEMPERATURE = _env_float("LOCAL_LLM_TEMPERATURE", 0.7)
 LOCAL_LLM_MAX_TOKENS = _env_int("LOCAL_LLM_MAX_TOKENS", 180)
 
@@ -71,7 +72,7 @@ FALLBACK_LOCAL_LLM_BASE_URL = os.getenv(
     "FALLBACK_LOCAL_LLM_BASE_URL",
     "http://127.0.0.1:8001/v1",
 )
-FALLBACK_LOCAL_LLM_MODEL = os.getenv("FALLBACK_LOCAL_LLM_MODEL", "qwen2.5:7b")
+FALLBACK_LOCAL_LLM_MODEL = os.getenv("FALLBACK_LOCAL_LLM_MODEL", LOCAL_LLM_MODEL)
 FALLBACK_LOCAL_LLM_API_KEY = os.getenv("FALLBACK_LOCAL_LLM_API_KEY", "EMPTY")
 FALLBACK_LOCAL_LLM_TIMEOUT = _env_float("FALLBACK_LOCAL_LLM_TIMEOUT", 20.0)
 
