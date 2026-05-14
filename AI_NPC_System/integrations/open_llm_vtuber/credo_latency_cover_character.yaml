@@ -1,9 +1,9 @@
 character_config:
   conf_name: 'credo_latency_cover'
   conf_uid: 'credo_latency_cover_001'
-  live2d_model_name: 'mao_pro'
+  live2d_model_name: 'credo_avatar'
   character_name: 'CREDO'
-  avatar: 'mao.png'
+  avatar: 'credo_avatar.png'
   human_name: 'Viewer'
 
   persona_prompt: |
@@ -39,10 +39,15 @@ character_config:
 
     llm_configs:
       openai_compatible_llm:
-        base_url: 'http://127.0.0.1:8002/v1'
+        base_url: 'http://127.0.0.1:8001/v1'
         llm_api_key: 'EMPTY'
         organization_id: null
         project_id: null
-        model: 'llama3.3:70b-awq'
+        model: 'qwen2.5:7b'
         temperature: 0.7
         interrupt_method: 'user'
+
+  tts_config:
+    tts_model: 'edge_tts'
+    edge_tts:
+      voice: 'en-US-JennyNeural'

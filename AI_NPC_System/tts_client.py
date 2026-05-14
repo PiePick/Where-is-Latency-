@@ -25,6 +25,7 @@ class FishSpeechTTSConfig:
     output_dir: Path = config.FISH_SPEECH_OUTPUT_DIR
     audio_format: str = config.FISH_SPEECH_FORMAT
     timeout: float = config.FISH_SPEECH_TIMEOUT
+    seed: int = config.FISH_SPEECH_SEED
     top_p: float = config.FISH_SPEECH_TOP_P
     temperature: float = config.FISH_SPEECH_TEMPERATURE
     repetition_penalty: float = config.FISH_SPEECH_REPETITION_PENALTY
@@ -60,6 +61,8 @@ class FishSpeechTTSClient:
             "format": self.cfg.audio_format,
             "references": [],
             "reference_id": self.cfg.reference_id,
+            "seed": self.cfg.seed,
+            "use_memory_cache": "on",
             "normalize": True,
             "streaming": False,
             "max_new_tokens": self.cfg.max_new_tokens,

@@ -11,6 +11,8 @@ CHECKPOINT_DIR="${FISH_SPEECH_CHECKPOINT_DIR:-${FISH_DIR}/checkpoints/s2-pro}"
 API_KEY="${FISH_SPEECH_API_KEY:-}"
 EXTRA_ARGS="${FISH_SPEECH_EXTRA_ARGS:-}"
 DEFAULT_VENV_PYTHON="${FISH_DIR}/.venv/bin/python"
+REFERENCE_ID="${FISH_SPEECH_REFERENCE_ID:-credo_bright_female}"
+REFERENCE_DIR="${FISH_DIR}/references/${REFERENCE_ID}"
 
 if [ -n "${FISH_SPEECH_PYTHON:-}" ]; then
   PYTHON_BIN="${FISH_SPEECH_PYTHON}"
@@ -33,6 +35,13 @@ if [ ! -d "${CHECKPOINT_DIR}" ]; then
   exit 2
 fi
 
+# Keep a stable bright female reference voice for local Fish Speech calls.
+if [ "${REFERENCE_ID}" = "credo_bright_female" ] && [ ! -f "${REFERENCE_DIR}/sample.wav" ]; then
+  mkdir -p "${REFERENCE_DIR}"
+  cp "${ROOT_DIR}/AI_NPC_System/fast_track_audio_cache/Positive/stream/e551e29fc1249359.wav" "${REFERENCE_DIR}/sample.wav"
+  printf '%s\n' 'Good work, friend.' > "${REFERENCE_DIR}/sample.lab"
+fi
+
 # Keep the command as an array so paths with spaces remain safe.
 cmd=(
   "${PYTHON_BIN}" tools/api_server.py
@@ -51,4 +60,5 @@ fi
 echo "Starting Fish Speech server on http://${HOST}:${PORT}"
 echo "Using CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 echo "Using Python: ${PYTHON_BIN}"
+echo "Using Fish Speech reference voice: ${REFERENCE_ID}"
 "${cmd[@]}" ${EXTRA_ARGS}
