@@ -14,18 +14,25 @@ CREDO research logic inside `AI_NPC_System`.
 From the repository root:
 
 ```bash
-python3 AI_NPC_System/integrations/open_llm_vtuber/apply_integration.py
+AI_NPC_System/scripts/install_open_llm_vtuber_runtime.sh
 ```
 
-To also activate the generated config as Open-LLM-VTuber's `conf.yaml`:
+Run the integrated server with:
 
 ```bash
-python3 AI_NPC_System/integrations/open_llm_vtuber/apply_integration.py --activate
+AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
 ```
 
-Open-LLM-VTuber still needs its own Python dependencies before the server can
-run. Follow its upstream install flow inside `vendor/open-llm-vtuber`; this
-adapter does not vendor those packages.
+The install script creates `vendor/open-llm-vtuber/.venv`, installs
+Open-LLM-VTuber dependencies, installs the CREDO FastTrack runtime dependencies,
+downloads `en_core_web_sm`, provides a venv-local `ffmpeg`, updates submodules,
+and activates the generated CREDO config.
+
+For a config and FastTrack smoke test:
+
+```bash
+AI_NPC_System/scripts/smoke_open_llm_vtuber_credo.sh
+```
 
 The script copies the CREDO agent into:
 

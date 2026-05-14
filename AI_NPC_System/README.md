@@ -63,7 +63,8 @@ agent. The platform handles the Live2D UI and websocket conversation loop. The
 agent calls `AI_NPC_System` for DistilBERT emotion classification, cached
 FastTrack audio, SlowTrack local LLM generation, Fish Speech synthesis, and JSON
 memory. See `integrations/open_llm_vtuber/README.md` for the installation and
-expression-map details.
+expression-map details. See `docs/open_llm_vtuber_runtime_flow.md` for the
+research-facing runtime architecture and module boundaries.
 
 ## FastTrack Audio Cache
 
