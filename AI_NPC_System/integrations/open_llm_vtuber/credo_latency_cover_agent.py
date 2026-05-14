@@ -29,6 +29,30 @@ DEFAULT_EXPRESSION_TAGS = {
 }
 
 
+PROACTIVE_IDLE_COVERS = [
+    {
+        "text": "Great.",
+        "audio": "fast_track_audio_cache/Positive/everyday/bd103151cfbbbb32.wav",
+        "emotion": "positive",
+    },
+    {
+        "text": "Good work, friend.",
+        "audio": "fast_track_audio_cache/Positive/stream/e551e29fc1249359.wav",
+        "emotion": "positive",
+    },
+    {
+        "text": "Fair enough.",
+        "audio": "fast_track_audio_cache/Neutral/stream/8cbbaa5f2ddb319e.wav",
+        "emotion": "neutral",
+    },
+    {
+        "text": "No problem, anytime.",
+        "audio": "fast_track_audio_cache/Neutral/everyday/41f42f8fd64754ba.wav",
+        "emotion": "neutral",
+    },
+]
+
+
 class CredoLatencyCoverAgent(AgentInterface):
     """Run CREDO FastTrack first, then continue with CREDO SlowTrack."""
 
@@ -98,8 +122,12 @@ class CredoLatencyCoverAgent(AgentInterface):
 
     async def chat(self, input_data: BaseInput) -> AsyncIterator[AudioOutput | SentenceOutput]:
         """Yield the cached latency cover before the slower generated response."""
-        user_text = self._extract_user_text(input_data)
+        user_text, is_proactive = self._extract_input(input_data)
         if not user_text:
+            return
+
+        if is_proactive:
+            yield self._build_proactive_output()
             return
 
         fast_result = await asyncio.to_thread(self._fast_track.analyze_and_react, user_text)
@@ -166,6 +194,11 @@ class CredoLatencyCoverAgent(AgentInterface):
             )
 
     def _extract_user_text(self, input_data: BaseInput) -> str:
+        """Backward-compatible helper used by local tests."""
+        text, _is_proactive = self._extract_input(input_data)
+        return text
+
+    def _extract_input(self, input_data: BaseInput) -> tuple[str, bool]:
         """Extract the normal text input from Open-LLM-VTuber's BatchInput."""
         if isinstance(input_data, BatchInput):
             parts = [
@@ -175,9 +208,9 @@ class CredoLatencyCoverAgent(AgentInterface):
             ]
             text = "\n".join(parts).strip()
             if self._is_proactive_input(input_data, text):
-                return self._build_proactive_prompt()
-            return text
-        return str(input_data).strip()
+                return self._build_proactive_prompt(), True
+            return text, False
+        return str(input_data).strip(), False
 
     def _is_proactive_input(self, input_data: BatchInput, text: str) -> bool:
         """Detect Open-LLM-VTuber's idle/proactive speak request."""
@@ -200,6 +233,32 @@ class CredoLatencyCoverAgent(AgentInterface):
         ]
         prompt = self.rng.choice(choices)
         return f"{prompt} Idle turn number: {self._proactive_count}."
+
+    def _build_proactive_output(self) -> AudioOutput | SentenceOutput:
+        """Return an immediate cached idle utterance for proactive speak."""
+        cover = self.rng.choice(PROACTIVE_IDLE_COVERS)
+        text = cover["text"]
+        emotion = cover["emotion"]
+        actions = self._build_actions(emotion)
+        audio_path = self.ai_npc_path / cover["audio"]
+
+        logger.info(
+            "CREDO proactive idle cover: "
+            f"emotion={emotion}, cache={audio_path.exists()}, text={text!r}"
+        )
+
+        if self.use_fast_audio and audio_path.exists():
+            return AudioOutput(
+                audio_path=str(audio_path),
+                display_text=self._display(text),
+                transcript=text,
+                actions=actions,
+            )
+        return SentenceOutput(
+            display_text=self._display(text),
+            tts_text=text,
+            actions=actions,
+        )
 
     def _build_actions(self, emotion: str) -> Actions:
         """Map CREDO's four emotions to Live2D expression actions."""
