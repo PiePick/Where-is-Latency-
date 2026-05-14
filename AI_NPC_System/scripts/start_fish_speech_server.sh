@@ -10,10 +10,20 @@ CUDA_DEVICES="${FISH_SPEECH_CUDA_VISIBLE_DEVICES:-0}"
 CHECKPOINT_DIR="${FISH_SPEECH_CHECKPOINT_DIR:-${FISH_DIR}/checkpoints/s2-pro}"
 API_KEY="${FISH_SPEECH_API_KEY:-}"
 EXTRA_ARGS="${FISH_SPEECH_EXTRA_ARGS:-}"
-PYTHON_BIN="${FISH_SPEECH_PYTHON:-python3}"
+DEFAULT_VENV_PYTHON="${FISH_DIR}/.venv/bin/python"
+
+if [ -n "${FISH_SPEECH_PYTHON:-}" ]; then
+  PYTHON_BIN="${FISH_SPEECH_PYTHON}"
+elif [ -x "${DEFAULT_VENV_PYTHON}" ]; then
+  PYTHON_BIN="${DEFAULT_VENV_PYTHON}"
+else
+  PYTHON_BIN="python3"
+fi
 
 cd "${FISH_DIR}"
 export CUDA_VISIBLE_DEVICES="${CUDA_DEVICES}"
+export MPLCONFIGDIR="${MPLCONFIGDIR:-/tmp/credo-fish-speech-matplotlib}"
+mkdir -p "${MPLCONFIGDIR}"
 
 # The server needs the S2-Pro checkpoint and codec file under one directory.
 if [ ! -d "${CHECKPOINT_DIR}" ]; then
@@ -40,4 +50,5 @@ fi
 # EXTRA_ARGS is intentionally appended unquoted for advanced one-off tuning.
 echo "Starting Fish Speech server on http://${HOST}:${PORT}"
 echo "Using CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
+echo "Using Python: ${PYTHON_BIN}"
 "${cmd[@]}" ${EXTRA_ARGS}

@@ -34,8 +34,12 @@ scripts/build_reaction_dataset.py       Rebuild hybrid_reactions.json.
 scripts/build_tts_cues.py               Rebuild fish_speech_nonverbal_cues.json.
 scripts/benchmark_tts_latency.py        Measure Fish Speech /v1/tts latency.
 scripts/prebuild_fast_track_tts_cache.py Pre-generate FastTrack latency-cover wav files.
+scripts/install_fish_speech_runtime.sh  Install the local Fish Speech Python runtime.
 scripts/start_fish_speech_server.sh     Start the local Fish Speech API server.
-scripts/start_llama70b_judge_server.sh  Start the local Llama 70B judge server.
+scripts/start_local_llm_server.sh       Start the compact local vLLM server.
+scripts/install_open_llm_vtuber_runtime.sh Install Open-LLM-VTuber runtime dependencies.
+scripts/run_open_llm_vtuber_credo.sh    Start Open-LLM-VTuber with the CREDO agent.
+scripts/smoke_open_llm_vtuber_credo.sh  Validate config and FastTrack loading.
 scripts/requirements.txt                Dataset/FastTrack build dependencies.
 ```
 
@@ -46,9 +50,12 @@ python3 -m pip install -r AI_NPC_System/scripts/requirements.txt
 python3 -m spacy download en_core_web_sm
 FAST_TRACK_DEVICE=cpu python3 AI_NPC_System/main.py
 python3 AI_NPC_System/tcp_server.py
+AI_NPC_System/scripts/install_fish_speech_runtime.sh
 AI_NPC_System/scripts/start_fish_speech_server.sh
 python3 AI_NPC_System/scripts/prebuild_fast_track_tts_cache.py --max-reactions-per-source 1 --cues-per-category 1
-python3 AI_NPC_System/integrations/open_llm_vtuber/apply_integration.py --activate
+AI_NPC_System/scripts/install_open_llm_vtuber_runtime.sh
+AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
+AI_NPC_System/scripts/smoke_open_llm_vtuber_credo.sh
 ```
 
 ## Open-LLM-VTuber Platform
@@ -58,7 +65,8 @@ agent. The platform handles the Live2D UI and websocket conversation loop. The
 agent calls `AI_NPC_System` for DistilBERT emotion classification, cached
 FastTrack audio, SlowTrack local LLM generation, Fish Speech synthesis, and JSON
 memory. See `integrations/open_llm_vtuber/README.md` for the installation and
-expression-map details.
+expression-map details. See `docs/open_llm_vtuber_runtime_flow.md` for the
+research-facing runtime architecture and module boundaries.
 
 ## FastTrack Audio Cache
 

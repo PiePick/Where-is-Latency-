@@ -28,6 +28,16 @@ cd vendor/fish-speech
 hf download fishaudio/s2-pro --local-dir checkpoints/s2-pro
 ```
 
+Install the local Fish Speech Python runtime:
+
+```bash
+AI_NPC_System/scripts/install_fish_speech_runtime.sh
+```
+
+The installer creates `vendor/fish-speech/.venv` and skips PyAudio by default.
+The HTTP API server does not need local microphone capture, while PyAudio often
+requires extra WSL system headers.
+
 Start the server:
 
 ```bash
@@ -68,8 +78,8 @@ SlowTrack system prompts now tell the local LLM that Fish Speech supports inline
 Primary local LLM:
 
 ```text
-http://127.0.0.1:8002/v1
-llama3.3:70b-awq
+http://127.0.0.1:8001/v1
+qwen2.5:7b
 ```
 
 Fallback local LLM:
