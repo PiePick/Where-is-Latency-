@@ -17,6 +17,7 @@ export LOCAL_LLM_BASE_URL="${LOCAL_LLM_BASE_URL:-http://127.0.0.1:8001/v1}"
 export LOCAL_LLM_MODEL="${LOCAL_LLM_MODEL:-qwen2.5:7b}"
 export FALLBACK_LOCAL_LLM_BASE_URL="${FALLBACK_LOCAL_LLM_BASE_URL:-http://127.0.0.1:8001/v1}"
 export FALLBACK_LOCAL_LLM_MODEL="${FALLBACK_LOCAL_LLM_MODEL:-qwen2.5:7b}"
+export PATH="$VENV_DIR/bin:$PATH"
 
 cd "$ROOT_DIR"
 "$VENV_DIR/bin/python" AI_NPC_System/integrations/open_llm_vtuber/apply_integration.py --activate

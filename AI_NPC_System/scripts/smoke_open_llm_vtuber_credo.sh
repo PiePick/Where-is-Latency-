@@ -11,6 +11,8 @@ if [[ ! -x "$VENV_DIR/bin/python" ]]; then
   exit 1
 fi
 
+export PATH="$VENV_DIR/bin:$PATH"
+
 cd "$OLV_DIR"
 "$VENV_DIR/bin/python" - <<'PY'
 from src.open_llm_vtuber.config_manager import read_yaml, validate_config

@@ -23,8 +23,13 @@ if [[ ! -x "$VENV_DIR/bin/python" ]]; then
 fi
 
 "$VENV_DIR/bin/python" -m pip install -r requirements.txt
-"$VENV_DIR/bin/python" -m pip install "spacy>=3.7.0" "transformers>=4.38.0"
+"$VENV_DIR/bin/python" -m pip install "spacy>=3.7.0" "transformers>=4.38.0" "imageio-ffmpeg>=0.6.0"
 "$VENV_DIR/bin/python" -m spacy download en_core_web_sm
+
+# pydub expects an ffmpeg executable on PATH. Keep it inside the project venv
+# so the runtime does not depend on system-level sudo package installation.
+FFMPEG_EXE="$("$VENV_DIR/bin/python" -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')"
+ln -sf "$FFMPEG_EXE" "$VENV_DIR/bin/ffmpeg"
 
 cd "$ROOT_DIR"
 "$VENV_DIR/bin/python" AI_NPC_System/integrations/open_llm_vtuber/apply_integration.py --activate
