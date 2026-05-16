@@ -1,0 +1,370 @@
+{
+  "selected_model": "baseline_1080",
+  "optimized_model_dir": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/models/setfit_swda_intent_minilm_optimized",
+  "summary": [
+    {
+      "split": "balanced_val",
+      "samples": 411,
+      "accuracy": 0.7274939172749392,
+      "macro_f1": 0.7165063221016784,
+      "weighted_f1": 0.7260658980270109,
+      "model": "baseline_1080",
+      "train_seconds": 0.0,
+      "train_per_label": 180.0,
+      "num_iterations": 5.0
+    },
+    {
+      "split": "balanced_test",
+      "samples": 411,
+      "accuracy": 0.681265206812652,
+      "macro_f1": 0.6741371471529884,
+      "weighted_f1": 0.6819612435511014,
+      "model": "baseline_1080",
+      "train_seconds": 0.0,
+      "train_per_label": 180.0,
+      "num_iterations": 5.0
+    },
+    {
+      "split": "natural_test",
+      "samples": 3340,
+      "accuracy": 0.8047904191616766,
+      "macro_f1": 0.5726824789962937,
+      "weighted_f1": 0.8398695823104582,
+      "model": "baseline_1080",
+      "train_seconds": 0.0,
+      "train_per_label": 180.0,
+      "num_iterations": 5.0
+    },
+    {
+      "split": "balanced_val",
+      "samples": 411,
+      "accuracy": 0.7518248175182481,
+      "macro_f1": 0.7053234498735667,
+      "weighted_f1": 0.7283853941898965,
+      "model": "optimized_240_iter6",
+      "train_seconds": 73.341,
+      "train_per_label": 240.0,
+      "num_iterations": 6.0
+    },
+    {
+      "split": "balanced_test",
+      "samples": 411,
+      "accuracy": 0.7518248175182481,
+      "macro_f1": 0.710170803041505,
+      "weighted_f1": 0.7309736023121505,
+      "model": "optimized_240_iter6",
+      "train_seconds": 73.341,
+      "train_per_label": 240.0,
+      "num_iterations": 6.0
+    },
+    {
+      "split": "balanced_val",
+      "samples": 411,
+      "accuracy": 0.7566909975669099,
+      "macro_f1": 0.6955362675064128,
+      "weighted_f1": 0.7239034042377559,
+      "model": "optimized_320_iter8",
+      "train_seconds": 99.669,
+      "train_per_label": 320.0,
+      "num_iterations": 8.0
+    },
+    {
+      "split": "balanced_test",
+      "samples": 411,
+      "accuracy": 0.7737226277372263,
+      "macro_f1": 0.728242749384524,
+      "weighted_f1": 0.7506182324587982,
+      "model": "optimized_320_iter8",
+      "train_seconds": 99.669,
+      "train_per_label": 320.0,
+      "num_iterations": 8.0
+    },
+    {
+      "split": "balanced_val",
+      "samples": 411,
+      "accuracy": 0.754257907542579,
+      "macro_f1": 0.689063664103201,
+      "weighted_f1": 0.7187968440208827,
+      "model": "optimized_338_iter10",
+      "train_seconds": 127.84,
+      "train_per_label": 338.0,
+      "num_iterations": 10.0
+    },
+    {
+      "split": "balanced_test",
+      "samples": 411,
+      "accuracy": 0.7615571776155717,
+      "macro_f1": 0.7088176962577912,
+      "weighted_f1": 0.734642477719435,
+      "model": "optimized_338_iter10",
+      "train_seconds": 127.84,
+      "train_per_label": 338.0,
+      "num_iterations": 10.0
+    },
+    {
+      "split": "natural_test",
+      "samples": 3340,
+      "accuracy": 0.8047904191616766,
+      "macro_f1": 0.5726824789962937,
+      "weighted_f1": 0.8398695823104582,
+      "model": "baseline_1080_selected",
+      "train_seconds": NaN,
+      "train_per_label": NaN,
+      "num_iterations": NaN
+    }
+  ],
+  "split_counts": [
+    {
+      "split": "train_pool",
+      "samples": 95414,
+      "QUESTION": 5122,
+      "INFORM": 87820,
+      "ACKNOWLEDGE": 1136,
+      "DIRECTIVE": 296,
+      "EXPRESSIVE": 952,
+      "REJECT": 88
+    },
+    {
+      "split": "balanced_val",
+      "samples": 411,
+      "QUESTION": 72,
+      "INFORM": 72,
+      "ACKNOWLEDGE": 72,
+      "DIRECTIVE": 72,
+      "EXPRESSIVE": 72,
+      "REJECT": 51
+    },
+    {
+      "split": "balanced_test",
+      "samples": 411,
+      "QUESTION": 72,
+      "INFORM": 72,
+      "ACKNOWLEDGE": 72,
+      "DIRECTIVE": 72,
+      "EXPRESSIVE": 72,
+      "REJECT": 51
+    },
+    {
+      "split": "natural_test",
+      "samples": 3340,
+      "QUESTION": 904,
+      "INFORM": 2000,
+      "ACKNOWLEDGE": 200,
+      "DIRECTIVE": 52,
+      "EXPRESSIVE": 168,
+      "REJECT": 16
+    }
+  ],
+  "top_confusions": [
+    {
+      "split": "balanced_test",
+      "true_label": "INFORM",
+      "predicted_label": "REJECT",
+      "count": 14,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "ACKNOWLEDGE",
+      "predicted_label": "REJECT",
+      "count": 13,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "REJECT",
+      "predicted_label": "INFORM",
+      "count": 13,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "ACKNOWLEDGE",
+      "predicted_label": "QUESTION",
+      "count": 12,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "EXPRESSIVE",
+      "predicted_label": "INFORM",
+      "count": 11,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "DIRECTIVE",
+      "predicted_label": "INFORM",
+      "count": 10,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "EXPRESSIVE",
+      "predicted_label": "DIRECTIVE",
+      "count": 8,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "EXPRESSIVE",
+      "predicted_label": "REJECT",
+      "count": 7,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "DIRECTIVE",
+      "predicted_label": "EXPRESSIVE",
+      "count": 6,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "ACKNOWLEDGE",
+      "predicted_label": "INFORM",
+      "count": 5,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "ACKNOWLEDGE",
+      "predicted_label": "EXPRESSIVE",
+      "count": 5,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "REJECT",
+      "predicted_label": "EXPRESSIVE",
+      "count": 5,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "QUESTION",
+      "predicted_label": "INFORM",
+      "count": 4,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "DIRECTIVE",
+      "predicted_label": "QUESTION",
+      "count": 3,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "DIRECTIVE",
+      "predicted_label": "REJECT",
+      "count": 3,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "EXPRESSIVE",
+      "predicted_label": "ACKNOWLEDGE",
+      "count": 3,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "INFORM",
+      "predicted_label": "QUESTION",
+      "count": 2,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "INFORM",
+      "predicted_label": "DIRECTIVE",
+      "count": 2,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "EXPRESSIVE",
+      "predicted_label": "QUESTION",
+      "count": 2,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "INFORM",
+      "predicted_label": "EXPRESSIVE",
+      "count": 1,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "REJECT",
+      "predicted_label": "ACKNOWLEDGE",
+      "count": 1,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_test",
+      "true_label": "REJECT",
+      "predicted_label": "DIRECTIVE",
+      "count": 1,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_val",
+      "true_label": "REJECT",
+      "predicted_label": "INFORM",
+      "count": 15,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_val",
+      "true_label": "ACKNOWLEDGE",
+      "predicted_label": "REJECT",
+      "count": 14,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_val",
+      "true_label": "ACKNOWLEDGE",
+      "predicted_label": "QUESTION",
+      "count": 9,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_val",
+      "true_label": "DIRECTIVE",
+      "predicted_label": "INFORM",
+      "count": 8,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_val",
+      "true_label": "EXPRESSIVE",
+      "predicted_label": "INFORM",
+      "count": 7,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_val",
+      "true_label": "QUESTION",
+      "predicted_label": "INFORM",
+      "count": 5,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_val",
+      "true_label": "INFORM",
+      "predicted_label": "DIRECTIVE",
+      "count": 5,
+      "model": "baseline_1080"
+    },
+    {
+      "split": "balanced_val",
+      "true_label": "DIRECTIVE",
+      "predicted_label": "QUESTION",
+      "count": 5,
+      "model": "baseline_1080"
+    }
+  ]
+}

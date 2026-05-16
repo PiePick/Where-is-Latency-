@@ -84,7 +84,7 @@ FISH_SPEECH_CUE_PROBABILITY = _env_float("FISH_SPEECH_CUE_PROBABILITY", 0.65)
 FAST_TRACK_AUDIO_CACHE_ENABLED = _env_bool("FAST_TRACK_AUDIO_CACHE_ENABLED", True)
 FAST_TRACK_AUDIO_CACHE_FILE = os.getenv(
     "FAST_TRACK_AUDIO_CACHE_FILE",
-    "fast_track_audio_cache/manifest.json",
+    "fast_track_audio_cache_cute/manifest.json",
 )
 FAST_TRACK_AUDIO_CACHE_PATH = ROOT_DIR / FAST_TRACK_AUDIO_CACHE_FILE
 FAST_TRACK_KEYWORD_SOURCE_BIAS = _env_bool("FAST_TRACK_KEYWORD_SOURCE_BIAS", True)
@@ -92,6 +92,21 @@ FAST_TRACK_DEVICE = os.getenv("FAST_TRACK_DEVICE", "auto")
 FAST_TRACK_MIN_RUNTIME_SCORE = _env_float("FAST_TRACK_MIN_RUNTIME_SCORE", 0.0)
 FAST_TRACK_EVERYDAY_WEIGHT = _env_float("FAST_TRACK_EVERYDAY_WEIGHT", 0.60)
 FAST_TRACK_STREAM_WEIGHT = _env_float("FAST_TRACK_STREAM_WEIGHT", 0.40)
+FAST_TRACK_TTS_MODE = os.getenv("FAST_TRACK_TTS_MODE", "stylebert_vits2")
+
+# FastTrack TTS: Style-Bert-VITS2 is used for low-latency short reactions.
+STYLEBERT_VITS2_BASE_URL = os.getenv("STYLEBERT_VITS2_BASE_URL", "http://127.0.0.1:5000")
+STYLEBERT_VITS2_VOICE_URL = os.getenv("STYLEBERT_VITS2_VOICE_URL", f"{STYLEBERT_VITS2_BASE_URL}/voice")
+STYLEBERT_VITS2_HEALTH_URL = os.getenv("STYLEBERT_VITS2_HEALTH_URL", f"{STYLEBERT_VITS2_BASE_URL}/docs")
+STYLEBERT_VITS2_OUTPUT_DIR = ROOT_DIR / os.getenv("STYLEBERT_VITS2_OUTPUT_DIR", "tts_outputs/stylebert_fast")
+STYLEBERT_VITS2_TIMEOUT = _env_float("STYLEBERT_VITS2_TIMEOUT", 30.0)
+STYLEBERT_VITS2_MODEL_ID = _env_int("STYLEBERT_VITS2_MODEL_ID", 0)
+STYLEBERT_VITS2_SPEAKER_ID = _env_int("STYLEBERT_VITS2_SPEAKER_ID", 0)
+STYLEBERT_VITS2_STYLE = os.getenv("STYLEBERT_VITS2_STYLE", "Neutral")
+STYLEBERT_VITS2_STYLE_WEIGHT = _env_float("STYLEBERT_VITS2_STYLE_WEIGHT", 5.0)
+STYLEBERT_VITS2_LANGUAGE = os.getenv("STYLEBERT_VITS2_LANGUAGE", "EN")
+STYLEBERT_VITS2_REFERENCE_VOICE = os.getenv("STYLEBERT_VITS2_REFERENCE_VOICE", "credo_voice_sample")
+STYLEBERT_VITS2_AUTO_PLAY = _env_bool("STYLEBERT_VITS2_AUTO_PLAY", False)
 
 # Slow Track: use the same OpenAI-compatible local endpoint as Open-LLM-VTuber.
 # Qwen 7B is the practical default because Fish Speech needs most of a 24 GB GPU.
@@ -115,10 +130,11 @@ SLOW_TRACK_SYSTEM_PROMPT = _env_text(
         "Match the emotional direction implied by the cover and the viewer message: warm for positive, grounded for negative, curious for ambiguous, calm for neutral. "
         "Prefer concrete empathy, a natural follow-up, or a small observation over generic filler. "
         "Use memory only when it is directly relevant. "
-        "Fish Speech supports inline paralinguistic tags. "
-        "Use at most one approved tag only when it improves naturalness: "
+        "Fish Speech supports inline paralinguistic tags, so include one natural nonverbal tag in most answers unless it would be awkward. "
+        "Choose only from these approved tags: "
         "[pause], [short pause], [emphasis], [inhale], [exhale], [chuckle], [laughing], "
-        "[excited], [sigh], [soft sigh], [sad sigh], [whisper], [surprised], [shocked]. "
+        "[excited], [sigh], [soft sigh], [sad sigh], [whisper], [surprised], [shocked], "
+        "[delight], [cute excited tone]. "
         "Place the tag naturally inside the spoken sentence, never as a separate label. "
         "Avoid markdown, bullet points, roleplay narration, stage directions, emoji, and long monologues."
     ),
@@ -153,7 +169,15 @@ FISH_SPEECH_BASE_URL = os.getenv("FISH_SPEECH_BASE_URL", "http://127.0.0.1:8080"
 FISH_SPEECH_TTS_URL = os.getenv("FISH_SPEECH_TTS_URL", f"{FISH_SPEECH_BASE_URL}/v1/tts")
 FISH_SPEECH_HEALTH_URL = os.getenv("FISH_SPEECH_HEALTH_URL", f"{FISH_SPEECH_BASE_URL}/v1/health")
 FISH_SPEECH_API_KEY = os.getenv("FISH_SPEECH_API_KEY", "")
-FISH_SPEECH_REFERENCE_ID = os.getenv("FISH_SPEECH_REFERENCE_ID", "credo_bright_female") or None
+FISH_SPEECH_REFERENCE_ID = os.getenv("FISH_SPEECH_REFERENCE_ID", "credo_voice_sample") or None
+FISH_SPEECH_REFERENCE_VOICE = os.getenv("FISH_SPEECH_REFERENCE_VOICE", "en-US-AnaNeural")
+FISH_SPEECH_REFERENCE_TEXT = os.getenv(
+    "FISH_SPEECH_REFERENCE_TEXT",
+    "Ah, you have woken up? Good morning. Hm? This is breakfast. Though, it is almost noon.",
+)
+FISH_SPEECH_REGENERATE_REFERENCE = _env_bool("FISH_SPEECH_REGENERATE_REFERENCE", False)
+FISH_SPEECH_REFERENCE_TIMEOUT = os.getenv("FISH_SPEECH_REFERENCE_TIMEOUT", "60s")
+FISH_SPEECH_GLOBAL_STYLE_TAG = os.getenv("FISH_SPEECH_GLOBAL_STYLE_TAG", "[cute bright voice]")
 FISH_SPEECH_FORMAT = os.getenv("FISH_SPEECH_FORMAT", "wav")
 FISH_SPEECH_OUTPUT_DIR = ROOT_DIR / os.getenv("FISH_SPEECH_OUTPUT_DIR", "tts_outputs")
 FISH_SPEECH_TIMEOUT = _env_float("FISH_SPEECH_TIMEOUT", 120.0)
@@ -171,7 +195,7 @@ OPEN_LLM_VTUBER_HUMAN_NAME = os.getenv("OPEN_LLM_VTUBER_HUMAN_NAME", "Viewer")
 OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME = os.getenv("OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME", "credo_avatar")
 OPEN_LLM_VTUBER_AVATAR = os.getenv("OPEN_LLM_VTUBER_AVATAR", "credo_avatar.png")
 OPEN_LLM_VTUBER_TTS_MODEL = os.getenv("OPEN_LLM_VTUBER_TTS_MODEL", "edge_tts")
-OPEN_LLM_VTUBER_EDGE_TTS_VOICE = os.getenv("OPEN_LLM_VTUBER_EDGE_TTS_VOICE", "en-US-JennyNeural")
+OPEN_LLM_VTUBER_EDGE_TTS_VOICE = os.getenv("OPEN_LLM_VTUBER_EDGE_TTS_VOICE", "en-US-AnaNeural")
 OPEN_LLM_VTUBER_SLOW_TTS_MODE = os.getenv("OPEN_LLM_VTUBER_SLOW_TTS_MODE", "credo_fish_speech")
 OPEN_LLM_VTUBER_USE_FAST_AUDIO = _env_bool("OPEN_LLM_VTUBER_USE_FAST_AUDIO", True)
 OPEN_LLM_VTUBER_SLOW_ENABLED = _env_bool("OPEN_LLM_VTUBER_SLOW_ENABLED", True)

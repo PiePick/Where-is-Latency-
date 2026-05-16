@@ -29,28 +29,7 @@ DEFAULT_EXPRESSION_TAGS = {
 }
 
 
-PROACTIVE_IDLE_COVERS = [
-    {
-        "text": "Great.",
-        "audio": "fast_track_audio_cache/Positive/everyday/bd103151cfbbbb32.wav",
-        "emotion": "positive",
-    },
-    {
-        "text": "Good work, friend.",
-        "audio": "fast_track_audio_cache/Positive/stream/e551e29fc1249359.wav",
-        "emotion": "positive",
-    },
-    {
-        "text": "Fair enough.",
-        "audio": "fast_track_audio_cache/Neutral/stream/8cbbaa5f2ddb319e.wav",
-        "emotion": "neutral",
-    },
-    {
-        "text": "No problem, anytime.",
-        "audio": "fast_track_audio_cache/Neutral/everyday/41f42f8fd64754ba.wav",
-        "emotion": "neutral",
-    },
-]
+PROACTIVE_IDLE_CATEGORIES = ("Positive", "Neutral")
 
 
 class CredoLatencyCoverAgent(AgentInterface):
@@ -87,6 +66,16 @@ class CredoLatencyCoverAgent(AgentInterface):
         self.fish_tts = None
         if self.slow_tts_mode == "credo_fish_speech":
             self.fish_tts = self._tts_client.FishSpeechTTSClient()
+        self.fast_stylebert_tts = None
+        if self._credo_config.FAST_TRACK_TTS_MODE == "stylebert_vits2":
+            self.fast_stylebert_tts = self._stylebert_vits2_client.StyleBertVITS2Client()
+
+        self.proactive_audio_cache = self._fast_track_audio_cache.FastTrackAudioCache(
+            self._credo_config.FAST_TRACK_AUDIO_CACHE_PATH,
+            enabled=self._credo_config.FAST_TRACK_AUDIO_CACHE_ENABLED,
+            seed=self.settings.get("seed"),
+            expected_reference_id=self._credo_config.FISH_SPEECH_REFERENCE_ID,
+        )
 
         logger.info(f"CREDO latency-cover agent loaded from {self.ai_npc_path}")
 
@@ -112,12 +101,16 @@ class CredoLatencyCoverAgent(AgentInterface):
         import fast_track
         import slow_track
         import tts_client
+        import stylebert_vits2_client
+        import fast_track_audio_cache
         from memory_store import MemoryStore
 
         self._credo_config = credo_config
         self._fast_track = fast_track
         self._slow_track = slow_track
         self._tts_client = tts_client
+        self._stylebert_vits2_client = stylebert_vits2_client
+        self._fast_track_audio_cache = fast_track_audio_cache
         self._memory_store = type("_MemoryModule", (), {"MemoryStore": MemoryStore})
 
     async def chat(self, input_data: BaseInput) -> AsyncIterator[AudioOutput | SentenceOutput]:
@@ -142,7 +135,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             f"cache={fast_result.get('fast_audio_cache_hit')}"
         )
 
-        fast_audio_path = fast_result.get("fast_audio_path")
+        fast_audio_path = await self._resolve_fast_audio(fast_result, fast_tts_text)
         if self.use_fast_audio and fast_audio_path and Path(str(fast_audio_path)).exists():
             yield AudioOutput(
                 audio_path=str(fast_audio_path),
@@ -235,19 +228,34 @@ class CredoLatencyCoverAgent(AgentInterface):
         return f"{prompt} Idle turn number: {self._proactive_count}."
 
     def _build_proactive_output(self) -> AudioOutput | SentenceOutput:
-        """Return an immediate cached idle utterance for proactive speak."""
-        cover = self.rng.choice(PROACTIVE_IDLE_COVERS)
-        text = cover["text"]
-        emotion = cover["emotion"]
+        """Return an immediate idle utterance from the current configured cache."""
+        category = self.rng.choice(PROACTIVE_IDLE_CATEGORIES)
+        source = self.rng.choice(("everyday", "stream"))
+        cover = self.proactive_audio_cache.choose(category, preferred_source=source)
+
+        if cover:
+            text = cover.plain_tts_text
+            tts_text = cover.tts_text
+            emotion = cover.category.lower()
+            audio_path = cover.audio_path
+        else:
+            text = self.rng.choice(("Hi hi.", "I am here.", "Tell me something fun."))
+            tts_text = text
+            emotion = category.lower()
+            audio_path = None
+
         actions = self._build_actions(emotion)
-        audio_path = self.ai_npc_path / cover["audio"]
 
         logger.info(
             "CREDO proactive idle cover: "
-            f"emotion={emotion}, cache={audio_path.exists()}, text={text!r}"
+            f"emotion={emotion}, cache={bool(audio_path and audio_path.exists())}, "
+            f"path={audio_path}, text={text!r}"
         )
 
-        if self.use_fast_audio and audio_path.exists():
+        if self.use_fast_audio and not audio_path:
+            audio_path = self._synthesize_fast_audio_sync(tts_text)
+
+        if self.use_fast_audio and audio_path and audio_path.exists():
             return AudioOutput(
                 audio_path=str(audio_path),
                 display_text=self._display(text),
@@ -256,7 +264,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             )
         return SentenceOutput(
             display_text=self._display(text),
-            tts_text=text,
+            tts_text=tts_text,
             actions=actions,
         )
 
@@ -293,6 +301,28 @@ class CredoLatencyCoverAgent(AgentInterface):
             return await asyncio.to_thread(self.fish_tts.synthesize_to_file, text, prefix="olv_slow")
         except Exception as exc:
             logger.warning(f"CREDO Fish Speech slow TTS fallback to Open-LLM TTS: {exc}")
+            return None
+
+    async def _resolve_fast_audio(self, fast_result: dict[str, Any], text: str) -> Path | None:
+        """Prefer Style-Bert-VITS2 FastTrack TTS, then cached audio if configured."""
+        if self._credo_config.FAST_TRACK_TTS_MODE == "stylebert_vits2":
+            audio = await asyncio.to_thread(self._synthesize_fast_audio_sync, text)
+            if audio:
+                return audio
+
+        cached_path = fast_result.get("fast_audio_path")
+        if cached_path and Path(str(cached_path)).exists():
+            return Path(str(cached_path))
+        return None
+
+    def _synthesize_fast_audio_sync(self, text: str) -> Path | None:
+        """Use Style-Bert-VITS2 for short FastTrack audio when available."""
+        if self.fast_stylebert_tts is None:
+            return None
+        try:
+            return self.fast_stylebert_tts.synthesize_to_file(text, prefix="olv_fast")
+        except Exception as exc:
+            logger.warning(f"CREDO Style-Bert-VITS2 fast TTS fallback: {exc}")
             return None
 
     def _display(self, text: str) -> DisplayText:

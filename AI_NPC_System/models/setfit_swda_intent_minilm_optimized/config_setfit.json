@@ -1,0 +1,11 @@
+{
+  "labels": [
+    "QUESTION",
+    "INFORM",
+    "ACKNOWLEDGE",
+    "DIRECTIVE",
+    "EXPRESSIVE",
+    "REJECT"
+  ],
+  "normalize_embeddings": false
+}
