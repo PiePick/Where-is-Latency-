@@ -1,0 +1,55 @@
+{
+  "base_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "samples_per_label": 180,
+  "seed": 42,
+  "unknown_policy": "exclude",
+  "max_words": 30,
+  "label_to_id": {
+    "QUESTION": 0,
+    "INFORM": 1,
+    "ACKNOWLEDGE": 2,
+    "DIRECTIVE": 3,
+    "EXPRESSIVE": 4,
+    "REJECT": 5
+  },
+  "id_to_label": {
+    "0": "QUESTION",
+    "1": "INFORM",
+    "2": "ACKNOWLEDGE",
+    "3": "DIRECTIVE",
+    "4": "EXPRESSIVE",
+    "5": "REJECT"
+  },
+  "swda_mapping": {
+    "QUESTION": [
+      "qh",
+      "qo",
+      "qw",
+      "qy"
+    ],
+    "INFORM": [
+      "sd",
+      "sv"
+    ],
+    "ACKNOWLEDGE": [
+      "b",
+      "bh",
+      "nn",
+      "ny"
+    ],
+    "DIRECTIVE": [
+      "ad",
+      "co"
+    ],
+    "EXPRESSIVE": [
+      "fa",
+      "fc",
+      "fp",
+      "ft"
+    ],
+    "REJECT": [
+      "ar",
+      "nd"
+    ]
+  }
+}

@@ -1,0 +1,1080 @@
+{"text":"F Oh, F oh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C But go ahead, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Hope you like you it. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, if our time is up we can quit. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"don't tell that to a native Texan though, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, not really, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"# No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"No . \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D Well, D you know, let's face it, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, I was just trying to make an introduction, here . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Is there a lot of sand in, - \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"F Oh, really. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# D You know # D like, yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C and then a lot of other stuff we just wait until it comes out on tape. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"Well - \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"I'm glad to find there's another reasonable person in Garland. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Are you at work? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"D Well, you weren't charging gold and silver were you? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"sure. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"F Uh, D well, it's not really sight reading when you've done it, D you know, again and again and again, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Hi. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well I'm not talking about any loss. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"# C And I hope you enjoy, #","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, you have got to get one of those ladders. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"did you like, do you use credit cards? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"she's very old fashioned. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C or what was the whole deal on that? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"C But you definitely need to go to Hawaii. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"You too. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Are you in the Air Force? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"C and he, F uh, saved himself in the, in the, in the process also. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"# # No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"# Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C but look at their war, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well I'd say tackle one project first and see how it goes \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, I don't, I don't know. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D Well I have wallpaper in both of my bathrooms right now which is really pretty disgusting. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Is that where you, you are originally from around there? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"is insurance bad there? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"did you ever see, F um, F um, SLEEPING WITH THE ENEMY? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"The other one you need to go see is SLEEPING WITH THE ENEMY. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"I'll buy a crossword puzzle magazine every now and then . \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C So, yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# Yeah. # \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"F Oh, that is, that is the most precious movie. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"you want to tell me first how you feel about","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"good. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D Well, don't bother . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Oh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"F Um, it was really nice talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# He # , he refuted it, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"I'll let you go first. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, I think we need to do more. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Hi, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"enjoyed talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Enjoy your, F uh, weekend. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# Yeah # . \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Thanks, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"you can just light -\/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C And keep smiling. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Right. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"how about the injection, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qo"}
+{"text":"go out and buy one now \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"F Uh, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Nice talking to you today. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"# D Well, # I heard tonight on the news that he is willing to come down.","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"C but it's going to be a lot of work, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"where are you going to move to? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"How long would it be","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"I'm not either. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Y-,","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"We've been getting quite a bit, maybe not quite as bad as some of the folks down around San Antonio, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"What else has changed between the sixties and the eighties","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qh"}
+{"text":"D Well, no. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Did t-, F uh, did it go up and down? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"I, I could have used that recipe, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"# Bye. # \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D like do you do technician work or something? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"F Um, do you think s-, the, the parents spend quality time with their kids \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Okay. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, he, F uh, he's from Detroit \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"D Well it's a whole lot better than that San Francisco # paper \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"C and everybody's got their sleeping bags, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"you leave a message \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Really. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Choirs and that kind of stuff? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"okay. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"look at the news tonight, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, D you know, like other things, if they don't affect you, you don't worry about them too much. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"C So will, you, F uh, breed one of the litter, then next year? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"D Well, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"# did you see that? # \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"It's good talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"It really does. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"It was true, it was truly awful. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"that looks really good too. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"I used to do that a little when I lived up in New York, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Was nice talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"somewhere in there someone's going to have to learn a different way. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"You have to, F uh, - \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"do you en-, do you enjoy doing that kind of work, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"F Uh, what do you think about the idea of providing one for somebody like that? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qo"}
+{"text":"F Oh, yes, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Hi, Wanet >. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"F Uh, I would say definitely go see that part \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, D actually that wasn't even eventually the problem. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"there's a lot of, - \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"what are your views? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qo"}
+{"text":"C and I'm calling, calling from Plano, Texas. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"# Take care. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"buy a fresh filet of fish, a nice one at the fish mar-, the fish counter. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"F Oh, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"F Oh, D well, how many people are you planning on serving at Christmas? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"F Um. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"F uh, you name it, they tax it. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"F Oh, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Are you, are you running ragged these days? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Where do you go? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Thirty-two, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"You think so ? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Do they even understand what's being said? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Hi. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"I don't really care for snow peas. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Yeah, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"tell me about your computer, Laurie, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Right. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Where in Pennsylvania? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"D You know, I've had D like, over the past thirty years I've had, D you know, about seven or eight different dogs all the time. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C and she said everything was on sale. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D See, you need to go there. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D well maybe not. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"# Okay. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Oh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D So, how do you feel? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qo"}
+{"text":"Do you want to be an R N \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# C and # they were nearly all, all diesel, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"E I mean, why not. \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qh"}
+{"text":"C and do you think you'll have a baby to take back with you . \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"now you watch, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"I don't need to see more of it. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D Well, you can come over to my house and spend it . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"# F Huh # . \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C and I have heard in residential situations, F uh, like in Plano","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C But it was, I thought it was a pretty neat idea. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"F Oh, really? \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"bh"}
+{"text":"F Uh, yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Yep. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C But, I know that they have D like, F uh, their, crime rate, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Where, where are you from? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"C and, C and, D you know, you always, D you know, - \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"What kind of consulting do you do? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Bye now. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Now have you seen DANCES WITH WOLVES? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"real tasty. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"You have got to go tobogganing and sledding with them. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C or not, - \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Put in a perennial blue salvia. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well there's still a lot of dollar five places here \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C so we usually see D like first-rate movies,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"the, F uh, I just changed my oil, oil tonight \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Sure. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C So, I'd say,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"I am less than a mile from the Baltimore line. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"that's where we went. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C so that would be nice. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"that's not right. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D now I'm just about, F oh, a half hour, F uh, north of Salt Lake. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"what, what's your opinion of wha-, what a good router is like? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"I'm from Maryland \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"D Anyway, it's been nice talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"# Nay. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"That will help. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, you have to see them more than that. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"keep up the cross-stitching. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"C but, F uh, as you know P C -s change quite rapidly \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"We've never been able to take it off our income tax. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"D Well you ought to come to North Carolina. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"You really should go at least once. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Thank you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"That's it, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"D well, it's good, it's good talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"especially my dad, likes a lot of classical music \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"We did in,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"I haven't had a chance to,","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"They were using it as eating out, F uh, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"That's,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"and four cars \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C but everybody gets vacation. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"E I mean, it sounds like it's just the pits \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Do you get a chance to do it at home \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"You want it to get dry, but not, F uh, just real hard. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"F Uh, does Dallas have a curbside recycling program yet? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"It's pretty nice. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"What part of Pittsburgh? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"excuse me just a minute,","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Didn't they just have an article, F oh, on, F uh, - \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"What kind of rock music do you listen to? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"D Well, she does not have it, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"They didn't call you for Mother's Day? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Put them in jail . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Oh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# Bye-bye. # \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"THE HUNTLEY, BRINKLEY REPORT was quite excellent,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"I am, I am right outside Baltimore. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Oh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C and I thought, no wonder \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"E I mean, it was raining, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C and I'll do the same. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C but I think we've, we've talked long enough. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"# I've always #","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"yo-, you comment on it, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, the, F um, glass and the newspaper we usually take to Walmart. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D Well, F uh, even though it's totally out of my, F uh, my degree training, I've been working as, as, in the horticultural aspect, D so","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"D Well, are you in the market for a new car? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"how much time do you spend with your children, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"C and you put a bay leaf and put some, F uh, red pepper over it. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C But, F um, for the cheese part, you mix, F uh, sour cream, and cream cheese and cottage cheese","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"We have a little path that we do.","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"would every-, everyone grow up and mature and, and realize what this country's all about. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# C And # it seemed to take them a long time \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"F Uh, C and where you are? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"D Well, Rome is pretty small . \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"# No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Isn't that interesting ? \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"bh"}
+{"text":"Yeah. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D well, I guess I got to get going, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"You look at another kind of society like the Japanese. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D You know, where I use to work we had what we called tree boxes. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D Well, F um, I'm going to talk about when I was working as a teacher and when I # was (( working )) at now. # \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"co"}
+{"text":"# F Uh, #","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C so we'll have to talk about the future","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"good luck. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"What kind of grant was it? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"we have, F uh, F uh, kind of a core group that, that serves as, quote, officers of the organization, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D Well, it's nice talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"# F uh, I'm not working right now. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Go right to personnel. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"F Um, tell me some about your camping experiences, Carolyn. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"E I mean, did D like some people go to their rooms and (( )) , -\/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"How do you feel your career has gone? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qo"}
+{"text":"C and she gives me ideas for my writing too # \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Yes, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"it makes such a difference. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C And then you, F uh, mix flour and a cup of water, maybe, F uh, one tablespoon of flour and a cup of water. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Yes. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"No, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D Well, if you ever get one, be sure the walls are good and thick because if they're not you can hear. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Well, where are you from? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"C but.","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Right. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Worked out really well for us too. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"No, F uh, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"nn"}
+{"text":"C and that mostly does it even though you still make mistakes. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C so they were able to","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"No, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"nn"}
+{"text":"D Well, I guess there's extenuating circumstances to anything like that. F Uh, D you know, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"I hate to see people brought in who basically have lived out in the country and don't know much about any of this stuff, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Thank you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"I don't think we've gone our, our ten minutes \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C Or not Detroit. I'm in, F uh, California. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C but","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Have you watched that? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Do you, do you garden or not? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"You think the rich are paying too much? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"# D Anyway let you go. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C but, F um, it had not, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C And then D like, the week before that, they said go through your cupboards and any food that is still good, bring it in \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Yeah . \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C so. -\/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D You know, it, it's taking time, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"What area of lakes do you like? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Do they require you to presort it? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"let's hope it, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Oldies or what? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"not so much that - \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"isn't that terrible. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"bh"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"if you don't like it, shoot, move on to something else. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"not how, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"F Oh, thank you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ft"}
+{"text":"When do )) you, - \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"I think it was a three fifty-seven. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"take care. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Do they have classes for them during the summer, too? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"what is it, F uh, the act where they had to cut everything across the board \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"C and I'm working part time . \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"pick out where you want to live, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C But I just think dogs need, need to be outside, though. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"D Well, yes, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"F Oh, D well, D well, encourage her to try other things, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"I don't think they have a whole lot to say, even . \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C so I don't do a lot of regular maintenance, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"F Oh, go ahead \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"E I mean, I have, D you know, I have everything he's ever D well, almost everything he's ever done. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, C but they can't be though, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Everyone had a two way wrist watch T V -s on their wrist,","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"right. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, I, I felt good about it because that's my personal feeling also. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"F Um, can you, F uh, hang on again hon-, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D you know, what's the trade off there, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"I don't know that it would or wouldn't. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"# I'm sure. # \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Hang on a minute. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C and I do contract work. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"No, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"nn"}
+{"text":"do you have an opinion on that, on the U S R? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"F Oh, yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C But, you're right sometimes it does seem like it's more trouble than what it would be worth. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"hold on. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"F Um. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# Do you know what #","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"C And you want to use one of your good sauce pans that dissipate the heat because it, it ends up burning, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"# D Well, he did refute it. # \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C But it's just kind of like get on the telephone \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C and I was so mad. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D Well, (( Nola )) I have enjoyed talking with you thoroughly. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"There's no doubt about it, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"we got lucky. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C And you only cook it until the mixture begins to boil,","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C and they get together \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Not a baby, she was old enough to, F uh, - \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Hey Mark","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, I don't know, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Would you consider, F uh, capital punishment for them? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"D well, not really, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"I got layed off by T I . \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"must be a, F uh, T I connection, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"is that correct? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C And do you know anything about that new stadium, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"C and they, F oh, the old-timer made with the old way \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"you need to chop em up real fine \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C but I would have to get them picked up from there","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C And that's the, that's the situation that he finds himself in, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"hold on >. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"No, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"nn"}
+{"text":"Okay. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Right. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Hello, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"C and you cover it. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"You don't want the gum on the back of the masking tape to get dried to hard. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"No, chan-,","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"F Oh, yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"No \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Until you pull the pin, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Just get it out, D you know, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C So, D well, I think we've discussed it good enough today. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C And, F uh, F um, how long do you plan to be going for? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"w-we have noticed this in particular. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"You have got to see at least once. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Thank you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C and then, again, I picked up a cold. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Is that just family's lack of priority, anymore, maybe (( D yes )) , \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"How can you even think like that? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qo"}
+{"text":"F Uh, they still have some, some, F uh, some draft picks, F uh,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"huh-uh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"nn"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C and go to, F uh, Lone Star, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Right. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Were you all transferred? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Oh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"How long does that take you to get to work? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"you can take those, F uh, - \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"let me ask you the question, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"co"}
+{"text":"I have been, I have been reading and seeing about that on television. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Huh-uh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Let's hear about your hobbies. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, go in, don't go in the winter. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C But let me ask you this, since you (( use )) Texans, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"co"}
+{"text":"D well, not really. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, you like classical music? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Do you? \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"bh"}
+{"text":"Uh-huh, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C and, C and ever once, D you know, on my summer vacation, D you know, my week-long vacation, I,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Hi, F um, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"Listen to Bruce Williams, F uh, for financial advice. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C but, F uh, put all the glass in one place, and plastics, like milk jugs, F uh, orange juice jugs, things like that. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"No, gumbo. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"can you hold on just a sec-, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"From? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Right. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Are they going to be taught nothing, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qh"}
+{"text":"I'm surprised to hear that. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":". D So, tell me about your home. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"I, I, give me cyanide. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"No \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Is that, is that the Dodge Caravan,","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"no . \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"That's the one that really kind of bothers me. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"No, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"nn"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C and","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"No . \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"No \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C And how much crab meat did you use? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"C and then the, the houses are all, most of the houses are pretty nice, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Notre Dame ? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"# I hope, #","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"keep going. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C and then I know people th-, then have visited nursing homes and, F uh, have had great, grandparents in the nursing homes \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"E I mean, what did you do when you were younger, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"C but what about the rest of the society, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"bh"}
+{"text":"C So, tell me about your home. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"# I think # it was sixty, eighty. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C But you like, F uh, you like pets and things? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"C because,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Call again. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"who was on, the music people, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Have you seen SLEEPING WITH THE ENEMY? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"D well, maybe, maybe your husband could tape it for you sometime. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C and my mom, D you know, D like makes","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"could you hold on? \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"# Thanks. # \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Unfortunately, yes. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"thanks so much for the conversation. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Do you like rap music? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Okay, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"F Uh, what, F uh, what activities do you do when you're camping? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"When do they assume this is going to be proposed or mandatory? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"F Uh, when was the last time you saw a truck that didn't belch, smoke, or, F uh, -\/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Well, it's been nice chatting with you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C And think how rich she is. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Nice talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Yep. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"F Uh, hang on one second \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"What was that? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Okay, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Yeah, F uh, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C and it gives you a, sens-, F um, a false sense of security or something it seems like \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"# How # do you like Chinese food? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"I don't mind not wearing any makeup . \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"I guess not, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"I had, I've had, F uh, > two or three drug tests that I had to get before I could start working at a job","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"F Uh, how you doing? \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"How about yourself? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qo"}
+{"text":"(( no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C so this is my first one. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"even, even a cat, you never know when they might bite or scratch or something. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"do you have a Sam's Wholesale Warehouse up there? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Don't you think they learned from the mistakes in Vietnam? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Now l-, let me ask you this. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, same here. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# Uh-huh. # \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C and do you and your wife have a budget plan for your finances. \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"F Oh, really? \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"bh"}
+{"text":"Go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"F Uh, D you know, there's a shop in Roy that I really love. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C But, basically the same thing. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C but,","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"co"}
+{"text":"F Uh, F oh, yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Or,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C So why don't you explain to me some good tips about what you've done, which you've found useful and workable. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Hi, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"What vacation have you enjoyed the most? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Do you end up with very different length lines? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"you need to try em \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Let me ask you, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"co"}
+{"text":"What have you got growing right now? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"C so I, I stay on top of that \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"F Oh, no \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Just like V C R's, too . \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D Well , -\/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Right. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"don't, don't be in any hurry. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well you should of just ripped the whole thing out. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"F Uh, D well, this is all, F uh, it's all drywall \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Stick on the subject. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Impart me some wisdom, Catherine . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D well you are not missing too much then . \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Have a nice weekend. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"That's right. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C So, you had the dogs before you had the baby? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Okay. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C and, F uh, do you work for T I? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"# Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"How about you? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qo"}
+{"text":"D Well, it's a community center, it's a community hall. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"I, I kind of disagree . \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D So, tell me ab-, -\/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"# D Well, # do you see that there's a big problem with electronic things? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Oh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# Uh-huh, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, F uh, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D Well are they going to beat, are they going to beat Oakland? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"D Well, do you still do much work on them, then? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, you are going to have to find a mother's day out and have him call in sick one day. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"F Uh, they're not Joe Pros \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"You look at Frito Lay. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"F Uh, # if it was, #","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"D Well, they started out really bad, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"D Well D look, I've enjoyed speaking with you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"F Oh, don't be concerned. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"F Uh, North Carolina is all the way on the east coast. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"You don't even, you don't even realize it, D you know. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"C So do you think that is going to be F uh, difficult saying as far as marriages and people enjoying each other","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"I'm the one that pays for the phone. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D Well, Jack, it was nice to talk to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"It's just that I cooked \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"You, y'all work at T I? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"who do you work with at this time? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"no, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"nn"}
+{"text":"Are you married? # \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"you can smell ether in the air sometimes . \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"All right, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, actually, I, I've known how to sail pretty much my whole life. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Okay, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"those are things I like the most. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Go ahead . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"F Uh, I heard the opposite that, F uh, you should take children to see it. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"that doesn't make a whole of lot sense. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"#Bye.# \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"What about you? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qo"}
+{"text":"Bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Why, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"C and when you're ready to get another car just pay cash for it. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C and E I mean they think differently \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"D Well, not the rain so much as the cool, the other mornings when it was D like sixty-five when we woke up and sixty-six, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D So, D so why from Argentina, why'd you come over here? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"D So, F uh, what do you think about our involvement in the Middle East? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"I guess we've kind of exhausted this one, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"# C and # then you cook it for seven minutes on high. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Yep. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C Because I have just D like a very small, D you know, those basic tract houses, like that. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"kids are a lot more educated now than I think that, that, D like we were, F uh, at that age","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"They picked up a lot of bad press lately. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Oh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, D actually, it's, probably isn't less broad, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D Well, you should, F uh, run for a school board position. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"F Um, what, what kind of experience did you have? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qo"}
+{"text":"No . \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"It was this last summer, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"The meatballs you just F um after you form them fry them in a pan until","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Have you tried the, F uh, the pool at the Spring Creek Fitness Center? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Is there anything else you would want to, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C But, F uh, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"# F Oh, it doesn't? # \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"C And, tell him to take you there for your anniversary, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"they would. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"It doesn't? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Got to see Pike's Peak. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C But right now, the last things I watched regularly was THIRTY SOMETHING when it first came out. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"He does? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"That would have been best time to go. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"It's one of the small bottles. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"What changes do you feel have happened? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"F Oh, probably not. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D Well, I guess that's about it. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Hi, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"They will, they will eventually. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"D well, I guess I have used it once or twice. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"I've never done it myself","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"it's like a swamp. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D So, tell me the last time you went for a boat ride. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C so it seems to be, F uh, moving around and, F uh, to, to New Orleans' benefit, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"C And yet, how did I turn out the way I did turn out. \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qh"}
+{"text":"Do you have a set amount that, that you spend each month \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"D Well, you have a good day. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D well. I doubt that, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Is that on, what chan-, what station? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"E I mean, actually I think that works pretty well. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"no \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"my question I guess are they really your peers? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qh"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"F Oh, don't say that. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C and you just keep beating it in. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C And Dallas is pretty, F uh, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Have you ever been to, F uh, D like New Mexico? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"D Well, they're in the suburbs of Dallas, in Richardson and Plano. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"F uh, C but a-, C but D actually our, I guess our weather pattern comes from the, F uh, blows north east, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C so, F uh, D you know, let's, let's stick with that original trust, I guess. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"You know what I mean. \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"have you been, F uh, have you been the subject of such a crime, such as stealing, or anything? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"The","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D Well, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"# Okay. # \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, they would probably never make it then \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D Well, I don't do much of it here. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Is it the s-, - \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"C and then you sprinkle the cheese on top of that. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Keep on watching those movies, F huh? \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"It's candidates that have money \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"# Write that one down. # \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Just think of the money they could save. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Go right to personnel. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"F Oh, don't tell me that . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"It's nice talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Is it just that more people think there is D like excitement in it, you know? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qh"}
+{"text":"C but I don't understand with racialism and the way religion is and everything else how you can get people that are total, totally impartial to it. \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qh"}
+{"text":"I am, I am not on, I am just getting into gardening this year. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C And the buttons turned on it ove-, over the winter. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D Well, it was nice talking with you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"but it gets hard. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"C but what about the community? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"I don't think, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"# Can I pick your brain # about how you got rid of those trees? \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, that is not really true, either, F uh, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C and it's a fly, you call it a pattern. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C and it's kind of almost expected of you anyway. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Yes. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D well, the utilities are pretty much, - \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"okay. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Thanks. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ft"}
+{"text":"Enjoyed talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"No, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"nn"}
+{"text":"Have you seen DANCING WITH WOLVES? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Do you think he won from Carter because of the, F um, the hostages that were held at that time? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"C and,","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Have you ever read any of Frank E Peretti's? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Shouldn't we try and help our friends? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Is that right? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"All of it was taken up with just car space. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"I # don't think so. # \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"it's taken them ten, fifteen minutes at a time, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C and we'll talk to you later. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"F Um, C and it's, F uh, I think it started out to be, F um, just kind of a test, a pilot project. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C And, F um, I enjoyed talking with you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, it was good to talk to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"F Um, not only in case I need it for that for traction but for additional weight,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Do you use celery seed in your tuna fish? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"bye. # \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Right, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, ROGER was a composite one. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, you know they actually started \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"did you cut them down at the, at the ground level, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"You probably don't want to take them to see SILENCE OF THE LAMBS. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Huh-uh. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"F Oh, right, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Right. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Believe me. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Good. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"I'm for it in","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D Well I did, actually. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C And I thaw it \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"F uh, D actually, we, we have only made one of them since we got married about four years ago.","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"D well, help them make in terms of, D you know, what they are, they are","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"C And you cook it for another three minutes on high, D you know,","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"in terms of talking about restaurants, E I mean are a lot of restaurants, how are they when you have children let alone three or four children? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qo"}
+{"text":"D Well, listen, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C and then you can re freeze it. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"All right? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"just a minute . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"You too. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"How bad is it? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Hello. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"F Uh, D well, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Is that on tape? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"E I mean, it seems like every time you try to get ahead and take a vacation or something","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Uh-huh. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Do you think it's an economic c-, necessity \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Do you? \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"bh"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Little rock stars, put all them in there. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Put some fresh, little fresh shrimp \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"What are your, F uh, what sorts of things would you consider important? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"What's going on? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Do you hear, the, the beep in the background. \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"# Uh-huh. # \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"F Uh, you just, you would be able to buy it, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Not quite as radical a stance, more moderates are in power now. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Just don't mind me if I bounce back and forth. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, because we finally negotiated that I was losing my mind, F uh, he sleeps in the laundry room \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"# F Oh, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"For East Texas or something? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"# Buccaneers. # \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C And have you ever tried, F um, the Macaroni Grill up on, -\/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Sure. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"E Excuse me, go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"would be pretty hard. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"C and I won't give the, the whole plot away \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Bye >. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C And, F uh, you put that in \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C and see if it, F uh, -\/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Yeah. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Hello? \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"it's not Trinity, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Ivana Trump, F uh. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"put it on your shoe now. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"We are road, our road system's falling apart. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"# Oh. # \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"is that why we don't have - \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Hello. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"C But then heat them thoroughly in the sauce itself \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C And you put a little bit of that over it. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, that's what the environmentalists were claiming in this article. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Right. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, let's talk about air pollution. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"you work then? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"D Well, then how can a democracy work then? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qh"}
+{"text":"Okay, D well, thanks, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"E I mean a lot of, a lot of people as kids or, D you know, young people get into some things that they get out of later on \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"# C And I, # maybe we'll meet up again. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"# D Well, no # \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"D Well, D basically, F uh, did you want to go first, then? \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Hi. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"We have plastic, D you know, just tied down on everything, D you know, as best we could,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"> Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Some beet, F uh, potatoes \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"I guess that's the way I am too. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"wh-, what about the argument where, where somebody who is committing one capital crime chooses to commit a, a more serious capital crime? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qh"}
+{"text":"D Well, basically I think it would be a good idea myself. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"F Um, F uh, D well, give me your first impressions. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Do you enjoy it? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"All right, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"# D Well, # no. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C And, C but if it gets to a point where people can't , survive, E I mean, there's revolution. D You know, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Go ahead . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C but it then became unanimous. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C And even though the son was probably more successful, D you know, higher up in the, the management ladder","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D Well, I, I work, F uh, - \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Middlekauff wouldn't? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"C and we have three grandchildren \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"they still tell all kinds of stories about their parents and their cousins and their best friends, cause they all grew up in New York City, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C but looks to me that it wouldn't take really that much money to at least come up with, E I mean, some kind of partitions","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Okay. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Okay. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, more, F uh, - \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"that will be good, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"do you, F uh, F uh, work with a computers a at T I? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Let's just, - \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"it's good to talk to you, too. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, I am glad you have broken the ice with me because now, I will, I will start doing it . \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, it's about eight ounces. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"C So they went back to Europe and brought back some good examples of each of the three breeds","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Tell me how yours works. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Do you watch cartoons a lot? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Yeah, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D So, what school is it? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Your views, -\/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"# . # D Well, that's, that area over there is not as expensive as in the, the immediate, D you know, Washington area. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"# nice talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"F Oh, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"You bet, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C and then newspapers and T V would be tied after that because maybe I'll catch the, the evening news, like ten o'clock on T V \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"My husband cuts them out \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Yes, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"ny"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# Good-bye . # \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"What are you learning to be? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"F Um, then, then just , -\/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C and they let you know \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D Well, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"your, your turn. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Use about half the sugar, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, it was nice talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Go ahead, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C but they don't, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"that, that whole record was pretty good. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"You too. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Bye . \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Let me ask Nicole. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"co"}
+{"text":"D You know, it seems like everybody's always so busy with everything that they're doing that there's no time for this and that and the other, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"put them to work","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"E I mean, F w-, F well, they are the people whose strings are pulled and by I guess powerful intere-, -\/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"I, I guess, D you know, I'd like you to maybe express something here. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C And, F uh, their pastas were great. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"This is the first year that she has gotten weak and actually has to have a little walker, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"take care. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Uh, go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C and then you'll have to give me a call on gardening . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"I've had mice \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"No. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Right, uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"It was latex paint, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"# No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"I don't want to do too much on mine because it will be worth more than the car is \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C but go ahead # . # \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, -\/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"Bye, bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"that's the reason it ended up in a church because,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D Well, let me ask a (( personal )) question, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"co"}
+{"text":"# D Well, tell me, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"No. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D Well, you haven't told me, F uh, what sports that you are active in. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Tell me about your home. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"I'll let you start this time. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, you bet. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"okay? . \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"I don't know if it's just because I like the game or I just like to, to see the warm weather. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"you, you first, (( Eve )) . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, I could pick country music. \/ * answered as if to a qw","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"D Well, is that a necessary feature to have somebody, D you know, at the other end of the line \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Did you have any fear working in the hospital with that, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"F Oh, D well,","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"# How # long was the waiting period out there? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Don't let that stop you . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"F Uh, D well, D actually I think in most criminal cases it wouldn't make any difference whether it was a couple of judges or jury . \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C and.","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"yeah, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"# Which one? # \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"go ahead, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"C and two days later I bought this car. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Where? \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Good luck. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Talk, talk your husband into taking you there some night. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"We could talk,","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"co"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"enjoy college while you can. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"F Um, there's a place to look into, F um, F um, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Nice talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"no \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C Because around here, there's really nothing for the young people, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"> Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D Well, take # care. # \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Hi. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Nice talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"This is my first call by the way, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"How long have you been here? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"D Well, you have a pleasant evening. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"# D Well if you, # if you can get GREEN CARD, go for it. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"# C But, C but that # doesn't work. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"no, # \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Guess. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"How you doing, Howard? \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"C and let's face it, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"bye-bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, it's got a, a very small furnace. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"F Oh, don't made any excuses for him . \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Is there not? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"D Well, it was really good to talk to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"I think you'll enjoy it. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C So, you will have to do that once. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Okay, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Do you agree \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"C but, E I mean, what would somebody do with them. \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qh"}
+{"text":"No. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Okay, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"# Bye. # \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D Well, I'm going to have to,","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Are you serious? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Do you? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"F Oh, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"the poor got poorer, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"# right, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# Bye-bye. # \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"no, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"nn"}
+{"text":"It just happened. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"throw the lids and everything out, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C but go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"what is, -\/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"What kind of a computer do you use at work? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"D well, back, back to this visiting thing, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"are you on any kind of, F uh, regular exercise plan? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"No. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"but if, you know, if I ever wanted to have a kid, how could I work. \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qh"}
+{"text":"You, too. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Do you go to Berkeley? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"does California have a, -\/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Where, where do you usually go? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# Uh-huh. # \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"this is kind of an interesting subject to come up for me, because credit cards are my downfall. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Hey, thanks a lot, and, and bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"I think he has some interesting things on it. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Bye. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"what do you feel are some of the main problems? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"D well I hope you have good weather the rest of the summer. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"I suspect, I believe that any of our states, - \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"You too. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Okay, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"# C so # I was thinking D well, maybe, D you know, I need to think about getting rid of them, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"D So, F uh, describe your family budget. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"D Well, me, I'm going, and my daughter Janet in Austin. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Thanks a lot. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"right. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Oh, (( )) . \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C and they roll real well and maneuver. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"It was nice talking to you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C A-, C and good luck, \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"I think maybe th-, a judge is a better judge of that \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"It's not","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"What sort of, F uh, F uh, what other programs other than say running? - \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"D Well,","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"F Oh, you don't? \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"bh"}
+{"text":"Let them simmer in the sauce itself \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"D Well, F uh, it kind of comes and goes, F uh, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"nd"}
+{"text":"C So I've enjoyed that part of it. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"Are you in Dallas also? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"# Bye-bye. # \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Uh-huh. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"# D Well, no. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"what state are you in? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"Are you a T I -er. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"Here, hang on just a second, \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Okay \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"D You know, F uh, I was on a jury \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"C But, F um, C so how, how successful is your exercise video? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"there's a lot more working mothers, a lot more kids in day care centers all that kind of thing. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"# go ahead. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"# Yeah. # \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"F Huh. Do they have a policy where they counsel people if they come back positive, \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"D Well, same here. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"You mean, really trying to plant something? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"# W-, # wait. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Thank you. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"spread it out because you keep the cream cheese kind of thin. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"# No, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C And let them drop to the bottom D and maybe do a, a kind of a slow reel. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"# F Oh, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"C And now she wants to go back to school, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sd"}
+{"text":"# D Well, not, # not all of us. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"tell me about your clubs up there. \/","coarse_label":"DIRECTIVE","source":"swda_cgpotts_zip","raw_dialog_act":"ad"}
+{"text":"Uh-huh, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"I'm Steve. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fp"}
+{"text":"Uh-huh. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"C but it might be whether the locality there, those people want that kind of support. \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"have you heard of that? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"It's D like, okay, \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"F Uh, no, \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Yeah. \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"C But, anyway. D Well, F um, I can't think of a whole lot more to say. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"I want ask some questions here . \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"# It's fun. # \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"did they do that before you went in or what? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"bye D now. \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
+{"text":"How much is it in Dallas? \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qw"}
+{"text":"it's so beau-, - \/","coarse_label":"INFORM","source":"swda_cgpotts_zip","raw_dialog_act":"sv"}
+{"text":"Yeah, \/","coarse_label":"ACKNOWLEDGE","source":"swda_cgpotts_zip","raw_dialog_act":"b"}
+{"text":"Have you seen the mov-, - \/","coarse_label":"QUESTION","source":"swda_cgpotts_zip","raw_dialog_act":"qy"}
+{"text":"The only, the only thing I see about Cuba though, is, F uh, after Fidel Castro dies, I don't think they'll be a communist power anymore. \/","coarse_label":"REJECT","source":"swda_cgpotts_zip","raw_dialog_act":"ar"}
+{"text":"Are you a native of there? \/","coarse_label":"EXPRESSIVE","source":"swda_cgpotts_zip","raw_dialog_act":"fc"}
