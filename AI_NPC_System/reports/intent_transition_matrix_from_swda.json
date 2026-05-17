@@ -1,0 +1,116 @@
+{
+  "method": "cross_speaker_adjacent_transitions",
+  "source": "/mnt/c/Users/CGLAB/Desktop/CREDO/reaction_sources/swda/swda.zip",
+  "label_set": [
+    "QUESTION",
+    "INFORM",
+    "ACKNOWLEDGE",
+    "DIRECTIVE",
+    "EXPRESSIVE",
+    "REJECT"
+  ],
+  "smoothing": 1.0,
+  "utterance_count": 157571,
+  "same_conversation_adjacent_pairs": 156416,
+  "cross_speaker_adjacent_pairs": 78439,
+  "counts": {
+    "QUESTION": {
+      "QUESTION": 204,
+      "INFORM": 3274,
+      "ACKNOWLEDGE": 3267,
+      "DIRECTIVE": 23,
+      "EXPRESSIVE": 9,
+      "REJECT": 143
+    },
+    "INFORM": {
+      "QUESTION": 2927,
+      "INFORM": 11069,
+      "ACKNOWLEDGE": 30009,
+      "DIRECTIVE": 148,
+      "EXPRESSIVE": 100,
+      "REJECT": 161
+    },
+    "ACKNOWLEDGE": {
+      "QUESTION": 1187,
+      "INFORM": 21499,
+      "ACKNOWLEDGE": 1971,
+      "DIRECTIVE": 140,
+      "EXPRESSIVE": 104,
+      "REJECT": 29
+    },
+    "DIRECTIVE": {
+      "QUESTION": 52,
+      "INFORM": 186,
+      "ACKNOWLEDGE": 107,
+      "DIRECTIVE": 9,
+      "EXPRESSIVE": 15,
+      "REJECT": 13
+    },
+    "EXPRESSIVE": {
+      "QUESTION": 27,
+      "INFORM": 41,
+      "ACKNOWLEDGE": 30,
+      "DIRECTIVE": 5,
+      "EXPRESSIVE": 1563,
+      "REJECT": 1
+    },
+    "REJECT": {
+      "QUESTION": 19,
+      "INFORM": 36,
+      "ACKNOWLEDGE": 69,
+      "DIRECTIVE": 1,
+      "EXPRESSIVE": 0,
+      "REJECT": 1
+    }
+  },
+  "matrix": {
+    "QUESTION": {
+      "QUESTION": 0.029599,
+      "INFORM": 0.472856,
+      "ACKNOWLEDGE": 0.471845,
+      "DIRECTIVE": 0.003465,
+      "EXPRESSIVE": 0.001444,
+      "REJECT": 0.020791
+    },
+    "INFORM": {
+      "QUESTION": 0.065916,
+      "INFORM": 0.249212,
+      "ACKNOWLEDGE": 0.675597,
+      "DIRECTIVE": 0.003354,
+      "EXPRESSIVE": 0.002274,
+      "REJECT": 0.003647
+    },
+    "ACKNOWLEDGE": {
+      "QUESTION": 0.047642,
+      "INFORM": 0.862207,
+      "ACKNOWLEDGE": 0.079082,
+      "DIRECTIVE": 0.005654,
+      "EXPRESSIVE": 0.004211,
+      "REJECT": 0.001203
+    },
+    "DIRECTIVE": {
+      "QUESTION": 0.136598,
+      "INFORM": 0.481959,
+      "ACKNOWLEDGE": 0.278351,
+      "DIRECTIVE": 0.025773,
+      "EXPRESSIVE": 0.041237,
+      "REJECT": 0.036082
+    },
+    "EXPRESSIVE": {
+      "QUESTION": 0.016736,
+      "INFORM": 0.025105,
+      "ACKNOWLEDGE": 0.01853,
+      "DIRECTIVE": 0.003586,
+      "EXPRESSIVE": 0.934848,
+      "REJECT": 0.001195
+    },
+    "REJECT": {
+      "QUESTION": 0.151515,
+      "INFORM": 0.280303,
+      "ACKNOWLEDGE": 0.530303,
+      "DIRECTIVE": 0.015152,
+      "EXPRESSIVE": 0.007576,
+      "REJECT": 0.015152
+    }
+  }
+}

@@ -7,12 +7,16 @@ sounds like a conversational move, not an echo of the classifier label.
 
 from __future__ import annotations
 
+import json
 import random
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Mapping
 
 
 INTENTS = ("QUESTION", "INFORM", "ACKNOWLEDGE", "DIRECTIVE", "EXPRESSIVE", "REJECT", "UNKNOWN")
+ROOT = Path(__file__).resolve().parent
+DATA_DERIVED_MATRIX_PATH = ROOT / "reports" / "intent_transition_matrix_from_swda.json"
 
 
 TRANSITION_MATRIX: dict[str, dict[str, float]] = {
@@ -96,7 +100,8 @@ class IntentTransitionPlanner:
     """Sample response intent from a user-intent transition matrix."""
 
     def __init__(self, matrix: Mapping[str, Mapping[str, float]] | None = None) -> None:
-        self.matrix = {key: dict(value) for key, value in (matrix or TRANSITION_MATRIX).items()}
+        source_matrix = matrix or self._load_data_derived_matrix() or TRANSITION_MATRIX
+        self.matrix = {key: dict(value) for key, value in source_matrix.items()}
 
     def choose(
         self,
@@ -129,3 +134,16 @@ class IntentTransitionPlanner:
     def _normalize_intent(self, intent: str) -> str:
         intent = str(intent or "UNKNOWN").upper()
         return intent if intent in INTENTS else "UNKNOWN"
+
+    def _load_data_derived_matrix(self) -> dict[str, dict[str, float]] | None:
+        """Load the archived SWDA-derived transition matrix when available."""
+        if not DATA_DERIVED_MATRIX_PATH.exists():
+            return None
+        payload = json.loads(DATA_DERIVED_MATRIX_PATH.read_text(encoding="utf-8"))
+        matrix = payload.get("matrix")
+        if not isinstance(matrix, dict):
+            return None
+        result = {key: dict(value) for key, value in matrix.items() if isinstance(value, dict)}
+        if "UNKNOWN" not in result:
+            result["UNKNOWN"] = dict(TRANSITION_MATRIX["UNKNOWN"])
+        return result
