@@ -25,19 +25,21 @@ fish_speech_nonverbal_cues.json    Fish Speech tag candidates.
 prepared_fasttrack_data/           Preprocessed GoEmotions and SWDA data.
 models/setfit_swda_intent_minilm_optimized/ Selected intent model.
 reports/setfit_intent_evaluation.xlsx       SetFit validation/test report.
-VoiceSample/                       Local-only CREDO voice reference source.
+VoiceSample/                       Tracked CREDO voice reference source.
 ```
 
-Generated audio outputs are intentionally ignored by git:
+Generated runtime outputs are intentionally ignored by git. Project-owned
+voice/avatar assets are tracked through root `.gitignore` exceptions:
 
 ```text
-VoiceSample/
-integrations/open_llm_vtuber/live2d_models/
 tts_outputs/
 latency_benchmarks/
 fast_track_audio_cache*/
 fish_speech_tag_audio/
 ```
+
+For teammate setup and missing open-source dependency recovery, see
+`../CODEX_SETUP.md`.
 
 ## Run
 

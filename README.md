@@ -3,6 +3,8 @@
 CREDO is a research prototype for hiding perceived LLM/TTS latency in an AI VTuber or virtual NPC. The current platform is Open-LLM-VTuber with a Python-side CREDO agent.
 
 Team handoff and machine setup notes live in [`TEAM_CODEX_PROMPT.md`](TEAM_CODEX_PROMPT.md).
+Codex-based dependency and open-source runtime recovery steps live in
+[`CODEX_SETUP.md`](CODEX_SETUP.md).
 
 ## Current Architecture
 
@@ -73,6 +75,8 @@ Run these commands in WSL, not Windows CMD:
 ```bash
 cd /mnt/c/Users/CGLAB/Desktop/CREDO
 ```
+
+For a fresh teammate machine, follow [`CODEX_SETUP.md`](CODEX_SETUP.md) first.
 
 Install or refresh Open-LLM-VTuber dependencies:
 

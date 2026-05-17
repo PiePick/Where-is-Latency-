@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.codex_write_probe
 
 # Local runtime state
 AI_NPC_System/memory/*.json
@@ -44,6 +45,8 @@ vendor/open-llm-vtuber/avatars/*
 vendor/open-llm-vtuber/live2d-models/*
 !vendor/open-llm-vtuber/live2d-models/credo_avatar/
 !vendor/open-llm-vtuber/live2d-models/credo_avatar/**
+vendor/open-llm-vtuber/live2d-models/mao_pro/
+vendor/open-llm-vtuber/live2d-models/shizuku/
 
 # IDE and editor state
 .vs/

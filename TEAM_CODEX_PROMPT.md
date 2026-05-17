@@ -6,6 +6,9 @@ Before editing code, restore local resources that are excluded by `.gitignore`.
 The project will not run correctly unless these assets, checkpoints, references,
 and virtual environments are installed or linked.
 
+Use `CODEX_SETUP.md` as the canonical install checklist for missing open-source
+runtimes, checkpoints, Python dependencies, and readiness verification.
+
 ## Required Local Resources
 
 1. Fish Speech
