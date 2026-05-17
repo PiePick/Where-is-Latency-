@@ -170,7 +170,7 @@ CREDO_LANGUAGE_POLICY            shared language rule appended to LLM prompts
 SLOW_TRACK_SYSTEM_PROMPT         local LLM response policy
 CREDO_MAX_COVER_BLOCKS           extra prebuilt cover blocks while SlowTrack waits
 CREDO_ENABLE_EXTRA_COVER_AUDIO   enable expressive audio blocks
-LATENCY_PREDICTOR_MODEL_FILE  generated predictor artifact used for fallback calibration
+LATENCY_PREDICTOR_MODEL_FILE  generated artifact-backed kNN latency predictor
 LOCAL_LLM_CUDA_VISIBLE_DEVICES   GPU1 for SlowTrack local LLM
 FISH_SPEECH_CUDA_VISIBLE_DEVICES GPU0 for heavier SlowTrack Fish Speech
 STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES GPU0 for FastTrack TTS

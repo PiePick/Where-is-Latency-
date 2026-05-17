@@ -9,8 +9,13 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 from statistics import median
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from latency_predictor import LatencyPredictor  # noqa: E402
+
 DEFAULT_LOG = ROOT / "latency_logs" / "events.jsonl"
 DEFAULT_JSON = ROOT / "reports" / "latency_prediction_model.json"
 DEFAULT_MD = ROOT / "reports" / "latency_prediction_model.md"
@@ -68,6 +73,34 @@ def fit_fallback(rows: list[dict]) -> dict[str, float]:
     }
 
 
+def build_knn_records(rows: list[dict]) -> list[dict]:
+    records = []
+    for row in rows:
+        stage = str(row.get("stage") or "")
+        if "tts" not in stage:
+            continue
+        text = str(row.get("text") or "")
+        engine = str(row.get("engine") or "")
+        engine_key_value = LatencyPredictor.engine_key(engine)
+        stage_key_value = LatencyPredictor.stage_key(stage)
+        features = LatencyPredictor.features_for_text(text, engine=engine_key_value, stage=stage_key_value)
+        records.append(
+            {
+                "stage": stage,
+                "stage_key": stage_key_value,
+                "engine": engine,
+                "engine_key": engine_key_value,
+                "elapsed_ms": round(float(row.get("elapsed_ms") or 0.0), 3),
+                "char_len": int(row.get("char_len") or len(text)),
+                "word_count": int(row.get("word_count") or len(text.split())),
+                "tag_count": int(row.get("tag_count") or text.count("[")),
+                "text": text[:240],
+                "features": [round(float(value), 6) for value in features.tolist()],
+            }
+        )
+    return records
+
+
 def summarize(rows: list[dict], source_log: Path) -> dict:
     by_stage = defaultdict(list)
     by_engine = defaultdict(list)
@@ -81,12 +114,16 @@ def summarize(rows: list[dict], source_log: Path) -> dict:
             tts_rows.append(row)
     fallback_by_engine = {key: fit_fallback(value) for key, value in by_engine.items()}
     fallback_by_engine.setdefault("default", fit_fallback(tts_rows or rows))
+    knn_records = build_knn_records(tts_rows)
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "source_log": str(source_log),
         "record_count": len(rows),
         "tts_record_count": len(tts_rows),
-        "method": "runtime_knn_with_engine_fallback",
+        "knn_record_count": len(knn_records),
+        "method": "artifact_backed_stage_aware_knn_with_engine_fallback",
+        "feature_schema": LatencyPredictor.feature_schema,
+        "knn_records": knn_records,
         "fallback_by_engine": fallback_by_engine,
         "stage_medians_ms": {key: round(median(values), 3) for key, values in sorted(by_stage.items()) if values},
     }
@@ -99,6 +136,8 @@ def write_markdown(model: dict, path: Path) -> None:
         f"Generated: {model['generated_at']}",
         f"Source records: {model['record_count']}",
         f"TTS records: {model['tts_record_count']}",
+        f"kNN records: {model.get('knn_record_count', 0)}",
+        f"Method: {model.get('method', "")}",
         "",
         "## Fallback Coefficients",
         "",
@@ -109,6 +148,7 @@ def write_markdown(model: dict, path: Path) -> None:
         lines.append(
             f"| {engine} | {row.get('records', 0)} | {row.get('intercept_ms', 0)} | {row.get('char_ms', 0)} | {row.get('tag_ms', 0)} |"
         )
+    lines.extend(["", "## kNN Feature Schema", "", ", ".join(model.get("feature_schema", []))])
     lines.extend(["", "## Stage Medians", "", "| Stage | Median ms |", "| --- | ---: |"])
     for stage, ms in sorted(model.get("stage_medians_ms", {}).items()):
         lines.append(f"| {stage} | {ms} |")

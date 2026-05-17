@@ -84,7 +84,7 @@ class CoverComposer:
         category_scores = fast_result.get("category_scores") or {}
         transition = self.intent_transition.choose(intent, emotion=emotion, rng=self.rng)
         slow_probe = expected_slow_text or self._estimate_slow_probe(user_text)
-        predicted = self.predictor.predict(slow_probe, engine="fish_speech")
+        predicted = self.predictor.predict(slow_probe, engine="fish_speech", stage="slow_track_tts")
 
         target_ms = max(1200.0, predicted.predicted_ms)
         blocks: list[CoverBlock] = []
@@ -111,6 +111,11 @@ class CoverComposer:
             "category_scores": category_scores,
             "predicted_slow_tts_ms": round(predicted.predicted_ms, 3),
             "prediction_method": predicted.method,
+            "prediction_source": predicted.source,
+            "prediction_neighbors": predicted.neighbors,
+            "prediction_neighbor_ms": predicted.neighbor_ms,
+            "prediction_engine_key": predicted.engine_key,
+            "prediction_stage_key": predicted.stage_key,
             "target_cover_ms": round(target_ms, 3),
             "estimated_cover_ms": round(elapsed, 3),
             "blocks": [block.__dict__ for block in blocks],

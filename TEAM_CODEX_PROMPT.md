@@ -69,6 +69,7 @@ Important values:
 - `FISH_SPEECH_GLOBAL_STYLE_TAG=""`
 - `OPEN_LLM_VTUBER_SLOW_TTS_MODE="credo_fish_speech"`
 - Strong CREDO emotion motions should be attached only to prebuilt nonverbal latency-cover audio; normal speech should stay on Idle/Talk/lip-sync.
+- Latency-cover planning must use the artifact-backed kNN predictor in `AI_NPC_System/latency_predictor.py`; rebuild `AI_NPC_System/reports/latency_prediction_model.json` from `latency_logs/events.jsonl` after new benchmark/runtime measurements.
 
 Do not put bracketed style tags such as `[chuckle]`, `[sigh]`, or `[pause]`
 inside spoken text. For the current StyleBERT FastTrack path, emotion is passed

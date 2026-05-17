@@ -1,8 +1,10 @@
 # CREDO Latency Prediction Model
 
-Generated: 2026-05-17T22:28:52.165477+00:00
+Generated: 2026-05-17T23:21:59.466526+00:00
 Source records: 204
 TTS records: 114
+kNN records: 114
+Method: artifact_backed_stage_aware_knn_with_engine_fallback
 
 ## Fallback Coefficients
 
@@ -11,6 +13,10 @@ TTS records: 114
 | default | 109 | 100.0 | 10.429 | 3000.0 |
 | fish_speech | 78 | 181.567 | 314.999 | 0.0 |
 | stylebert_vits2 | 17 | 100.0 | 5.0 | 0.179 |
+
+## kNN Feature Schema
+
+char_len_200, word_count_40, tag_count_8, punct_count_10, sentence_count_6, avg_word_len_12, engine_fish_speech, engine_stylebert_vits2, engine_open_llm_tts, engine_default, stage_slow_tts, stage_fast_tts, stage_nonverbal_tts, stage_length_sweep_tts, stage_other_tts
 
 ## Stage Medians
 

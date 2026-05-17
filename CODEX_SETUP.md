@@ -165,6 +165,12 @@ STYLEBERT_VITS2_STYLE_NEUTRAL=Neutral
 
 This keeps the pipeline as: FastTrack reaction text selection, immediate StyleBERT-VITS2 synthesis with emotion-specific API style parameters, then playback. Fish Speech bracket cue bundles are not inserted into FastTrack text unless `FAST_TRACK_TTS_MODE=fish_speech` and `FAST_TRACK_INLINE_CUES_ENABLED=1` are both explicitly set. Open-LLM-VTuber's default cute TTS is blocked unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set.
 
+Latency-cover planning uses `AI_NPC_System/reports/latency_prediction_model.json` as an artifact-backed kNN index. Local `latency_logs/events.jsonl` is preferred when present; otherwise the committed artifact still provides real kNN neighbors for SlowTrack Fish Speech TTS prediction. Rebuild it after benchmark runs with:
+
+```bash
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_latency_prediction_model.py
+```
+
 The cache builder remains available only as an optional experiment tool:
 
 ```bash
