@@ -7,9 +7,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 CONFIG_FILE="${CREDO_PROJECT_CONFIG:-${ROOT_DIR}/AI_NPC_System/project_config.sh}"
+ENV_STYLEBERT_VITS2_LANGUAGE="${STYLEBERT_VITS2_LANGUAGE:-}"
 if [[ -f "${CONFIG_FILE}" ]]; then
   # shellcheck source=/dev/null
   source "${CONFIG_FILE}"
+fi
+if [[ -n "${ENV_STYLEBERT_VITS2_LANGUAGE}" ]]; then
+  export STYLEBERT_VITS2_LANGUAGE="${ENV_STYLEBERT_VITS2_LANGUAGE}"
 fi
 
 STYLEBERT_DIR="${STYLEBERT_VITS2_REPO_DIR:-${ROOT_DIR}/vendor/Style-Bert-VITS2}"
@@ -22,6 +26,9 @@ AUTO_FIX="${STYLEBERT_VITS2_AUTO_FIX:-1}"
 AUTO_INSTALL="${STYLEBERT_VITS2_AUTO_INSTALL:-0}"
 AUTO_APT="${STYLEBERT_VITS2_AUTO_APT:-0}"
 AUTO_DOWNLOAD_BERT="${STYLEBERT_VITS2_AUTO_DOWNLOAD_BERT:-0}"
+AUTO_DOWNLOAD_MODELS="${STYLEBERT_VITS2_AUTO_DOWNLOAD_MODELS:-0}"
+ALLOW_LANGUAGE_MISMATCH="${STYLEBERT_VITS2_ALLOW_LANGUAGE_MISMATCH:-0}"
+FASTTRACK_LANGUAGE="${STYLEBERT_VITS2_LANGUAGE:-EN}"
 
 info() { printf '[StyleBERT] %s\n' "$*"; }
 warn() { printf '[StyleBERT][WARN] %s\n' "$*" >&2; }
@@ -200,13 +207,65 @@ path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encod
 PY
 }
 
+has_stylebert_model_assets() {
+  [[ -d "${MODEL_DIR}" ]] || return 1
+  find "${MODEL_DIR}" -mindepth 2 \( -name 'config.json' -o -name 'style_vectors.npy' -o -name '*.pth' -o -name '*.pt' -o -name '*.safetensors' -o -name '*.onnx' \) | grep -q .
+}
+
 ensure_model_assets() {
+  if has_stylebert_model_assets; then
+    return 0
+  fi
+
+  if is_on "${AUTO_DOWNLOAD_MODELS}"; then
+    info "Downloading StyleBERT default inference models with initialize.py --only_infer."
+    (cd "${STYLEBERT_DIR}" && "${PYTHON_BIN}" initialize.py --only_infer)
+  fi
+
+  if has_stylebert_model_assets; then
+    return 0
+  fi
+
   if [[ ! -d "${MODEL_DIR}" ]]; then
-    die "Missing Style-Bert-VITS2 model assets: ${MODEL_DIR}. Place the CREDO voice-compatible model under model_assets."
+    die "Missing Style-Bert-VITS2 model assets: ${MODEL_DIR}. Place a CREDO-compatible model under model_assets or run STYLEBERT_VITS2_AUTO_DOWNLOAD_MODELS=1 ${0}."
   fi
-  if ! find "${MODEL_DIR}" -mindepth 2 \( -name 'config.json' -o -name 'style_vectors.npy' -o -name 'G_*.pth' -o -name '*.safetensors' \) | grep -q .; then
-    die "No usable StyleBERT model files found under ${MODEL_DIR}. Expected model subdirectories with config.json, style_vectors.npy, and model weights."
+  die "No usable StyleBERT model files found under ${MODEL_DIR}. Expected model subdirectories with config.json, style_vectors.npy, and model weights. For a temporary default voice, run: STYLEBERT_VITS2_AUTO_DOWNLOAD_MODELS=1 ${0}"
+}
+
+ensure_fasttrack_language_compatibility() {
+  if is_on "${ALLOW_LANGUAGE_MISMATCH}"; then
+    warn "Skipping StyleBERT language/model compatibility check because STYLEBERT_VITS2_ALLOW_LANGUAGE_MISMATCH=1."
+    return 0
   fi
+
+  "${PYTHON_BIN}" - "${MODEL_DIR}" "${FASTTRACK_LANGUAGE}" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+model_dir = Path(sys.argv[1])
+language = sys.argv[2].upper()
+configs = sorted(model_dir.glob('*/config.json'))
+if not configs:
+    raise SystemExit('No StyleBERT model config.json files found.')
+versions = []
+for path in configs:
+    try:
+        payload = json.loads(path.read_text(encoding='utf-8'))
+    except Exception:
+        continue
+    versions.append(str(payload.get('version', '')))
+
+jp_only = versions and all('JP' in version.upper() for version in versions)
+if language != 'JP' and jp_only:
+    names = ', '.join(path.parent.name for path in configs[:8])
+    raise SystemExit(
+        f'StyleBERT model/language mismatch: configured STYLEBERT_VITS2_LANGUAGE={language}, '
+        f'but model_assets contains JP-only default models ({names}). '
+        'Use a CREDO-compatible English StyleBERT model, set STYLEBERT_VITS2_LANGUAGE=JP only for Japanese test speech, '
+        'or set STYLEBERT_VITS2_ALLOW_LANGUAGE_MISMATCH=1 to bypass this guard.'
+    )
+PY
 }
 
 ensure_japanese_bert_weights() {
@@ -244,7 +303,7 @@ print_launch_summary() {
   info "Python: ${PYTHON_BIN}"
   info "Model dir: ${MODEL_DIR}"
   info "CUDA_VISIBLE_DEVICES=${CUDA_DEVICES}"
-  info "Auto fix=${AUTO_FIX}, auto install=${AUTO_INSTALL}, auto apt=${AUTO_APT}, auto BERT download=${AUTO_DOWNLOAD_BERT}"
+  info "Auto fix=${AUTO_FIX}, auto install=${AUTO_INSTALL}, auto apt=${AUTO_APT}, auto model download=${AUTO_DOWNLOAD_MODELS}, auto BERT download=${AUTO_DOWNLOAD_BERT}, language=${FASTTRACK_LANGUAGE}"
 }
 
 normalize_shell_line_endings
@@ -256,6 +315,7 @@ install_python_deps_if_needed
 ensure_python312_compat_packages
 ensure_stylebert_config
 ensure_model_assets
+ensure_fasttrack_language_compatibility
 ensure_japanese_bert_weights
 
 cd "${STYLEBERT_DIR}"

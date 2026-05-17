@@ -113,6 +113,14 @@ For a fresh StyleBERT venv, allow local Python dependency repair:
 
 ```bash
 STYLEBERT_VITS2_AUTO_INSTALL=1 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+
+# Download temporary default StyleBERT voices if model_assets is empty:
+STYLEBERT_VITS2_AUTO_DOWNLOAD_MODELS=1 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+
+# The downloaded default voices are JP-only. This is only for Japanese smoke tests:
+STYLEBERT_VITS2_LANGUAGE=JP AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+
+# For CREDO English FastTrack, place a CREDO-compatible English StyleBERT model under vendor/Style-Bert-VITS2/model_assets.
 ```
 
 Run the Open-LLM-VTuber CREDO integration after the LLM, Fish Speech, and FastTrack TTS servers are up:

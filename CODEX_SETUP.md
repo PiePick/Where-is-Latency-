@@ -85,6 +85,14 @@ sudo apt update && sudo apt install -y python3.12-venv python3.12-dev pkg-config
 # Create/repair the StyleBERT venv and Python packages when needed:
 STYLEBERT_VITS2_AUTO_INSTALL=1 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
 
+# Download temporary default StyleBERT voices if model_assets is empty:
+STYLEBERT_VITS2_AUTO_DOWNLOAD_MODELS=1 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+
+# The downloaded default voices are JP-only. This is only for Japanese smoke tests:
+STYLEBERT_VITS2_LANGUAGE=JP AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+
+# For CREDO English FastTrack, place a CREDO-compatible English StyleBERT model under vendor/Style-Bert-VITS2/model_assets.
+
 # Also download missing ku-nlp/deberta-v2-large-japanese-char-wwm weights:
 STYLEBERT_VITS2_AUTO_INSTALL=1 STYLEBERT_VITS2_AUTO_DOWNLOAD_BERT=1 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
 ```
