@@ -45,6 +45,12 @@ AI_NPC_System/reports/setfit_intent_evaluation.xlsx
 AI_NPC_System/prepared_fasttrack_data/
   Preprocessed GoEmotions and SWDA coarse-label data.
 
+AI_NPC_System/latency_logs/
+  Local-only JSONL and Markdown latency records generated during experiments.
+
+AI_NPC_System/expressive_audio_pool/
+  Local-only Fish Speech extreme nonverbal reaction clips and manifest.
+
 AI_NPC_System/VoiceSample/
   Local-only voice source used for CREDO voice reference preparation.
   This folder is ignored by git because it may contain licensed or private audio.
@@ -105,6 +111,12 @@ Open the UI:
 http://localhost:12393
 ```
 
+The Open-LLM-VTuber page now includes a small `CREDO VTuber Mode` panel in the
+browser. `VTuber Mode` starts proactive monologue, `Monologue` triggers one
+manual idle line, and `Donation` queues a donation-style reaction for recording
+experiments. If a YouTube API key plus either a live chat ID or video ID is
+entered, the same mode starts the local YouTube live-chat bridge.
+
 ## Configuration
 
 Change experiment components in:
@@ -124,6 +136,8 @@ FISH_SPEECH_BASE_URL             SlowTrack TTS endpoint
 FISH_SPEECH_REFERENCE_ID         voice reference id
 OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME Live2D model name
 SLOW_TRACK_SYSTEM_PROMPT         local LLM response policy
+CREDO_MAX_COVER_BLOCKS           extra prebuilt cover blocks while SlowTrack waits
+CREDO_ENABLE_EXTRA_COVER_AUDIO   enable expressive audio blocks
 ```
 
 ## Data and Model Tasks
@@ -157,6 +171,22 @@ Measure end-to-end pipeline latency:
 ```bash
 vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/benchmark_pipeline_latency.py --runs 3
 ```
+
+Generate the temporary Fish Speech extreme nonverbal audio pool:
+
+```bash
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_extreme_nonverbal_reactions.py --force
+```
+
+Measure Fish Speech latency by text length for dynamic cover planning:
+
+```bash
+FISH_SPEECH_AUTO_PLAY=0 \
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/benchmark_fish_speech_length_sweep.py --runs 2
+```
+
+Latency records are appended to `AI_NPC_System/latency_logs/events.jsonl`.
+`AI_NPC_System/latency_logs/latest_summary.md` is a readable rolling summary.
 
 ## Current Limitation
 

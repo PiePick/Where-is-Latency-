@@ -155,6 +155,16 @@ OLLAMA_MODEL = FALLBACK_LOCAL_LLM_MODEL
 # Slow lane ETA hint for clients/logging.
 EXPECTED_SLOW_LANE_MS = _env_int("EXPECTED_SLOW_LANE_MS", 3500)
 
+# Latency-cover composition. The block planner can use observed Fish Speech
+# latency logs to scale cover length while the SlowTrack TTS is still pending.
+CREDO_MAX_COVER_BLOCKS = _env_int("CREDO_MAX_COVER_BLOCKS", 3)
+CREDO_ENABLE_EXTRA_COVER_AUDIO = _env_bool("CREDO_ENABLE_EXTRA_COVER_AUDIO", True)
+CREDO_VTUBER_IDLE_INTERVAL_SECONDS = _env_float("CREDO_VTUBER_IDLE_INTERVAL_SECONDS", 35.0)
+CREDO_VTUBER_DEFAULT_TOPIC = os.getenv(
+    "CREDO_VTUBER_DEFAULT_TOPIC",
+    "chatting with viewers about games, daily life, and funny stream moments",
+)
+
 # External memory. The LLM stays stateless; this file is injected into prompts.
 MEMORY_ENABLED = _env_bool("MEMORY_ENABLED", True)
 MEMORY_FILE = os.getenv("MEMORY_FILE", "memory/user_memory.json")

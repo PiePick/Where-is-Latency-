@@ -11,6 +11,7 @@ import asyncio
 import os
 import random
 import sys
+import time
 from pathlib import Path
 from typing import Any, AsyncIterator
 
@@ -58,6 +59,10 @@ class CredoLatencyCoverAgent(AgentInterface):
 
         self.ai_npc_path = self._resolve_ai_npc_path()
         self._load_credo_modules()
+        self.latency_logger = self._latency_observer.LatencyLogger()
+        self.cover_composer = self._cover_composer.CoverComposer(seed=self.settings.get("seed"))
+        self._intent_model = None
+        self._intent_model_checked = False
 
         self.memory = None
         if self.record_memory and self._credo_config.MEMORY_ENABLED:
@@ -103,6 +108,8 @@ class CredoLatencyCoverAgent(AgentInterface):
         import tts_client
         import stylebert_vits2_client
         import fast_track_audio_cache
+        import cover_composer
+        import latency_observer
         from memory_store import MemoryStore
 
         self._credo_config = credo_config
@@ -111,10 +118,13 @@ class CredoLatencyCoverAgent(AgentInterface):
         self._tts_client = tts_client
         self._stylebert_vits2_client = stylebert_vits2_client
         self._fast_track_audio_cache = fast_track_audio_cache
+        self._cover_composer = cover_composer
+        self._latency_observer = latency_observer
         self._memory_store = type("_MemoryModule", (), {"MemoryStore": MemoryStore})
 
     async def chat(self, input_data: BaseInput) -> AsyncIterator[AudioOutput | SentenceOutput]:
-        """Yield the cached latency cover before the slower generated response."""
+        """Yield immediate cover, then continue with SlowTrack when ready."""
+        turn_started = time.perf_counter()
         user_text, is_proactive = self._extract_input(input_data)
         if not user_text:
             return
@@ -123,19 +133,41 @@ class CredoLatencyCoverAgent(AgentInterface):
             yield self._build_proactive_output()
             return
 
+        fast_started = time.perf_counter()
         fast_result = await asyncio.to_thread(self._fast_track.analyze_and_react, user_text)
+        self._log_latency(
+            "fast_track_analysis",
+            fast_started,
+            text=user_text,
+            engine="distilbert_spacy",
+            metadata={
+                "emotion": fast_result.get("emotion_label"),
+                "keywords": fast_result.get("keywords") or [],
+            },
+        )
+
         fast_tts_text = fast_result.get("tts_text") or fast_result.get("reaction") or "I see."
         fast_display_text = fast_result.get("plain_tts_text") or fast_result.get("reaction") or fast_tts_text
         emotion = str(fast_result.get("emotion_label", "neutral")).lower()
+        intent = self._classify_intent(user_text)
         actions = self._build_actions(emotion)
 
         logger.info(
             "CREDO FastTrack cover: "
-            f"emotion={emotion}, source={fast_result.get('reaction_source')}, "
+            f"emotion={emotion}, intent={intent}, source={fast_result.get('reaction_source')}, "
             f"cache={fast_result.get('fast_audio_cache_hit')}"
         )
 
+        fast_audio_started = time.perf_counter()
         fast_audio_path = await self._resolve_fast_audio(fast_result, fast_tts_text)
+        self._log_latency(
+            "fast_track_tts_or_cache",
+            fast_audio_started,
+            text=fast_tts_text,
+            engine=self._credo_config.FAST_TRACK_TTS_MODE,
+            metadata={"audio_path": str(fast_audio_path) if fast_audio_path else None},
+        )
+
         if self.use_fast_audio and fast_audio_path and Path(str(fast_audio_path)).exists():
             yield AudioOutput(
                 audio_path=str(fast_audio_path),
@@ -154,15 +186,55 @@ class CredoLatencyCoverAgent(AgentInterface):
             return
 
         memory_context = self.memory.build_prompt_context() if self.memory else None
-        slow_text = await self._slow_track.generate_response(
-            user_text,
-            fast_tts_text,
-            fast_result.get("strategy"),
-            memory_context,
+        slow_started = time.perf_counter()
+        slow_task = asyncio.create_task(
+            self._slow_track.generate_response(
+                user_text,
+                fast_tts_text,
+                fast_result.get("strategy"),
+                memory_context,
+            )
+        )
+
+        cover_plan = await asyncio.to_thread(
+            self.cover_composer.compose,
+            user_text=user_text,
+            fast_result=fast_result,
+            intent=intent,
+            expected_slow_text="",
+        )
+        self.latency_logger.log(
+            self._latency_observer.LatencyEvent(
+                stage="latency_cover_plan",
+                elapsed_ms=0.0,
+                text=user_text,
+                engine="composer_faiss_knn",
+                metadata=cover_plan,
+            )
+        )
+        async for cover_output in self._yield_extra_cover_audio(cover_plan, slow_task, emotion):
+            yield cover_output
+
+        slow_text = await slow_task
+        self._log_latency(
+            "slow_track_llm",
+            slow_started,
+            text=user_text,
+            engine=self._credo_config.LOCAL_LLM_MODEL,
+            metadata={"emotion": emotion, "intent": intent},
         )
         slow_text = slow_text.strip() or "I hear you."
 
+        slow_tts_started = time.perf_counter()
         slow_audio = await self._try_synthesize_slow_audio(slow_text)
+        self._log_latency(
+            "slow_track_tts",
+            slow_tts_started,
+            text=slow_text,
+            engine="fish_speech" if slow_audio else "open_llm_tts_fallback",
+            metadata={"audio_path": str(slow_audio) if slow_audio else None},
+        )
+
         if slow_audio:
             yield AudioOutput(
                 audio_path=str(slow_audio),
@@ -185,6 +257,14 @@ class CredoLatencyCoverAgent(AgentInterface):
                 emotion=emotion,
                 keywords=fast_result.get("keywords") or [],
             )
+
+        self._log_latency(
+            "turn_total",
+            turn_started,
+            text=f"{fast_display_text} {slow_text}",
+            engine="open_llm_vtuber_credo",
+            metadata={"emotion": emotion, "intent": intent},
+        )
 
     def _extract_user_text(self, input_data: BaseInput) -> str:
         """Backward-compatible helper used by local tests."""
@@ -292,6 +372,92 @@ class CredoLatencyCoverAgent(AgentInterface):
                 break
 
         return Actions(expressions=expressions or None)
+
+    async def _yield_extra_cover_audio(
+        self,
+        cover_plan: dict[str, Any],
+        slow_task: asyncio.Task,
+        emotion: str,
+    ) -> AsyncIterator[AudioOutput]:
+        """Send prebuilt expressive blocks while SlowTrack is still pending."""
+        if not self._credo_config.CREDO_ENABLE_EXTRA_COVER_AUDIO:
+            return
+
+        max_blocks = max(0, int(self._credo_config.CREDO_MAX_COVER_BLOCKS))
+        blocks = list(cover_plan.get("blocks") or [])[1 : 1 + max_blocks]
+        for block in blocks:
+            if slow_task.done():
+                break
+            await asyncio.sleep(0.05)
+            if slow_task.done():
+                break
+
+            audio_path = block.get("audio_path")
+            if not audio_path or not Path(str(audio_path)).exists():
+                continue
+
+            text = str(block.get("text") or "")
+            motion = str(block.get("motion") or emotion)
+            yield AudioOutput(
+                audio_path=str(audio_path),
+                display_text=self._display(text),
+                transcript=text,
+                actions=Actions(expressions=[motion]),
+            )
+
+    def _classify_intent(self, text: str) -> str:
+        """Use the local SetFit model when loadable, with deterministic fallback."""
+        normalized = " ".join(text.lower().split())
+        if self._intent_model is None and not self._intent_model_checked:
+            self._intent_model_checked = True
+            model_dir = self.ai_npc_path / "models" / "setfit_swda_intent_minilm_optimized"
+            if model_dir.exists():
+                try:
+                    from setfit import SetFitModel
+
+                    self._intent_model = SetFitModel.from_pretrained(str(model_dir), local_files_only=True)
+                except Exception as exc:
+                    logger.warning(f"CREDO intent model unavailable; using rule fallback: {exc}")
+
+        if self._intent_model is not None:
+            try:
+                prediction = self._intent_model.predict([text])
+                return str(prediction[0]).upper()
+            except Exception as exc:
+                logger.warning(f"CREDO intent inference failed; using rule fallback: {exc}")
+
+        first_word = normalized.split(" ", 1)[0] if normalized else ""
+        if normalized.endswith("?") or first_word in {"who", "what", "when", "where", "why", "how", "can", "could", "do", "does", "did", "is", "are"}:
+            return "QUESTION"
+        if normalized.startswith(("please ", "show ", "tell ", "look ", "read ", "play ", "stop ", "try ")):
+            return "DIRECTIVE"
+        if normalized in {"yes", "yeah", "yep", "ok", "okay", "sure", "right", "no", "nope"}:
+            return "ACKNOWLEDGE"
+        if normalized.startswith(("no ", "nah ", "never ", "don't ", "do not ")) or " disagree" in normalized:
+            return "REJECT"
+        if any(token in normalized for token in ("lol", "haha", "wow", "omg", "awesome", "sad", "angry", "love")):
+            return "EXPRESSIVE"
+        return "INFORM"
+
+    def _log_latency(
+        self,
+        stage: str,
+        started: float,
+        *,
+        text: str = "",
+        engine: str = "",
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        """Append one latency event for experiment analysis."""
+        self.latency_logger.log(
+            self._latency_observer.LatencyEvent(
+                stage=stage,
+                elapsed_ms=(time.perf_counter() - started) * 1000.0,
+                text=text,
+                engine=engine,
+                metadata=metadata or {},
+            )
+        )
 
     async def _try_synthesize_slow_audio(self, text: str) -> Path | None:
         """Use CREDO's local Fish Speech client for SlowTrack when configured."""
