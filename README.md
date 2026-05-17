@@ -103,10 +103,16 @@ Start Fish Speech for SlowTrack TTS on GPU0:
 AI_NPC_System/scripts/start_fish_speech_server.sh
 ```
 
-Start the dedicated FastTrack StyleBERT-VITS2 TTS server on GPU0 after its repo and CREDO-compatible model assets are installed:
+Start the dedicated FastTrack StyleBERT-VITS2 TTS server on GPU0 after its repo and CREDO-compatible model assets are installed. The launcher now preflights WSL line endings, Python 3.12 media dependencies, StyleBERT config drift, and BERT weight presence:
 
 ```bash
 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+```
+
+For a fresh StyleBERT venv, allow local Python dependency repair:
+
+```bash
+STYLEBERT_VITS2_AUTO_INSTALL=1 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
 ```
 
 Run the Open-LLM-VTuber CREDO integration after the LLM, Fish Speech, and FastTrack TTS servers are up:

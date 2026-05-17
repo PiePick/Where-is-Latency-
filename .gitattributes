@@ -1,0 +1,3 @@
+# Keep WSL launch scripts executable by avoiding Windows CRLF endings.
+*.sh text eol=lf
+AI_NPC_System/scripts/* text eol=lf

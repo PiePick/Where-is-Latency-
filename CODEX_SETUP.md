@@ -74,14 +74,19 @@ Install Fish Speech runtime:
 AI_NPC_System/scripts/install_fish_speech_runtime.sh
 ```
 
-Install StyleBERT-VITS2 for the dedicated FastTrack TTS server. Its CREDO-compatible voice model assets must be placed under `vendor/Style-Bert-VITS2/model_assets`:
+Install StyleBERT-VITS2 for the dedicated FastTrack TTS server. Its CREDO-compatible voice model assets must be placed under `vendor/Style-Bert-VITS2/model_assets`.
+
+The launcher performs preflight checks for WSL CRLF line endings, Ubuntu media build packages, Python 3.12 PyAV/faster-whisper compatibility, `pkg_resources`, `config.yml` port drift, and missing Japanese BERT weights. It does not run `sudo apt` or clone/install large dependencies unless explicitly enabled:
 
 ```bash
-cd vendor/Style-Bert-VITS2
-python3 -m venv .venv
-.venv/bin/python -m pip install -U pip
-.venv/bin/python -m pip install -r requirements.txt
-cd /mnt/c/Users/CGLAB/Desktop/CREDO
+# System packages if the preflight reports them missing:
+sudo apt update && sudo apt install -y python3.12-venv python3.12-dev pkg-config ffmpeg libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libswscale-dev libswresample-dev
+
+# Create/repair the StyleBERT venv and Python packages when needed:
+STYLEBERT_VITS2_AUTO_INSTALL=1 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+
+# Also download missing ku-nlp/deberta-v2-large-japanese-char-wwm weights:
+STYLEBERT_VITS2_AUTO_INSTALL=1 STYLEBERT_VITS2_AUTO_DOWNLOAD_BERT=1 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
 ```
 
 Download the Fish Speech S2-Pro checkpoint locally. This is intentionally not
