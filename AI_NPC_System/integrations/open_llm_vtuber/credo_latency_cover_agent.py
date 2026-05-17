@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import os
 import random
+import re
 import sys
 import time
 from pathlib import Path
@@ -31,6 +32,7 @@ DEFAULT_EXPRESSION_TAGS = {
 
 
 PROACTIVE_IDLE_CATEGORIES = ("Positive", "Neutral")
+FISH_STYLE_TAG_RE = re.compile(r"\s*\[[^\]]+\]\s*")
 
 
 class CredoLatencyCoverAgent(AgentInterface):
@@ -146,11 +148,14 @@ class CredoLatencyCoverAgent(AgentInterface):
             },
         )
 
-        fast_tts_text = fast_result.get("tts_text") or fast_result.get("reaction") or "I see."
-        fast_display_text = fast_result.get("plain_tts_text") or fast_result.get("reaction") or fast_tts_text
+        fast_tts_text = self._clean_spoken_text(
+            fast_result.get("plain_tts_text") or fast_result.get("reaction") or "I see."
+        )
+        fast_display_text = self._with_response_gap(fast_tts_text)
         emotion = str(fast_result.get("emotion_label", "neutral")).lower()
         intent = self._classify_intent(user_text)
-        actions = self._build_actions(emotion)
+        fast_actions = self._build_actions(emotion, fast_motion=True)
+        base_actions = self._build_actions(emotion)
 
         logger.info(
             "CREDO FastTrack cover: "
@@ -173,13 +178,13 @@ class CredoLatencyCoverAgent(AgentInterface):
                 audio_path=str(fast_audio_path),
                 display_text=self._display(fast_display_text),
                 transcript=fast_display_text,
-                actions=actions,
+                actions=fast_actions,
             )
         else:
             yield SentenceOutput(
                 display_text=self._display(fast_display_text),
                 tts_text=fast_tts_text,
-                actions=actions,
+                actions=fast_actions,
             )
 
         if not self.slow_enabled:
@@ -223,7 +228,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             engine=self._credo_config.LOCAL_LLM_MODEL,
             metadata={"emotion": emotion, "intent": intent},
         )
-        slow_text = slow_text.strip() or "I hear you."
+        slow_text = self._clean_spoken_text(slow_text) or "I hear you."
 
         slow_tts_started = time.perf_counter()
         slow_audio = await self._try_synthesize_slow_audio(slow_text)
@@ -240,13 +245,13 @@ class CredoLatencyCoverAgent(AgentInterface):
                 audio_path=str(slow_audio),
                 display_text=self._display(slow_text),
                 transcript=slow_text,
-                actions=actions,
+                actions=base_actions,
             )
         else:
             yield SentenceOutput(
                 display_text=self._display(slow_text),
                 tts_text=slow_text,
-                actions=actions,
+                actions=base_actions,
             )
 
         if self.memory:
@@ -314,8 +319,8 @@ class CredoLatencyCoverAgent(AgentInterface):
         cover = self.proactive_audio_cache.choose(category, preferred_source=source)
 
         if cover:
-            text = cover.plain_tts_text
-            tts_text = cover.tts_text
+            text = self._clean_spoken_text(cover.plain_tts_text)
+            tts_text = text
             emotion = cover.category.lower()
             audio_path = cover.audio_path
         else:
@@ -332,7 +337,11 @@ class CredoLatencyCoverAgent(AgentInterface):
             f"path={audio_path}, text={text!r}"
         )
 
-        if self.use_fast_audio and not audio_path:
+        if (
+            self.use_fast_audio
+            and not audio_path
+            and self._credo_config.FAST_TRACK_TTS_MODE == "stylebert_vits2"
+        ):
             audio_path = self._synthesize_fast_audio_sync(tts_text)
 
         if self.use_fast_audio and audio_path and audio_path.exists():
@@ -348,13 +357,30 @@ class CredoLatencyCoverAgent(AgentInterface):
             actions=actions,
         )
 
-    def _build_actions(self, emotion: str) -> Actions:
-        """Map CREDO's four emotions to Live2D expression actions."""
+    def _clean_spoken_text(self, text: str) -> str:
+        """Remove Fish Speech control tags before display or fallback TTS."""
+        text = FISH_STYLE_TAG_RE.sub(" ", str(text or ""))
+        text = re.sub(r"\s+", " ", text).strip()
+        text = re.sub(r"\s+([,.!?])", r"\1", text)
+        return text
+
+    def _with_response_gap(self, text: str) -> str:
+        """Keep Open-LLM-VTuber's appended chat bubbles from running together."""
+        text = self._clean_spoken_text(text)
+        if not text:
+            return text
+        return text if text.endswith((" ", "\n")) else f"{text} "
+
+    def _build_actions(self, emotion: str, *, fast_motion: bool = False) -> Actions:
+        """Map CREDO's four emotions to expression actions and optional FastTrack motion."""
         tags = self.expression_map.get(emotion) or self.expression_map.get("neutral") or []
         if not isinstance(tags, list):
             tags = [str(tags)]
 
         expressions: list[Any] = []
+        if fast_motion:
+            expressions.append(f"credo_fast_motion:{emotion}")
+
         shuffled = list(tags)
         self.rng.shuffle(shuffled)
         for tag in shuffled:
@@ -470,7 +496,12 @@ class CredoLatencyCoverAgent(AgentInterface):
             return None
 
     async def _resolve_fast_audio(self, fast_result: dict[str, Any], text: str) -> Path | None:
-        """Prefer Style-Bert-VITS2 FastTrack TTS, then cached audio if configured."""
+        """Prefer the configured FastTrack TTS engine, then cached audio if configured."""
+        if self._credo_config.FAST_TRACK_TTS_MODE == "fish_speech":
+            audio = await self._try_synthesize_fast_fish_audio(text)
+            if audio:
+                return audio
+
         if self._credo_config.FAST_TRACK_TTS_MODE == "stylebert_vits2":
             audio = await asyncio.to_thread(self._synthesize_fast_audio_sync, text)
             if audio:
@@ -480,6 +511,16 @@ class CredoLatencyCoverAgent(AgentInterface):
         if cached_path and Path(str(cached_path)).exists():
             return Path(str(cached_path))
         return None
+
+    async def _try_synthesize_fast_fish_audio(self, text: str) -> Path | None:
+        """Use Fish Speech for FastTrack when voice consistency is more important than speed."""
+        if self.fish_tts is None:
+            return None
+        try:
+            return await asyncio.to_thread(self.fish_tts.synthesize_to_file, text, prefix="olv_fast")
+        except Exception as exc:
+            logger.warning(f"CREDO Fish Speech fast TTS fallback to Open-LLM TTS: {exc}")
+            return None
 
     def _synthesize_fast_audio_sync(self, text: str) -> Path | None:
         """Use Style-Bert-VITS2 for short FastTrack audio when available."""

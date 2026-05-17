@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Prepare a local Fish Speech reference voice from a user-provided wav sample."""
+"""Prepare local Fish Speech reference clips from the CREDO voice sample."""
 
 from __future__ import annotations
 
 import argparse
 import array
+import shutil
 import sys
 import wave
 from pathlib import Path
@@ -14,7 +15,32 @@ ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = ROOT.parent
 DEFAULT_SOURCE = ROOT / "VoiceSample" / "VoicePack1_Morning.wav"
 DEFAULT_REFERENCE_DIR = PROJECT_ROOT / "vendor" / "fish-speech" / "references" / "credo_voice_sample"
-DEFAULT_REFERENCE_TEXT = "Ah, you have woken up? Good morning. Hm? This is breakfast. Though, it is almost noon."
+DEFAULT_REFERENCE_SEGMENTS = [
+    (
+        "sample_01",
+        2.40,
+        8.20,
+        "Ah, you've woken up? Good morning. Hm? This is breakfast. Though, it is almost noon.",
+    ),
+    (
+        "sample_02",
+        10.85,
+        7.10,
+        "Come over here and taste my cooking. So, how is it? Tasty?",
+    ),
+    (
+        "sample_03",
+        18.20,
+        7.80,
+        "Right, right. Of course it is tasty. I included the special ingredient, love, after all.",
+    ),
+    (
+        "sample_04",
+        31.30,
+        8.80,
+        "Are you still asleep? Hurry up and wake up. You are already late, idiot.",
+    ),
+]
 
 
 def parse_args() -> argparse.Namespace:
@@ -22,9 +48,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Create a Fish Speech reference voice directory.")
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
     parser.add_argument("--reference-dir", type=Path, default=DEFAULT_REFERENCE_DIR)
-    parser.add_argument("--reference-text", default=DEFAULT_REFERENCE_TEXT)
-    parser.add_argument("--start-seconds", type=float, default=2.5)
-    parser.add_argument("--duration-seconds", type=float, default=10.0)
+    parser.add_argument("--keep-existing", action="store_true")
     return parser.parse_args()
 
 
@@ -67,17 +91,24 @@ def mix_to_mono(raw: bytes, channels: int, sample_width: int) -> bytes:
     return mono.tobytes()
 
 
-def write_reference(reference_dir: Path, params: wave._wave_params, raw: bytes, reference_text: str) -> None:
-    """Write sample.wav and sample.lab for Fish Speech."""
+def write_reference_clip(
+    reference_dir: Path,
+    stem: str,
+    params: wave._wave_params,
+    raw: bytes,
+    reference_text: str,
+) -> float:
+    """Write one wav/lab pair for Fish Speech and return clip seconds."""
     reference_dir.mkdir(parents=True, exist_ok=True)
-    wav_path = reference_dir / "sample.wav"
-    lab_path = reference_dir / "sample.lab"
+    wav_path = reference_dir / f"{stem}.wav"
+    lab_path = reference_dir / f"{stem}.lab"
 
     with wave.open(str(wav_path), "wb") as writer:
         writer.setparams(params)
         writer.writeframes(raw)
 
     lab_path.write_text(reference_text.strip() + "\n", encoding="utf-8")
+    return params.nframes / params.framerate if params.framerate else 0.0
 
 
 def main() -> int:
@@ -86,13 +117,24 @@ def main() -> int:
     if not args.source.exists():
         raise SystemExit(f"Source sample not found: {args.source}")
 
-    params, raw = read_segment(args.source, args.start_seconds, args.duration_seconds)
-    write_reference(args.reference_dir, params, raw, args.reference_text)
+    if args.reference_dir.exists() and not args.keep_existing:
+        shutil.rmtree(args.reference_dir)
+    args.reference_dir.mkdir(parents=True, exist_ok=True)
 
-    seconds = params.nframes / params.framerate if params.framerate else 0.0
+    written = []
+    for stem, start_seconds, duration_seconds, reference_text in DEFAULT_REFERENCE_SEGMENTS:
+        params, raw = read_segment(args.source, start_seconds, duration_seconds)
+        seconds = write_reference_clip(args.reference_dir, stem, params, raw, reference_text)
+        written.append((stem, seconds, reference_text))
+
+    translation = args.source.with_name("Translation_for_Voice_Pack_1_Morning.txt")
+    if translation.exists():
+        shutil.copy2(translation, args.reference_dir / "source_translation.txt")
+
     print(f"Wrote Fish Speech reference voice: {args.reference_dir}")
-    print(f"sample.wav: {params.nchannels}ch, {params.framerate}Hz, {seconds:.3f}s")
-    print(f"sample.lab: {args.reference_text.strip()!r}")
+    for stem, seconds, reference_text in written:
+        print(f"{stem}.wav: {seconds:.3f}s")
+        print(f"{stem}.lab: {reference_text!r}")
     return 0
 
 
