@@ -2,6 +2,8 @@
 
 CREDO is a research prototype for hiding perceived LLM/TTS latency in an AI VTuber or virtual NPC. The current platform is Open-LLM-VTuber with a Python-side CREDO agent.
 
+Team handoff and machine setup notes live in [`TEAM_CODEX_PROMPT.md`](TEAM_CODEX_PROMPT.md).
+
 ## Current Architecture
 
 ```text
@@ -52,12 +54,16 @@ AI_NPC_System/expressive_audio_pool/
   Local-only Fish Speech extreme nonverbal reaction clips and manifest.
 
 AI_NPC_System/VoiceSample/
-  Local-only voice source used for CREDO voice reference preparation.
-  This folder is ignored by git because it may contain licensed or private audio.
+  Project voice source used for CREDO voice reference preparation.
 
 AI_NPC_System/integrations/open_llm_vtuber/live2d_models/
-  Local-only Live2D model assets copied into Open-LLM-VTuber.
-  This folder is ignored by git because avatar assets may be private.
+  Project Live2D avatar and motion assets copied into Open-LLM-VTuber.
+
+vendor/fish-speech/references/credo_voice_sample/
+  Fish Speech reference voice clips generated from the tracked CREDO sample.
+
+vendor/open-llm-vtuber/live2d-models/credo_avatar/
+  Open-LLM-VTuber runtime copy of the CREDO Live2D model.
 ```
 
 ## WSL Quick Start
@@ -192,4 +198,4 @@ Latency records are appended to `AI_NPC_System/latency_logs/events.jsonl`.
 
 StyleBERT-VITS2 routing is implemented, but the StyleBERT-VITS2 repository and CREDO voice-compatible model assets must be installed separately under `vendor/Style-Bert-VITS2`. Until that server is running, FastTrack falls back through the existing Open-LLM-VTuber response path.
 
-Voice samples and Live2D binary assets are intentionally local-only. Keep them under the ignored folders above, then run the relevant setup script or integration copy step on the local machine.
+Project-owned voice samples, Fish Speech references, and the CREDO Live2D avatar/motions are tracked through explicit `.gitignore` exceptions. Large runtimes, virtual environments, model checkpoints, generated audio caches, and temporary experiment logs remain local-only.

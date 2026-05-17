@@ -17,11 +17,33 @@ AI_NPC_System/expressive_audio_pool/
 AI_NPC_System/VoiceSample/
 AI_NPC_System/integrations/open_llm_vtuber/live2d_models/
 
+# Project-owned assets that must stay versioned.
+!AI_NPC_System/VoiceSample/
+!AI_NPC_System/VoiceSample/**
+!AI_NPC_System/integrations/open_llm_vtuber/live2d_models/
+!AI_NPC_System/integrations/open_llm_vtuber/live2d_models/credo_avatar/
+!AI_NPC_System/integrations/open_llm_vtuber/live2d_models/credo_avatar/**
+
 # Vendored runtimes and generated assets
 vendor/*/.venv/
 vendor/*/logs/
 vendor/open-llm-vtuber/conf.yaml.backup
 vendor/Style-Bert-VITS2/
+vendor/fish-speech/*
+!vendor/fish-speech/
+!vendor/fish-speech/references/
+vendor/fish-speech/references/*
+!vendor/fish-speech/references/credo_voice_sample/
+!vendor/fish-speech/references/credo_voice_sample/**
+vendor/open-llm-vtuber/*
+!vendor/open-llm-vtuber/
+!vendor/open-llm-vtuber/avatars/
+vendor/open-llm-vtuber/avatars/*
+!vendor/open-llm-vtuber/avatars/credo_avatar.png
+!vendor/open-llm-vtuber/live2d-models/
+vendor/open-llm-vtuber/live2d-models/*
+!vendor/open-llm-vtuber/live2d-models/credo_avatar/
+!vendor/open-llm-vtuber/live2d-models/credo_avatar/**
 
 # IDE and editor state
 .vs/

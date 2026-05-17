@@ -1,0 +1,70 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "avatar.moc3",
+		"Textures": [
+			"avatar.2048/texture_00.png"
+		],
+		"Physics": "avatar.physics3.json",
+		"DisplayInfo": "avatar.cdi3.json",
+		"Motions": {
+			"Idle": [
+				{
+					"File": "motions/neutral.motion3.json"
+				}
+			],
+			"Talk": [
+				{
+					"File": "motions/neutral.motion3.json"
+				},
+				{
+					"File": "motions/smile.motion3.json"
+				},
+				{
+					"File": "motions/surprised_intro.motion3.json"
+				},
+				{
+					"File": "motions/sad_sigh_intro.motion3.json"
+				}
+			],
+			"Positive": [
+				{
+					"File": "motions/smile.motion3.json"
+				}
+			],
+			"Negative": [
+				{
+					"File": "motions/sad_sigh_intro.motion3.json"
+				},
+				{
+					"File": "motions/angry.motion3.json"
+				}
+			],
+			"Ambiguous": [
+				{
+					"File": "motions/surprised_intro.motion3.json"
+				}
+			],
+			"Neutral": [
+				{
+					"File": "motions/neutral.motion3.json"
+				}
+			]
+		}
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": []
+		}
+	]
+}

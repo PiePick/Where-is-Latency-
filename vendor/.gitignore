@@ -1,2 +1,14 @@
-fish-speech/
-open-llm-vtuber/
+fish-speech/*
+!fish-speech/references/
+fish-speech/references/*
+!fish-speech/references/credo_voice_sample/
+!fish-speech/references/credo_voice_sample/**
+
+open-llm-vtuber/*
+!open-llm-vtuber/avatars/
+open-llm-vtuber/avatars/*
+!open-llm-vtuber/avatars/credo_avatar.png
+!open-llm-vtuber/live2d-models/
+open-llm-vtuber/live2d-models/*
+!open-llm-vtuber/live2d-models/credo_avatar/
+!open-llm-vtuber/live2d-models/credo_avatar/**
