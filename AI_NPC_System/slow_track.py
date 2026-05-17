@@ -16,6 +16,10 @@ def _system_prompt(
 ) -> str:
     """Build the local LLM prompt for continuation after latency cover."""
     prompt = config.SLOW_TRACK_SYSTEM_PROMPT.strip()
+    if getattr(config, "CREDO_ENGLISH_ONLY_OUTPUT", True):
+        policy = getattr(config, "CREDO_LANGUAGE_POLICY", "").strip()
+        if policy and policy not in prompt:
+            prompt += f" {policy}"
     if memory_context:
         prompt += (
             " The following memory is external context, not a script. "

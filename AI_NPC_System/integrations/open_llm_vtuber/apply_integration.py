@@ -387,6 +387,64 @@ def patch_model_dict(vendor: Path) -> None:
     path.write_text(json.dumps(models, ensure_ascii=False, indent=4) + "\n", encoding="utf-8")
 
 
+def patch_vtuber_routes(vendor: Path) -> None:
+    """Keep CREDO VTuber route prompts aligned with output policy."""
+    path = vendor / "src" / "open_llm_vtuber" / "routes.py"
+    if not path.exists():
+        return
+    text = path.read_text(encoding="utf-8")
+    if "/credo/vtuber-mode/" not in text:
+        return
+
+    replacements = [
+        (
+            '                "Keep it under 35 words, include one approved Fish Speech tag, "\n'
+            '                "and end with a light hook that invites chat."\n',
+            '                "Keep it under 35 words, use natural plain English, "\n'
+            '                "always answer in English only regardless of viewer language, "\n'
+            '                "and end with a light hook that invites chat."\n',
+        ),
+        (
+            '                "Keep it under 35 words, use natural plain English, "\n'
+            '                "and end with a light hook that invites chat."\n',
+            '                "Keep it under 35 words, use natural plain English, "\n'
+            '                "always answer in English only regardless of viewer language, "\n'
+            '                "and end with a light hook that invites chat."\n',
+        ),
+        (
+            '            "VTuber mode manual monologue. Speak naturally to the audience. "\n'
+            '            f"Topic anchor: {topic}. Keep it under 35 words and include one approved Fish Speech tag."\n',
+            '            "VTuber mode manual monologue. Speak naturally to the audience in English only. "\n'
+            '            f"Topic anchor: {topic}. Keep it under 35 words and do not write bracketed style tags. "\n'
+            '            "Do not switch languages even if the topic or viewer text is multilingual."\n',
+        ),
+        (
+            '            "VTuber mode manual monologue. Speak naturally to the audience. "\n'
+            '            f"Topic anchor: {topic}. Keep it under 35 words and do not write bracketed style tags."\n',
+            '            "VTuber mode manual monologue. Speak naturally to the audience in English only. "\n'
+            '            f"Topic anchor: {topic}. Keep it under 35 words and do not write bracketed style tags. "\n'
+            '            "Do not switch languages even if the topic or viewer text is multilingual."\n',
+        ),
+        (
+            '            f"Donation event from {name} {amount}: {message}. "\n'
+            '            "React with a bright laugh, one approved Fish Speech tag, and a short thank-you."\n',
+            '            f"Donation event from {name} {amount}: {message}. "\n'
+            '            "React with a bright laugh and a short thank-you in English only. "\n'
+            '            "Do not write bracketed style tags or switch languages."\n',
+        ),
+        (
+            '            f"Donation event from {name} {amount}: {message}. "\n'
+            '            "React with a bright laugh and a short thank-you. Do not write bracketed style tags."\n',
+            '            f"Donation event from {name} {amount}: {message}. "\n'
+            '            "React with a bright laugh and a short thank-you in English only. "\n'
+            '            "Do not write bracketed style tags or switch languages."\n',
+        ),
+    ]
+    for old, new in replacements:
+        text = text.replace(old, new)
+    path.write_text(text, encoding="utf-8")
+
+
 def deep_merge(base: dict, patch: dict) -> dict:
     """Merge nested dictionaries without deleting unspecified default config."""
     for key, value in patch.items():
@@ -437,6 +495,7 @@ def apply(vendor: Path, *, activate: bool = False) -> None:
     patch_agent_config(vendor)
     patch_service_context(vendor)
     patch_audio_pipeline(vendor)
+    patch_vtuber_routes(vendor)
     write_full_config(vendor, activate=activate)
 
 

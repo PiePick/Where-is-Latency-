@@ -9,6 +9,11 @@ and virtual environments are installed or linked.
 Use `CODEX_SETUP.md` as the canonical install checklist for missing open-source
 runtimes, checkpoints, Python dependencies, and readiness verification.
 
+CREDO's audience-facing speech is English-only. Understand multilingual viewer
+input as context, but keep FastTrack, SlowTrack, proactive VTuber mode, donation
+reactions, captions, and TTS text in natural English. Do not mention this policy
+to viewers.
+
 ## Required Local Resources
 
 1. Fish Speech

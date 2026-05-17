@@ -1,6 +1,6 @@
 # CREDO Latency-Cover VTuber Prototype
 
-CREDO is a research prototype for hiding perceived LLM/TTS latency in an AI VTuber or virtual NPC. The current platform is Open-LLM-VTuber with a Python-side CREDO agent.
+CREDO is a research prototype for hiding perceived LLM/TTS latency in an AI VTuber or virtual NPC. The current platform is Open-LLM-VTuber with a Python-side CREDO agent. All audience-facing CREDO speech is constrained to natural English, even when viewer input is multilingual.
 
 Team handoff and machine setup notes live in [`TEAM_CODEX_PROMPT.md`](TEAM_CODEX_PROMPT.md).
 Codex-based dependency and open-source runtime recovery steps live in
@@ -141,6 +141,8 @@ manual idle line, and `Donation` queues a donation-style reaction for recording
 experiments. If a YouTube API key plus either a live chat ID or video ID is
 entered, the same mode starts the local YouTube live-chat bridge.
 
+CREDO's user-facing speech policy is English-only. Korean, Japanese, Chinese, or other multilingual viewer input may be understood as context, but FastTrack/SlowTrack/proactive/donation outputs should answer naturally in English and should not mention the language rule.
+
 ## Configuration
 
 Change experiment components in:
@@ -161,6 +163,8 @@ STYLEBERT_VITS2_BASE_URL         FastTrack TTS endpoint
 FISH_SPEECH_BASE_URL             SlowTrack TTS endpoint
 FISH_SPEECH_REFERENCE_ID         voice reference id
 OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME Live2D model name
+CREDO_ENGLISH_ONLY_OUTPUT        1 keeps all audience-facing output in English
+CREDO_LANGUAGE_POLICY            shared language rule appended to LLM prompts
 SLOW_TRACK_SYSTEM_PROMPT         local LLM response policy
 CREDO_MAX_COVER_BLOCKS           extra prebuilt cover blocks while SlowTrack waits
 CREDO_ENABLE_EXTRA_COVER_AUDIO   enable expressive audio blocks

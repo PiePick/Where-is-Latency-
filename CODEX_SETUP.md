@@ -135,6 +135,17 @@ Fish Speech server. The CREDO TTS client must keep:
 "use_memory_cache": "off"
 ```
 
+## Audience Language Policy
+
+CREDO is configured for English-only audience-facing output. Keep these defaults enabled unless an experiment explicitly studies multilingual output:
+
+```text
+CREDO_OUTPUT_LANGUAGE=English
+CREDO_ENGLISH_ONLY_OUTPUT=1
+```
+
+FastTrack, SlowTrack, VTuber idle monologues, and donation reactions should understand multilingual viewer input as context but answer in natural English without mentioning the policy.
+
 ## FastTrack Realtime TTS
 
 FastTrack uses a dedicated lightweight StyleBERT-VITS2 server by default. It does not require prebuilt FastTrack audio cache files:

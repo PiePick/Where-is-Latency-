@@ -314,6 +314,8 @@ class CredoLatencyCoverAgent(AgentInterface):
             "Make a small self-contained comment that would fit between viewer messages. Do not repeat previous idle lines.",
         ]
         prompt = self.rng.choice(choices)
+        if getattr(self._credo_config, "CREDO_ENGLISH_ONLY_OUTPUT", True):
+            prompt = f"{prompt} {self._credo_config.CREDO_LANGUAGE_POLICY}"
         return f"{prompt} Idle turn number: {self._proactive_count}."
 
     def _build_proactive_output(self) -> AudioOutput | SentenceOutput:

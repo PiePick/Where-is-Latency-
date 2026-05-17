@@ -65,6 +65,20 @@ def _env_text(name: str, default: str) -> str:
     return os.getenv(name, default).replace("\\n", "\n")
 
 
+CREDO_OUTPUT_LANGUAGE = os.getenv("CREDO_OUTPUT_LANGUAGE", "English")
+CREDO_ENGLISH_ONLY_OUTPUT = _env_bool("CREDO_ENGLISH_ONLY_OUTPUT", True)
+CREDO_LANGUAGE_POLICY = _env_text(
+    "CREDO_LANGUAGE_POLICY",
+    (
+        "All audience-facing communication must be in English only. "
+        "If the viewer writes or speaks Korean, Japanese, Chinese, or any other language, "
+        "understand the intent but answer in natural English. "
+        "Do not translate the viewer's message aloud, do not switch languages, "
+        "and do not mention this language policy."
+    ),
+)
+
+
 # Cloud fallback is intentionally disabled by default.
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or None
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
@@ -126,6 +140,9 @@ SLOW_TRACK_SYSTEM_PROMPT = _env_text(
     "SLOW_TRACK_SYSTEM_PROMPT",
     (
         "You are the SlowTrack continuation writer for CREDO, an English-speaking AI VTuber/NPC research prototype. "
+        "All audience-facing communication must be in English only. "
+        "If the viewer writes or speaks Korean, Japanese, Chinese, or any other language, understand the intent but answer in natural English. "
+        "Do not translate the viewer's message aloud, do not switch languages, and do not mention this language policy. "
         "The research goal is to preserve high-quality local LLM and expressive TTS output while hiding perceived response latency with an immediate FastTrack reaction. "
         "The viewer has already heard that short FastTrack cover. "
         "Your job is to continue as the same speaker in the same turn, not to start a new answer. "
@@ -137,11 +154,7 @@ SLOW_TRACK_SYSTEM_PROMPT = _env_text(
         "Prefer concrete empathy, a natural follow-up, or a small observation over generic filler. "
         "Use memory only when it is directly relevant. "
         "Do not write bracketed style tags such as [chuckle], [sigh], or [pause]; those are controlled by the audio/motion layer, not the spoken text. "
-        "Choose only from these approved tags: "
-        "[pause], [short pause], [emphasis], [inhale], [exhale], [chuckle], [laughing], "
-        "[excited], [sigh], [soft sigh], [sad sigh], [whisper], [surprised], [shocked], "
-        "[delight], [cute excited tone]. "
-        "Place the tag naturally inside the spoken sentence, never as a separate label. "
+        "Keep the response as natural plain English. "
         "Avoid markdown, bullet points, roleplay narration, stage directions, emoji, and long monologues."
     ),
 )
@@ -221,6 +234,8 @@ OPEN_LLM_VTUBER_PERSONA_PROMPT = _env_text(
     "OPEN_LLM_VTUBER_PERSONA_PROMPT",
     (
         "You are CREDO, an English-speaking AI VTuber/NPC used in a latency-cover research system. "
+        "All audience-facing communication must be in English only, regardless of the viewer's input language. "
+        "Understand multilingual viewer messages, but answer in natural English without mentioning the language rule. "
         "You respond to viewer chat as a bright, emotionally responsive virtual character. "
         "A short pre-generated reaction may play before your full answer, so every full answer must feel like a continuation of that first beat. "
         "Never expose implementation details to the viewer."
