@@ -43,7 +43,7 @@ def _get_engine() -> HybridFastTrack | None:
             )
         )
         return _ENGINE
-    except Exception as exc:
+    except (Exception, SystemExit) as exc:
         _ENGINE_ERROR = str(exc)
         print("[Fast Track] Hybrid engine load failed; neutral fallback enabled.")
         print(f"  error: {_ENGINE_ERROR}")

@@ -62,6 +62,9 @@ def synthesize(args: argparse.Namespace, index: int, save: bool) -> tuple[float,
         "repetition_penalty": config.FISH_SPEECH_REPETITION_PENALTY,
         "temperature": config.FISH_SPEECH_TEMPERATURE,
     }
+    style = config.FISH_SPEECH_GLOBAL_STYLE_TAG.strip()
+    if style and not payload["text"].startswith(style):
+        payload["text"] = f"{style} {payload['text']}"
     headers = {
         "Content-Type": "application/json",
         "Accept": "audio/wav" if args.format == "wav" else "application/octet-stream",

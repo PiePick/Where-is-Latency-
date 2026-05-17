@@ -47,6 +47,9 @@ LABEL_TO_CATEGORY = {
 # README/WebUI examples, but exclude cues that are too context-bound for FastTrack.
 CANDIDATES = [
     {"tag": "[chuckle]", "cue_text": "chuckle", "weight": 1.0},
+    {"tag": "[cute bright voice]", "cue_text": "cute bright voice", "weight": 1.0, "override": "Positive"},
+    {"tag": "[cute excited tone]", "cue_text": "cute excited tone", "weight": 0.9, "override": "Positive"},
+    {"tag": "[pitch up]", "cue_text": "pitch up", "weight": 0.8, "override": "Positive"},
     {"tag": "[laughing]", "cue_text": "laughing", "weight": 0.85},
     {"tag": "[laughing tone]", "cue_text": "laughing tone", "weight": 0.82, "override": "Positive"},
     {"tag": "[chuckling]", "cue_text": "chuckling", "weight": 0.82, "override": "Positive"},

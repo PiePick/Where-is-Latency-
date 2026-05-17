@@ -31,6 +31,7 @@ class FishSpeechTTSConfig:
     repetition_penalty: float = config.FISH_SPEECH_REPETITION_PENALTY
     max_new_tokens: int = config.FISH_SPEECH_MAX_NEW_TOKENS
     chunk_length: int = config.FISH_SPEECH_CHUNK_LENGTH
+    global_style_tag: str = config.FISH_SPEECH_GLOBAL_STYLE_TAG
     auto_play: bool = config.FISH_SPEECH_AUTO_PLAY
 
 
@@ -55,6 +56,7 @@ class FishSpeechTTSClient:
         text = text.strip()
         if not text:
             raise ValueError("Cannot synthesize empty text.")
+        text = self._apply_global_style(text)
 
         payload = {
             "text": text,
@@ -100,6 +102,15 @@ class FishSpeechTTSClient:
         if self.cfg.auto_play:
             play_audio(audio_path)
         return audio_path
+
+    def _apply_global_style(self, text: str) -> str:
+        """Add a persistent Fish Speech style tag without duplicating tags."""
+        style = self.cfg.global_style_tag.strip()
+        if not style:
+            return text
+        if text.startswith(style):
+            return text
+        return f"{style} {text}".strip()
 
     def _accept_header(self) -> str:
         """Select an Accept header that matches the requested audio format."""

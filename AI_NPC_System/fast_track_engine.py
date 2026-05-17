@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import random
 import time
 from dataclasses import dataclass
@@ -129,7 +130,7 @@ def require_runtime_deps() -> tuple[Any, Any, Any]:
         print("Missing dependency. Install with:")
         print("  python3 -m pip install -r AI_NPC_System/scripts/requirements.txt")
         print("  python3 -m spacy download en_core_web_sm")
-        raise SystemExit(2) from exc
+        raise RuntimeError("FastTrack ML runtime dependencies are missing.") from exc
     return spacy, torch, pipeline
 
 
@@ -139,7 +140,7 @@ def choose_device(torch: Any, requested: str) -> int:
         return -1
     if requested == "cuda":
         if not torch.cuda.is_available():
-            raise SystemExit("CUDA was requested, but torch.cuda.is_available() is false.")
+            raise RuntimeError("CUDA was requested, but torch.cuda.is_available() is false.")
         return 0
     return 0 if torch.cuda.is_available() else -1
 
@@ -199,6 +200,7 @@ class HybridFastTrack:
             self.config.audio_cache_path,
             enabled=self.config.audio_cache_enabled,
             seed=self.config.seed,
+            expected_reference_id=os.getenv("FISH_SPEECH_REFERENCE_ID"),
         )
         self.device = choose_device(torch, self.config.device)
         self.classifier = pipeline(

@@ -22,7 +22,13 @@ API_KEY="${FISH_SPEECH_API_KEY:-}"
 EXTRA_ARGS="${FISH_SPEECH_EXTRA_ARGS:-}"
 DEFAULT_VENV_PYTHON="${FISH_DIR}/.venv/bin/python"
 REFERENCE_ID="${FISH_SPEECH_REFERENCE_ID:-credo_bright_female}"
+REFERENCE_VOICE="${FISH_SPEECH_REFERENCE_VOICE:-en-US-AnaNeural}"
+REFERENCE_TEXT="${FISH_SPEECH_REFERENCE_TEXT:-Hi hi, good work. Let us keep the stream bright and fun.}"
+REGENERATE_REFERENCE="${FISH_SPEECH_REGENERATE_REFERENCE:-0}"
+REFERENCE_TIMEOUT="${FISH_SPEECH_REFERENCE_TIMEOUT:-60s}"
 REFERENCE_DIR="${FISH_DIR}/references/${REFERENCE_ID}"
+FFMPEG_BIN="${FFMPEG_BIN:-${ROOT_DIR}/vendor/open-llm-vtuber/.venv/bin/ffmpeg}"
+EDGE_TTS_PYTHON="${EDGE_TTS_PYTHON:-${ROOT_DIR}/vendor/open-llm-vtuber/.venv/bin/python}"
 
 if [ -n "${FISH_SPEECH_PYTHON:-}" ]; then
   PYTHON_BIN="${FISH_SPEECH_PYTHON}"
@@ -46,10 +52,32 @@ if [ ! -d "${CHECKPOINT_DIR}" ]; then
 fi
 
 # Keep a stable bright female reference voice for local Fish Speech calls.
+should_generate_reference=0
+case "${REGENERATE_REFERENCE,,}" in
+  1|true|yes|on) should_generate_reference=1 ;;
+esac
 if [ "${REFERENCE_ID}" = "credo_bright_female" ] && [ ! -f "${REFERENCE_DIR}/sample.wav" ]; then
+  should_generate_reference=1
+fi
+
+if [ "${REFERENCE_ID}" = "credo_bright_female" ] && [ "${should_generate_reference}" = "1" ]; then
   mkdir -p "${REFERENCE_DIR}"
-  cp "${ROOT_DIR}/AI_NPC_System/fast_track_audio_cache/Positive/stream/e551e29fc1249359.wav" "${REFERENCE_DIR}/sample.wav"
-  printf '%s\n' 'Good work, friend.' > "${REFERENCE_DIR}/sample.lab"
+  tmp_mp3="${REFERENCE_DIR}/sample.edge.mp3"
+  if timeout "${REFERENCE_TIMEOUT}" "${EDGE_TTS_PYTHON}" -m edge_tts \
+    --voice "${REFERENCE_VOICE}" \
+    --text "${REFERENCE_TEXT}" \
+    --write-media "${tmp_mp3}" >/dev/null 2>&1 && \
+    "${FFMPEG_BIN}" -y -v error -i "${tmp_mp3}" -ar 44100 -ac 1 "${REFERENCE_DIR}/sample.wav"; then
+    printf '%s\n' "${REFERENCE_TEXT}" > "${REFERENCE_DIR}/sample.lab"
+    rm -f "${tmp_mp3}"
+    echo "Generated Fish Speech reference voice with ${REFERENCE_VOICE}."
+  else
+    echo "Could not generate ${REFERENCE_ID} with edge-tts; using existing/cache fallback." >&2
+    if [ ! -f "${REFERENCE_DIR}/sample.wav" ]; then
+      cp "${ROOT_DIR}/AI_NPC_System/fast_track_audio_cache/Positive/stream/e551e29fc1249359.wav" "${REFERENCE_DIR}/sample.wav"
+      printf '%s\n' 'Good work, friend.' > "${REFERENCE_DIR}/sample.lab"
+    fi
+  fi
 fi
 
 # Keep the command as an array so paths with spaces remain safe.
@@ -72,4 +100,5 @@ echo "Using CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 echo "Using Python: ${PYTHON_BIN}"
 echo "Using Fish Speech checkpoint: ${CHECKPOINT_DIR}"
 echo "Using Fish Speech reference voice: ${REFERENCE_ID}"
+echo "Using Fish Speech reference source voice: ${REFERENCE_VOICE}"
 "${cmd[@]}" ${EXTRA_ARGS}

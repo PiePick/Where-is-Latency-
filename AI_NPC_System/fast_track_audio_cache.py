@@ -30,10 +30,21 @@ class CachedCover:
 class FastTrackAudioCache:
     """Load and sample pre-generated FastTrack cover audio."""
 
-    def __init__(self, manifest_path: Path, *, enabled: bool = True, seed: int | None = None) -> None:
+    def __init__(
+        self,
+        manifest_path: Path,
+        *,
+        enabled: bool = True,
+        seed: int | None = None,
+        expected_reference_id: str | None = None,
+        strict_reference: bool = True,
+    ) -> None:
         self.manifest_path = manifest_path
         self.enabled = enabled
         self.rng = random.Random(seed)
+        self.expected_reference_id = expected_reference_id
+        self.strict_reference = strict_reference
+        self.metadata: dict[str, Any] = {}
         self._by_category: dict[str, list[CachedCover]] = {}
         self._by_category_source: dict[tuple[str, str], list[CachedCover]] = {}
         if enabled:
@@ -66,11 +77,17 @@ class FastTrackAudioCache:
         return self.rng.choice(candidates)
 
     def _load(self) -> None:
-        """Read a manifest written by scripts/prebuild_fast_track_tts_cache.py."""
+        """Read a legacy FastTrack audio manifest when cache fallback is enabled."""
         if not self.manifest_path.exists():
             return
 
         raw = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        self.metadata = raw.get("tts_reference", {}) if isinstance(raw, dict) else {}
+        if self.strict_reference and self.expected_reference_id:
+            cache_reference = str(self.metadata.get("reference_id", "")).strip()
+            if cache_reference != self.expected_reference_id:
+                return
+
         root = self.manifest_path.parent
         for item in raw.get("items", []):
             audio_path = Path(str(item.get("audio_path", "")))

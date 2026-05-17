@@ -1,0 +1,165 @@
+# CREDO Latency-Cover VTuber Prototype
+
+CREDO is a research prototype for hiding perceived LLM/TTS latency in an AI VTuber or virtual NPC. The current platform is Open-LLM-VTuber with a Python-side CREDO agent.
+
+## Current Architecture
+
+```text
+Viewer text / mic input
+  -> Open-LLM-VTuber websocket loop
+  -> CREDO FastTrack
+       DistilBERT emotion classifier
+       spaCy keyword extraction
+       hybrid reaction list
+       StyleBERT-VITS2 short TTS
+  -> CREDO SlowTrack
+       local OpenAI-compatible LLM
+       Fish Speech expressive TTS
+  -> Live2D avatar response
+```
+
+The old Unity project and WinTTS prototype were removed. The active runtime is now:
+
+```text
+AI_NPC_System/                 CREDO Python code, models, data, scripts
+reaction_sources/              source datasets and merged reaction evidence
+vendor/open-llm-vtuber/        VTuber UI/runtime platform
+vendor/fish-speech/            SlowTrack expressive TTS runtime
+```
+
+## Important Files
+
+```text
+AI_NPC_System/project_config.sh
+  Single place to change LLM, TTS, voice, prompt, reaction, and runtime settings.
+
+AI_NPC_System/integrations/open_llm_vtuber/
+  CREDO agent adapter for Open-LLM-VTuber.
+
+AI_NPC_System/models/setfit_swda_intent_minilm_optimized/
+  Selected SWDA SetFit intent model.
+
+AI_NPC_System/reports/setfit_intent_evaluation.xlsx
+  Validation/test report for the SetFit intent model.
+
+AI_NPC_System/prepared_fasttrack_data/
+  Preprocessed GoEmotions and SWDA coarse-label data.
+
+AI_NPC_System/VoiceSample/
+  Local-only voice source used for CREDO voice reference preparation.
+  This folder is ignored by git because it may contain licensed or private audio.
+
+AI_NPC_System/integrations/open_llm_vtuber/live2d_models/
+  Local-only Live2D model assets copied into Open-LLM-VTuber.
+  This folder is ignored by git because avatar assets may be private.
+```
+
+## WSL Quick Start
+
+Run these commands in WSL, not Windows CMD:
+
+```bash
+cd /mnt/c/Users/CGLAB/Desktop/CREDO
+```
+
+Install or refresh Open-LLM-VTuber dependencies:
+
+```bash
+AI_NPC_System/scripts/install_open_llm_vtuber_runtime.sh
+```
+
+Install FastTrack build/evaluation dependencies when needed:
+
+```bash
+vendor/open-llm-vtuber/.venv/bin/python -m pip install -r AI_NPC_System/scripts/requirements.txt
+vendor/open-llm-vtuber/.venv/bin/python -m spacy download en_core_web_sm
+```
+
+Start the local LLM server:
+
+```bash
+AI_NPC_System/scripts/start_local_llm_server.sh
+```
+
+Start Fish Speech for SlowTrack TTS:
+
+```bash
+AI_NPC_System/scripts/start_fish_speech_server.sh
+```
+
+Start StyleBERT-VITS2 for FastTrack TTS after its repo and model assets are installed:
+
+```bash
+AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+```
+
+Run the Open-LLM-VTuber CREDO integration:
+
+```bash
+AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
+```
+
+Open the UI:
+
+```text
+http://localhost:12393
+```
+
+## Configuration
+
+Change experiment components in:
+
+```bash
+nano AI_NPC_System/project_config.sh
+```
+
+Key variables:
+
+```text
+LOCAL_LLM_MODEL                  SlowTrack local LLM served name
+LOCAL_LLM_BASE_URL               OpenAI-compatible local LLM endpoint
+FAST_TRACK_TTS_MODE              stylebert_vits2 by default
+STYLEBERT_VITS2_BASE_URL         FastTrack TTS endpoint
+FISH_SPEECH_BASE_URL             SlowTrack TTS endpoint
+FISH_SPEECH_REFERENCE_ID         voice reference id
+OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME Live2D model name
+SLOW_TRACK_SYSTEM_PROMPT         local LLM response policy
+```
+
+## Data and Model Tasks
+
+Rebuild the reaction dataset:
+
+```bash
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_reaction_dataset.py
+```
+
+Run the dual classifier prototype script:
+
+```bash
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/fasttrack_dual_classifier_pipeline.py
+```
+
+Evaluate and tune the SetFit intent classifier:
+
+```bash
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/evaluate_and_tune_setfit_intent.py
+```
+
+Measure TTS latency:
+
+```bash
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/benchmark_tts_latency.py --runs 3
+```
+
+Measure end-to-end pipeline latency:
+
+```bash
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/benchmark_pipeline_latency.py --runs 3
+```
+
+## Current Limitation
+
+StyleBERT-VITS2 routing is implemented, but the StyleBERT-VITS2 repository and CREDO voice-compatible model assets must be installed separately under `vendor/Style-Bert-VITS2`. Until that server is running, FastTrack falls back through the existing Open-LLM-VTuber response path.
+
+Voice samples and Live2D binary assets are intentionally local-only. Keep them under the ignored folders above, then run the relevant setup script or integration copy step on the local machine.

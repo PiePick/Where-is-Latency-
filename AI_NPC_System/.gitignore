@@ -5,3 +5,4 @@ memory/*.tmp
 memory/*.broken.json
 tts_outputs/
 tts_benchmarks/
+latency_benchmarks/
