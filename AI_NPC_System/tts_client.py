@@ -64,7 +64,7 @@ class FishSpeechTTSClient:
             "references": [],
             "reference_id": self.cfg.reference_id,
             "seed": self.cfg.seed,
-            "use_memory_cache": "on",
+            "use_memory_cache": "off",
             "normalize": True,
             "streaming": False,
             "max_new_tokens": self.cfg.max_new_tokens,

@@ -4,7 +4,7 @@
     "required_failed": 0,
     "optional_failed": 3,
     "warnings": 0,
-    "checked_at_unix": 1779026404.0037563
+    "checked_at_unix": 1779041244.777781
   },
   "checks": [
     {
@@ -94,19 +94,19 @@
     {
       "name": "Local LLM endpoint",
       "status": "FAIL",
-      "detail": "unreachable: http://127.0.0.1:8001/v1/models (<urlopen error [Errno 1] Operation not permitted>)",
+      "detail": "unreachable: http://127.0.0.1:8001/v1/models (<urlopen error [Errno 111] Connection refused>)",
       "required": false
     },
     {
       "name": "Fish Speech endpoint",
       "status": "FAIL",
-      "detail": "unreachable: http://127.0.0.1:8080/v1/health (<urlopen error [Errno 1] Operation not permitted>)",
+      "detail": "unreachable: http://127.0.0.1:8080/v1/health (<urlopen error [Errno 111] Connection refused>)",
       "required": false
     },
     {
       "name": "Open-LLM-VTuber web server",
       "status": "FAIL",
-      "detail": "127.0.0.1:12393 is closed or unreachable ([Errno 1] Operation not permitted)",
+      "detail": "127.0.0.1:12393 is closed or unreachable ([Errno 111] Connection refused)",
       "required": false
     },
     {

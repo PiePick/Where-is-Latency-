@@ -22,9 +22,9 @@
 | OK | False | python import: faiss | importable |
 | OK | False | python import: websockets | importable |
 | OK | False | YouTube bridge dependency | websockets 16.0 |
-| FAIL | False | Local LLM endpoint | unreachable: http://127.0.0.1:8001/v1/models (<urlopen error [Errno 1] Operation not permitted>) |
-| FAIL | False | Fish Speech endpoint | unreachable: http://127.0.0.1:8080/v1/health (<urlopen error [Errno 1] Operation not permitted>) |
-| FAIL | False | Open-LLM-VTuber web server | 127.0.0.1:12393 is closed or unreachable ([Errno 1] Operation not permitted) |
+| FAIL | False | Local LLM endpoint | unreachable: http://127.0.0.1:8001/v1/models (<urlopen error [Errno 111] Connection refused>) |
+| FAIL | False | Fish Speech endpoint | unreachable: http://127.0.0.1:8080/v1/health (<urlopen error [Errno 111] Connection refused>) |
+| FAIL | False | Open-LLM-VTuber web server | 127.0.0.1:12393 is closed or unreachable ([Errno 111] Connection refused) |
 | SKIP | False | Style-Bert-VITS2 | disabled by FAST_TRACK_TTS_MODE=fish_speech |
 
 ## Interpretation
