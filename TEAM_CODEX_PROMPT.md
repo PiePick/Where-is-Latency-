@@ -57,7 +57,7 @@ Main config file:
 Important values:
 - `FAST_TRACK_TTS_MODE="stylebert_vits2"`
 - `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"`
-- `FAST_TRACK_AUDIO_CACHE_REFERENCE_ID="credo_voice_sample"`
+- `FAST_TRACK_AUDIO_CACHE_ENABLED="0"` by default; FastTrack uses realtime lightweight TTS, not prebuilt audio.
 - `FISH_SPEECH_REFERENCE_ID="credo_voice_sample"`
 - `FISH_SPEECH_GLOBAL_STYLE_TAG=""`
 - `OPEN_LLM_VTUBER_SLOW_TTS_MODE="credo_fish_speech"`
@@ -75,14 +75,14 @@ cd /mnt/c/Users/CGLAB/Desktop/CREDO
 AI_NPC_System/scripts/start_local_llm_server.sh
 ```
 
-Start Fish Speech for SlowTrack on GPU1:
+Start Fish Speech for SlowTrack on GPU0:
 
 ```bash
 cd /mnt/c/Users/CGLAB/Desktop/CREDO
 AI_NPC_System/scripts/start_fish_speech_server.sh
 ```
 
-Start the dedicated FastTrack StyleBERT-VITS2 TTS server on GPU1:
+Start the dedicated FastTrack StyleBERT-VITS2 TTS server on GPU0:
 
 ```bash
 cd /mnt/c/Users/CGLAB/Desktop/CREDO

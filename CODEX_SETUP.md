@@ -122,36 +122,36 @@ Fish Speech server. The CREDO TTS client must keep:
 "use_memory_cache": "off"
 ```
 
-## FastTrack TTS and Cache
+## FastTrack Realtime TTS
 
-FastTrack uses a dedicated StyleBERT-VITS2 server by default:
+FastTrack uses a dedicated lightweight StyleBERT-VITS2 server by default. It does not require prebuilt FastTrack audio cache files:
 
 ```text
 FAST_TRACK_TTS_MODE=stylebert_vits2
 FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=0
-STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=1
+FAST_TRACK_AUDIO_CACHE_ENABLED=0
+STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=0
 ```
 
-This prevents FastTrack cover text from being spoken by Open-LLM-VTuber's default cute voice when dedicated audio is missing. If you want sample-voice cached covers, start Fish Speech with `credo_voice_sample` and build the cache:
+This keeps the pipeline as: FastTrack reaction text selection, immediate StyleBERT-VITS2 synthesis, then playback. Open-LLM-VTuber's default cute TTS is blocked unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set.
+
+The cache builder remains available only as an optional experiment tool:
 
 ```bash
-AI_NPC_System/scripts/start_fish_speech_server.sh
 AI_NPC_System/scripts/build_fast_track_audio_cache.py --engine fish_speech --force
 ```
-
-The cache manifest must report `reference_id=credo_voice_sample`.
 
 ## GPU Allocation
 
 Default async server placement:
 
 ```text
-LOCAL_LLM_CUDA_VISIBLE_DEVICES=0
-FISH_SPEECH_CUDA_VISIBLE_DEVICES=1
-STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=1
+LOCAL_LLM_CUDA_VISIBLE_DEVICES=1
+FISH_SPEECH_CUDA_VISIBLE_DEVICES=0
+STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=0
 ```
 
-GPU0 is reserved for the heavier local LLM server. GPU1 is used for TTS servers.
+GPU0 is reserved for the heavier TTS side, especially Fish Speech. GPU1 is used for the local LLM server.
 
 ## Apply Integration
 

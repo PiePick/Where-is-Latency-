@@ -27,6 +27,27 @@ export FALLBACK_LOCAL_LLM_BASE_URL="${FALLBACK_LOCAL_LLM_BASE_URL:-$LOCAL_LLM_BA
 export FALLBACK_LOCAL_LLM_MODEL="${FALLBACK_LOCAL_LLM_MODEL:-$LOCAL_LLM_MODEL}"
 export PATH="$VENV_DIR/bin:$PATH"
 
+allow_open_llm_fast_tts=0
+case "${FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK:-0}" in
+  1|true|TRUE|yes|YES|on|ON) allow_open_llm_fast_tts=1 ;;
+esac
+
+stylebert_ready=0
+if [[ "${FAST_TRACK_TTS_MODE:-stylebert_vits2}" == "stylebert_vits2" ]]; then
+  if "$VENV_DIR/bin/python" -c 'import sys, urllib.request; urllib.request.urlopen(sys.argv[1], timeout=1.5).close()'     "${STYLEBERT_VITS2_HEALTH_URL:-http://127.0.0.1:5000/docs}" >/dev/null 2>&1; then
+    stylebert_ready=1
+  fi
+fi
+
+if [[ "${allow_open_llm_fast_tts}" != "1" && "${FAST_TRACK_TTS_MODE:-stylebert_vits2}" == "stylebert_vits2" && "${stylebert_ready}" != "1" ]]; then
+  echo "FastTrack realtime lightweight TTS is not ready." >&2
+  echo "Open-LLM-VTuber default TTS fallback is disabled to avoid the wrong cute FastTrack voice." >&2
+  echo "Start the FastTrack StyleBERT-VITS2 server first:" >&2
+  echo "  AI_NPC_System/scripts/start_stylebert_vits2_server.sh" >&2
+  echo "Health URL checked: ${STYLEBERT_VITS2_HEALTH_URL:-http://127.0.0.1:5000/docs}" >&2
+  exit 2
+fi
+
 cd "$ROOT_DIR"
 "$VENV_DIR/bin/python" AI_NPC_System/integrations/open_llm_vtuber/apply_integration.py --activate
 
@@ -35,4 +56,5 @@ echo "Starting Open-LLM-VTuber with CREDO latency-cover agent."
 echo "Open: http://localhost:12393"
 echo "CREDO config: ${CONFIG_FILE}"
 echo "SlowTrack LLM: ${LOCAL_LLM_MODEL} (${LOCAL_LLM_BASE_URL})"
+echo "GPU placement: Fish/StyleBERT TTS GPU${FISH_SPEECH_CUDA_VISIBLE_DEVICES:-0}/${STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES:-0}, Local LLM GPU${LOCAL_LLM_CUDA_VISIBLE_DEVICES:-1}"
 exec "$VENV_DIR/bin/python" run_server.py

@@ -97,13 +97,13 @@ Start the local LLM server:
 AI_NPC_System/scripts/start_local_llm_server.sh
 ```
 
-Start Fish Speech for SlowTrack TTS on GPU1:
+Start Fish Speech for SlowTrack TTS on GPU0:
 
 ```bash
 AI_NPC_System/scripts/start_fish_speech_server.sh
 ```
 
-Start the dedicated FastTrack StyleBERT-VITS2 TTS server on GPU1 after its repo and CREDO-compatible model assets are installed:
+Start the dedicated FastTrack StyleBERT-VITS2 TTS server on GPU0 after its repo and CREDO-compatible model assets are installed:
 
 ```bash
 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
@@ -142,6 +142,7 @@ LOCAL_LLM_MODEL                  SlowTrack local LLM served name
 LOCAL_LLM_BASE_URL               OpenAI-compatible local LLM endpoint
 FAST_TRACK_TTS_MODE              stylebert_vits2 dedicated FastTrack TTS
 FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK 0 prevents default cute TTS fallback
+FAST_TRACK_AUDIO_CACHE_ENABLED   0 for realtime FastTrack TTS by default
 STYLEBERT_VITS2_BASE_URL         FastTrack TTS endpoint
 FISH_SPEECH_BASE_URL             SlowTrack TTS endpoint
 FISH_SPEECH_REFERENCE_ID         voice reference id
@@ -149,9 +150,9 @@ OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME Live2D model name
 SLOW_TRACK_SYSTEM_PROMPT         local LLM response policy
 CREDO_MAX_COVER_BLOCKS           extra prebuilt cover blocks while SlowTrack waits
 CREDO_ENABLE_EXTRA_COVER_AUDIO   enable expressive audio blocks
-LOCAL_LLM_CUDA_VISIBLE_DEVICES   GPU0 for the heavier local LLM
-FISH_SPEECH_CUDA_VISIBLE_DEVICES GPU1 for SlowTrack Fish Speech
-STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES GPU1 for FastTrack TTS
+LOCAL_LLM_CUDA_VISIBLE_DEVICES   GPU1 for SlowTrack local LLM
+FISH_SPEECH_CUDA_VISIBLE_DEVICES GPU0 for heavier SlowTrack Fish Speech
+STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES GPU0 for FastTrack TTS
 ```
 
 ## Data and Model Tasks
@@ -204,6 +205,6 @@ Latency records are appended to `AI_NPC_System/latency_logs/events.jsonl`.
 
 ## Current Limitation
 
-StyleBERT-VITS2 is the dedicated FastTrack TTS path and must be installed separately under `vendor/Style-Bert-VITS2` with CREDO voice-compatible model assets. FastTrack no longer falls back to Open-LLM-VTuber default TTS unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set.
+StyleBERT-VITS2 is the realtime lightweight FastTrack TTS path and must be installed separately under `vendor/Style-Bert-VITS2` with CREDO voice-compatible model assets. FastTrack does not require prebuilt audio cache files and no longer falls back to Open-LLM-VTuber default TTS unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set.
 
 Project-owned voice samples, Fish Speech references, and the CREDO Live2D avatar/motions are tracked through explicit `.gitignore` exceptions. Large runtimes, virtual environments, model checkpoints, generated audio caches, and temporary experiment logs remain local-only.
