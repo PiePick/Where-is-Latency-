@@ -65,7 +65,7 @@ The emotional reaction still comes from `hybrid_reactions.json`. The nonverbal c
 Cue selection is controlled by:
 
 ```text
-FISH_SPEECH_CUES_ENABLED=1
+FISH_SPEECH_CUES_ENABLED=0  # current default; set to 1 only when FastTrack TTS mode is fish_speech
 FISH_SPEECH_CUE_PROBABILITY=0.65
 ```
 

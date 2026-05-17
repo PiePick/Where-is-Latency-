@@ -44,7 +44,14 @@ class StyleBertVITS2Client:
         except Exception:
             return False
 
-    def synthesize_to_file(self, text: str, *, prefix: str = "stylebert_fast") -> Path:
+    def synthesize_to_file(
+        self,
+        text: str,
+        *,
+        prefix: str = "stylebert_fast",
+        style: str | None = None,
+        style_weight: float | None = None,
+    ) -> Path:
         """Synthesize text and write the returned wav bytes to disk."""
         text = text.strip()
         if not text:
@@ -54,8 +61,8 @@ class StyleBertVITS2Client:
             "text": text,
             "model_id": str(self.cfg.model_id),
             "speaker_id": str(self.cfg.speaker_id),
-            "style": self.cfg.style,
-            "style_weight": str(self.cfg.style_weight),
+            "style": style or self.cfg.style,
+            "style_weight": str(self.cfg.style_weight if style_weight is None else style_weight),
             "language": self.cfg.language,
         }
         data = urllib.parse.urlencode(params).encode("utf-8")
@@ -81,9 +88,21 @@ class StyleBertVITS2Client:
         out_path.write_bytes(audio)
         return out_path
 
-    def speak(self, text: str, *, prefix: str = "stylebert_fast") -> Path:
+    def speak(
+        self,
+        text: str,
+        *,
+        prefix: str = "stylebert_fast",
+        style: str | None = None,
+        style_weight: float | None = None,
+    ) -> Path:
         """Synthesize and optionally play a FastTrack reaction."""
-        path = self.synthesize_to_file(text, prefix=prefix)
+        path = self.synthesize_to_file(
+            text,
+            prefix=prefix,
+            style=style,
+            style_weight=style_weight,
+        )
         if self.cfg.auto_play:
             play_audio(path)
         return path

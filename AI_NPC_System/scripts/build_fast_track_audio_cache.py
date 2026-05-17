@@ -82,6 +82,17 @@ def build_client(engine: str, output_dir: Path, audio_format: str) -> Any:
     return client
 
 
+def stylebert_style_for_category(category: str) -> str:
+    key = str(category or "neutral").lower()
+    style_map = {
+        "positive": config.STYLEBERT_VITS2_STYLE_POSITIVE,
+        "negative": config.STYLEBERT_VITS2_STYLE_NEGATIVE,
+        "ambiguous": config.STYLEBERT_VITS2_STYLE_AMBIGUOUS,
+        "neutral": config.STYLEBERT_VITS2_STYLE_NEUTRAL,
+    }
+    return style_map.get(key, config.STYLEBERT_VITS2_STYLE)
+
+
 def cache_reference(engine: str) -> dict[str, Any]:
     if engine == "fish_speech":
         return {
@@ -97,6 +108,12 @@ def cache_reference(engine: str) -> dict[str, Any]:
         "speaker_id": config.STYLEBERT_VITS2_SPEAKER_ID,
         "style": config.STYLEBERT_VITS2_STYLE,
         "style_weight": config.STYLEBERT_VITS2_STYLE_WEIGHT,
+        "emotion_styles": {
+            "positive": config.STYLEBERT_VITS2_STYLE_POSITIVE,
+            "negative": config.STYLEBERT_VITS2_STYLE_NEGATIVE,
+            "ambiguous": config.STYLEBERT_VITS2_STYLE_AMBIGUOUS,
+            "neutral": config.STYLEBERT_VITS2_STYLE_NEUTRAL,
+        },
     }
 
 
@@ -120,7 +137,10 @@ def main() -> int:
         original_output_dir = client.cfg.output_dir
         object.__setattr__(client.cfg, "output_dir", category_dir)
         try:
-            audio_path = client.synthesize_to_file(item["tts_text"], prefix=item["id"])
+            synth_kwargs: dict[str, Any] = {}
+            if args.engine == "stylebert_vits2":
+                synth_kwargs["style"] = stylebert_style_for_category(item["category"])
+            audio_path = client.synthesize_to_file(item["tts_text"], prefix=item["id"], **synth_kwargs)
         finally:
             object.__setattr__(client.cfg, "output_dir", original_output_dir)
 

@@ -1,4 +1,4 @@
-"""Compose latency-cover blocks from emotion, intent, keywords, style tags, and motion."""
+"""Compose latency-cover blocks from emotion, intent, keywords, TTS style controls, and motion."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import config
 from intent_transition_matrix import IntentTransitionPlanner
 from latency_predictor import LatencyPredictor
 
@@ -25,23 +26,11 @@ MOTION_MAP = {
     "neutral": ["neutral_01", "neutral_02", "neutral_03", "neutral_04"],
 }
 
-STYLE_TAGS = {
-    "positive": [
-        ["[laughing]", "[chuckle]", "[delight]", "[excited]", "[cute excited tone]"],
-        ["[excited]", "[laughing]", "[emphasis]", "[inhale]", "[delight]"],
-    ],
-    "negative": [
-        ["[sigh]", "[sad sigh]", "[exhale]", "[whisper]", "[pause]"],
-        ["[sigh]", "[emphasis]", "[exhale]", "[short pause]", "[sad sigh]"],
-    ],
-    "ambiguous": [
-        ["[surprised]", "[shocked]", "[inhale]", "[short pause]", "[whisper]"],
-        ["[surprised gasp]", "[curious]", "[short pause]", "[inhale]", "[soft sigh]"],
-    ],
-    "neutral": [
-        ["[short pause]", "[soft sigh]", "[exhale]", "[whisper]", "[pause]"],
-        ["[pause]", "[inhale]", "[exhale]", "[soft sigh]", "[whisper]"],
-    ],
+FISH_SPEECH_CUE_BUNDLES = {
+    "positive": ["[laughing]", "[chuckle]", "[delight]", "[excited]"],
+    "negative": ["[sigh]", "[sad sigh]", "[exhale]", "[whisper]"],
+    "ambiguous": ["[surprised]", "[shocked]", "[inhale]", "[curious]"],
+    "neutral": ["[short pause]", "[soft sigh]", "[exhale]", "[whisper]"],
 }
 
 INTENT_FALLBACKS = {
@@ -147,22 +136,22 @@ class CoverComposer:
         category_scores: dict[str, float],
     ) -> CoverBlock:
         motion = self.rng.choice(MOTION_MAP[emotion])
-        style_tags = self.rng.choice(STYLE_TAGS[emotion])
+        style_control = self._style_control(emotion)
         audio_path = self.choose_extreme_audio(emotion)
 
         if block_id == 1:
             reaction = self._choose_reaction(emotion)
-            text = f"{' '.join(style_tags)} {reaction}".strip()
-            kind = "reaction_style_motion"
+            text = reaction.strip()
+            kind = "reaction_tts_style_motion"
         elif block_id == 2 and keywords:
-            text = f"{' '.join(style_tags)} {keywords[0]}?"
-            kind = "keyword_echo_style_motion"
+            text = f"{keywords[0]}?"
+            kind = "keyword_echo_tts_style_motion"
         elif block_id == 3:
-            text = f"{' '.join(style_tags)} {self._choose_intent_line(intent)}"
-            kind = "intent_style_motion"
+            text = self._choose_intent_line(intent)
+            kind = "intent_tts_style_motion"
         else:
             reaction = self._choose_reaction(emotion)
-            text = f"{' '.join(style_tags)} {reaction}".strip()
+            text = reaction.strip()
             kind = "loop_cover"
 
         return CoverBlock(
@@ -173,11 +162,24 @@ class CoverComposer:
             audio_path=audio_path,
             estimated_ms=1800.0 + len(text) * 18.0,
             metadata={
-                "style_tags": style_tags,
+                "tts_style_control": style_control,
                 "emotion_scores": category_scores,
                 "intent": intent,
             },
         )
+
+    def _style_control(self, emotion: str) -> dict[str, Any]:
+        style_map = {
+            "positive": config.STYLEBERT_VITS2_STYLE_POSITIVE,
+            "negative": config.STYLEBERT_VITS2_STYLE_NEGATIVE,
+            "ambiguous": config.STYLEBERT_VITS2_STYLE_AMBIGUOUS,
+            "neutral": config.STYLEBERT_VITS2_STYLE_NEUTRAL,
+        }
+        return {
+            "stylebert_vits2": style_map.get(emotion, config.STYLEBERT_VITS2_STYLE),
+            "fish_speech_cues": FISH_SPEECH_CUE_BUNDLES.get(emotion, FISH_SPEECH_CUE_BUNDLES["neutral"]),
+            "inline_cues_enabled": config.FAST_TRACK_INLINE_CUES_ENABLED,
+        }
 
     def _choose_reaction(self, emotion: str) -> str:
         category = emotion.capitalize() if emotion != "ambiguous" else "Ambiguous"

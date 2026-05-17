@@ -157,9 +157,11 @@ Key variables:
 LOCAL_LLM_MODEL                  SlowTrack local LLM served name
 LOCAL_LLM_BASE_URL               OpenAI-compatible local LLM endpoint
 FAST_TRACK_TTS_MODE              stylebert_vits2 dedicated FastTrack TTS
+FAST_TRACK_INLINE_CUES_ENABLED   0 for StyleBERT FastTrack; Fish inline cues only when explicitly enabled
 FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK 0 prevents default cute TTS fallback
 FAST_TRACK_AUDIO_CACHE_ENABLED   0 for realtime FastTrack TTS by default
 STYLEBERT_VITS2_BASE_URL         FastTrack TTS endpoint
+STYLEBERT_VITS2_STYLE_*          emotion-specific StyleBERT API style names
 FISH_SPEECH_BASE_URL             SlowTrack TTS endpoint
 FISH_SPEECH_REFERENCE_ID         voice reference id
 OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME Live2D model name
@@ -168,6 +170,7 @@ CREDO_LANGUAGE_POLICY            shared language rule appended to LLM prompts
 SLOW_TRACK_SYSTEM_PROMPT         local LLM response policy
 CREDO_MAX_COVER_BLOCKS           extra prebuilt cover blocks while SlowTrack waits
 CREDO_ENABLE_EXTRA_COVER_AUDIO   enable expressive audio blocks
+LATENCY_PREDICTOR_MODEL_FILE  generated predictor artifact used for fallback calibration
 LOCAL_LLM_CUDA_VISIBLE_DEVICES   GPU1 for SlowTrack local LLM
 FISH_SPEECH_CUDA_VISIBLE_DEVICES GPU0 for heavier SlowTrack Fish Speech
 STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES GPU0 for FastTrack TTS

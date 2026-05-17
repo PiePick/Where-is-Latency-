@@ -154,10 +154,16 @@ FastTrack uses a dedicated lightweight StyleBERT-VITS2 server by default. It doe
 FAST_TRACK_TTS_MODE=stylebert_vits2
 FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=0
 FAST_TRACK_AUDIO_CACHE_ENABLED=0
+FAST_TRACK_INLINE_CUES_ENABLED=0
+FISH_SPEECH_CUES_ENABLED=0
 STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=0
+STYLEBERT_VITS2_STYLE_POSITIVE=Neutral
+STYLEBERT_VITS2_STYLE_NEGATIVE=Neutral
+STYLEBERT_VITS2_STYLE_AMBIGUOUS=Neutral
+STYLEBERT_VITS2_STYLE_NEUTRAL=Neutral
 ```
 
-This keeps the pipeline as: FastTrack reaction text selection, immediate StyleBERT-VITS2 synthesis, then playback. Open-LLM-VTuber's default cute TTS is blocked unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set.
+This keeps the pipeline as: FastTrack reaction text selection, immediate StyleBERT-VITS2 synthesis with emotion-specific API style parameters, then playback. Fish Speech bracket cue bundles are not inserted into FastTrack text unless `FAST_TRACK_TTS_MODE=fish_speech` and `FAST_TRACK_INLINE_CUES_ENABLED=1` are both explicitly set. Open-LLM-VTuber's default cute TTS is blocked unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set.
 
 The cache builder remains available only as an optional experiment tool:
 
@@ -196,6 +202,13 @@ import spacy
 spacy.load("en_core_web_sm")
 print("FastTrack deps OK")
 PY
+```
+
+Runtime readiness:
+Latency predictor artifact:
+
+```bash
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_latency_prediction_model.py
 ```
 
 Runtime readiness:

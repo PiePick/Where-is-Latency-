@@ -2,9 +2,9 @@
   "summary": {
     "readiness": "PARTIAL",
     "required_failed": 0,
-    "optional_failed": 8,
+    "optional_failed": 4,
     "warnings": 0,
-    "checked_at_unix": 1779043549.680566
+    "checked_at_unix": 1779058883.770789
   },
   "checks": [
     {
@@ -45,8 +45,8 @@
     },
     {
       "name": "FastTrack audio cache",
-      "status": "FAIL",
-      "detail": "missing: /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fast_track_audio_cache/manifest.json",
+      "status": "SKIP",
+      "detail": "disabled by FAST_TRACK_AUDIO_CACHE_ENABLED=0",
       "required": false
     },
     {
@@ -117,20 +117,20 @@
     },
     {
       "name": "Style-Bert-VITS2 repo",
-      "status": "FAIL",
-      "detail": "missing: /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2",
+      "status": "OK",
+      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2",
       "required": false
     },
     {
       "name": "Style-Bert-VITS2 runtime",
-      "status": "FAIL",
-      "detail": "missing: /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/.venv/bin/python",
+      "status": "OK",
+      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/.venv/bin/python",
       "required": false
     },
     {
       "name": "Style-Bert-VITS2 model assets",
-      "status": "FAIL",
-      "detail": "missing: /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets",
+      "status": "OK",
+      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets",
       "required": false
     },
     {

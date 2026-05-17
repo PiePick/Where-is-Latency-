@@ -63,13 +63,17 @@ Important values:
 - `FAST_TRACK_TTS_MODE="stylebert_vits2"`
 - `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"`
 - `FAST_TRACK_AUDIO_CACHE_ENABLED="0"` by default; FastTrack uses realtime lightweight TTS, not prebuilt audio.
+- `FAST_TRACK_INLINE_CUES_ENABLED="0"`; StyleBERT FastTrack uses API style parameters, not Fish Speech bracket cue bundles.
+- `STYLEBERT_VITS2_STYLE_POSITIVE/NEGATIVE/AMBIGUOUS/NEUTRAL` map FastTrack emotions to StyleBERT style names for the currently installed model.
 - `FISH_SPEECH_REFERENCE_ID="credo_voice_sample"`
 - `FISH_SPEECH_GLOBAL_STYLE_TAG=""`
 - `OPEN_LLM_VTUBER_SLOW_TTS_MODE="credo_fish_speech"`
+- Strong CREDO emotion motions should be attached only to prebuilt nonverbal latency-cover audio; normal speech should stay on Idle/Talk/lip-sync.
 
 Do not put bracketed style tags such as `[chuckle]`, `[sigh]`, or `[pause]`
-inside spoken text. Nonverbal behavior must be controlled by the audio and
-motion layers.
+inside spoken text. For the current StyleBERT FastTrack path, emotion is passed
+through StyleBERT style parameters. Nonverbal behavior must be controlled by the
+audio and motion layers.
 
 ## Startup Order
 

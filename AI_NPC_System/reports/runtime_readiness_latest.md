@@ -2,7 +2,7 @@
 
 - readiness: PARTIAL
 - required_failed: 0
-- optional_failed: 8
+- optional_failed: 4
 - warnings: 0
 
 ## Checks
@@ -14,7 +14,7 @@
 | OK | True | SetFit optimized intent model | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/models/setfit_swda_intent_minilm_optimized/model_head.pkl |
 | OK | True | Hybrid reaction list | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/hybrid_reactions.json |
 | OK | False | Expressive audio manifest | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/expressive_audio_pool/manifest.json |
-| FAIL | False | FastTrack audio cache | missing: /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fast_track_audio_cache/manifest.json |
+| SKIP | False | FastTrack audio cache | disabled by FAST_TRACK_AUDIO_CACHE_ENABLED=0 |
 | OK | True | SWDA intent transition matrix | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/reports/intent_transition_matrix_from_swda.json; cross-speaker pairs=78439; QUESTION->INFORM=0.472856, QUESTION->ACKNOWLEDGE=0.471845 |
 | OK | True | Live2D motion groups | Ambiguous, Idle, Negative, Neutral, Positive, Talk |
 | OK | True | python import: spacy | importable |
@@ -26,9 +26,9 @@
 | FAIL | False | Local LLM endpoint | unreachable: http://127.0.0.1:8001/v1/models (<urlopen error [Errno 111] Connection refused>) |
 | FAIL | False | Fish Speech endpoint | unreachable: http://127.0.0.1:8080/v1/health (<urlopen error [Errno 111] Connection refused>) |
 | FAIL | False | Open-LLM-VTuber web server | 127.0.0.1:12393 is closed or unreachable ([Errno 111] Connection refused) |
-| FAIL | False | Style-Bert-VITS2 repo | missing: /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2 |
-| FAIL | False | Style-Bert-VITS2 runtime | missing: /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/.venv/bin/python |
-| FAIL | False | Style-Bert-VITS2 model assets | missing: /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets |
+| OK | False | Style-Bert-VITS2 repo | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2 |
+| OK | False | Style-Bert-VITS2 runtime | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/.venv/bin/python |
+| OK | False | Style-Bert-VITS2 model assets | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets |
 | FAIL | False | Style-Bert-VITS2 endpoint | unreachable: http://127.0.0.1:5000/docs (<urlopen error [Errno 111] Connection refused>) |
 
 ## Interpretation

@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-05-17T22:28:52.165477+00:00",
+  "source_log": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/latency_logs/events.jsonl",
+  "record_count": 204,
+  "tts_record_count": 114,
+  "method": "runtime_knn_with_engine_fallback",
+  "fallback_by_engine": {
+    "fish_speech": {
+      "intercept_ms": 181.567,
+      "char_ms": 314.999,
+      "tag_ms": 0.0,
+      "records": 78
+    },
+    "default": {
+      "intercept_ms": 100.0,
+      "char_ms": 10.429,
+      "tag_ms": 3000.0,
+      "records": 109
+    },
+    "stylebert_vits2": {
+      "intercept_ms": 100.0,
+      "char_ms": 5.0,
+      "tag_ms": 0.179,
+      "records": 17
+    }
+  },
+  "stage_medians_ms": {
+    "fast_track_analysis": 47.555,
+    "fast_track_tts_or_cache": 41.722,
+    "fish_speech_extreme_nonverbal_tts": 14369.349,
+    "fish_speech_length_sweep_tts": 27600.584,
+    "slow_track_llm": 744.387,
+    "slow_track_tts": 120069.893,
+    "turn_total": 121097.827
+  }
+}
