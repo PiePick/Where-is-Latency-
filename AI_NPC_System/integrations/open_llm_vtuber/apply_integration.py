@@ -14,6 +14,25 @@ import yaml
 INTEGRATION_DIR = Path(__file__).resolve().parent
 CREDO_ROOT = INTEGRATION_DIR.parents[2]
 DEFAULT_VENDOR = CREDO_ROOT / "vendor" / "open-llm-vtuber"
+AVATAR_MOTION_SRC = CREDO_ROOT / "reaction_sources" / "AvatarMotion"
+
+
+CREDO_MOTION_GROUPS = {
+    "Idle": [{"File": "motions/neutral.motion3.json"}],
+    "Talk": [
+        {"File": "motions/neutral.motion3.json"},
+        {"File": "motions/smile.motion3.json"},
+        {"File": "motions/surprised_intro.motion3.json"},
+        {"File": "motions/sad_sigh_intro.motion3.json"},
+    ],
+    "Positive": [{"File": "motions/smile.motion3.json"}],
+    "Negative": [
+        {"File": "motions/sad_sigh_intro.motion3.json"},
+        {"File": "motions/angry.motion3.json"},
+    ],
+    "Ambiguous": [{"File": "motions/surprised_intro.motion3.json"}],
+    "Neutral": [{"File": "motions/neutral.motion3.json"}],
+}
 
 
 def load_credo_config():
@@ -34,6 +53,27 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     if old not in text:
         raise RuntimeError(f"Patch marker not found: {label}")
     return text.replace(old, new, 1)
+
+
+def install_avatar_motions(model_dir: Path) -> None:
+    """Install CREDO Live2D motion files and register model3 motion groups."""
+    if not AVATAR_MOTION_SRC.exists():
+        return
+
+    motion_dst = model_dir / "motions"
+    motion_dst.mkdir(parents=True, exist_ok=True)
+    for motion_file in AVATAR_MOTION_SRC.glob("*.motion3.json"):
+        shutil.copy2(motion_file, motion_dst / motion_file.name)
+
+    model3_path = model_dir / "credo_avatar.model3.json"
+    if not model3_path.exists():
+        return
+    model3 = json.loads(model3_path.read_text(encoding="utf-8"))
+    model3.setdefault("FileReferences", {})["Motions"] = CREDO_MOTION_GROUPS
+    model3_path.write_text(
+        json.dumps(model3, ensure_ascii=False, indent="\t") + "\n",
+        encoding="utf-8",
+    )
 
 
 def patch_agent_factory(vendor: Path) -> None:
@@ -283,6 +323,8 @@ def copy_files(vendor: Path) -> None:
     if live2d_dst.exists():
         shutil.rmtree(live2d_dst)
     shutil.copytree(live2d_src, live2d_dst)
+    install_avatar_motions(live2d_src)
+    install_avatar_motions(live2d_dst)
 
     avatars_dst = vendor / "avatars"
     avatars_dst.mkdir(parents=True, exist_ok=True)

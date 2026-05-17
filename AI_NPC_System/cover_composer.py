@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from intent_transition_matrix import IntentTransitionPlanner
 from latency_predictor import LatencyPredictor
 
 
@@ -76,6 +77,7 @@ class CoverComposer:
         self.extreme_audio = self._load_json(EXTREME_AUDIO_MANIFEST, {"items": []}).get("items", [])
         self.swda_examples = self._load_swda_examples()
         self.predictor = LatencyPredictor()
+        self.intent_transition = IntentTransitionPlanner()
 
     def compose(
         self,
@@ -91,6 +93,7 @@ class CoverComposer:
             emotion = "neutral"
         keywords = [str(item) for item in fast_result.get("keywords") or []]
         category_scores = fast_result.get("category_scores") or {}
+        transition = self.intent_transition.choose(intent, emotion=emotion, rng=self.rng)
         slow_probe = expected_slow_text or self._estimate_slow_probe(user_text)
         predicted = self.predictor.predict(slow_probe, engine="fish_speech")
 
@@ -102,7 +105,7 @@ class CoverComposer:
             block = self._make_block(
                 block_id=block_id,
                 emotion=emotion,
-                intent=intent,
+                intent=transition.response_intent,
                 keywords=keywords,
                 category_scores=category_scores,
             )
@@ -112,7 +115,9 @@ class CoverComposer:
 
         return {
             "emotion": emotion,
-            "intent": intent,
+            "user_intent": transition.user_intent,
+            "response_intent": transition.response_intent,
+            "intent_transition_distribution": transition.distribution,
             "keywords": keywords,
             "category_scores": category_scores,
             "predicted_slow_tts_ms": round(predicted.predicted_ms, 3),
