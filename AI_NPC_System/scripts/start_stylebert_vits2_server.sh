@@ -16,6 +16,7 @@ PYTHON_BIN="${STYLEBERT_VITS2_PYTHON:-${STYLEBERT_DIR}/.venv/bin/python}"
 HOST="${STYLEBERT_VITS2_HOST:-127.0.0.1}"
 PORT="${STYLEBERT_VITS2_PORT:-5000}"
 MODEL_DIR="${STYLEBERT_VITS2_MODEL_DIR:-${STYLEBERT_DIR}/model_assets}"
+CUDA_DEVICES="${STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES:-1}"
 
 if [[ ! -d "${STYLEBERT_DIR}" ]]; then
   echo "Missing Style-Bert-VITS2 repo: ${STYLEBERT_DIR}" >&2
@@ -37,4 +38,6 @@ fi
 
 cd "${STYLEBERT_DIR}"
 echo "Starting Style-Bert-VITS2 server on http://${HOST}:${PORT}"
+echo "Using CUDA_VISIBLE_DEVICES=${CUDA_DEVICES}"
+export CUDA_VISIBLE_DEVICES="${CUDA_DEVICES}"
 exec "${PYTHON_BIN}" server_fastapi.py --host "${HOST}" --port "${PORT}" --dir "${MODEL_DIR}"

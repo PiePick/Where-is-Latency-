@@ -45,6 +45,7 @@ If an open-source vendor directory is missing, clone it locally:
 mkdir -p vendor
 git clone https://github.com/Open-LLM-VTuber/Open-LLM-VTuber.git vendor/open-llm-vtuber
 git clone https://github.com/fishaudio/fish-speech.git vendor/fish-speech
+git clone https://github.com/litagin02/Style-Bert-VITS2.git vendor/Style-Bert-VITS2
 ```
 
 The CREDO avatar and Fish Speech reference files are tracked in this repo. If a
@@ -71,6 +72,16 @@ Install Fish Speech runtime:
 
 ```bash
 AI_NPC_System/scripts/install_fish_speech_runtime.sh
+```
+
+Install StyleBERT-VITS2 for the dedicated FastTrack TTS server. Its CREDO-compatible voice model assets must be placed under `vendor/Style-Bert-VITS2/model_assets`:
+
+```bash
+cd vendor/Style-Bert-VITS2
+python3 -m venv .venv
+.venv/bin/python -m pip install -U pip
+.venv/bin/python -m pip install -r requirements.txt
+cd /mnt/c/Users/CGLAB/Desktop/CREDO
 ```
 
 Download the Fish Speech S2-Pro checkpoint locally. This is intentionally not
@@ -110,6 +121,37 @@ Fish Speech server. The CREDO TTS client must keep:
 ```text
 "use_memory_cache": "off"
 ```
+
+## FastTrack TTS and Cache
+
+FastTrack uses a dedicated StyleBERT-VITS2 server by default:
+
+```text
+FAST_TRACK_TTS_MODE=stylebert_vits2
+FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=0
+STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=1
+```
+
+This prevents FastTrack cover text from being spoken by Open-LLM-VTuber's default cute voice when dedicated audio is missing. If you want sample-voice cached covers, start Fish Speech with `credo_voice_sample` and build the cache:
+
+```bash
+AI_NPC_System/scripts/start_fish_speech_server.sh
+AI_NPC_System/scripts/build_fast_track_audio_cache.py --engine fish_speech --force
+```
+
+The cache manifest must report `reference_id=credo_voice_sample`.
+
+## GPU Allocation
+
+Default async server placement:
+
+```text
+LOCAL_LLM_CUDA_VISIBLE_DEVICES=0
+FISH_SPEECH_CUDA_VISIBLE_DEVICES=1
+STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=1
+```
+
+GPU0 is reserved for the heavier local LLM server. GPU1 is used for TTS servers.
 
 ## Apply Integration
 
@@ -155,6 +197,11 @@ AI_NPC_System/scripts/start_local_llm_server.sh
 ```bash
 cd /mnt/c/Users/CGLAB/Desktop/CREDO
 AI_NPC_System/scripts/start_fish_speech_server.sh
+```
+
+```bash
+cd /mnt/c/Users/CGLAB/Desktop/CREDO
+AI_NPC_System/scripts/start_stylebert_vits2_server.sh
 ```
 
 ```bash

@@ -2,9 +2,9 @@
   "summary": {
     "readiness": "PARTIAL",
     "required_failed": 0,
-    "optional_failed": 3,
+    "optional_failed": 8,
     "warnings": 0,
-    "checked_at_unix": 1779041244.777781
+    "checked_at_unix": 1779043549.680566
   },
   "checks": [
     {
@@ -41,6 +41,12 @@
       "name": "Expressive audio manifest",
       "status": "OK",
       "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/expressive_audio_pool/manifest.json",
+      "required": false
+    },
+    {
+      "name": "FastTrack audio cache",
+      "status": "FAIL",
+      "detail": "missing: /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fast_track_audio_cache/manifest.json",
       "required": false
     },
     {
@@ -110,9 +116,27 @@
       "required": false
     },
     {
-      "name": "Style-Bert-VITS2",
-      "status": "SKIP",
-      "detail": "disabled by FAST_TRACK_TTS_MODE=fish_speech",
+      "name": "Style-Bert-VITS2 repo",
+      "status": "FAIL",
+      "detail": "missing: /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2",
+      "required": false
+    },
+    {
+      "name": "Style-Bert-VITS2 runtime",
+      "status": "FAIL",
+      "detail": "missing: /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/.venv/bin/python",
+      "required": false
+    },
+    {
+      "name": "Style-Bert-VITS2 model assets",
+      "status": "FAIL",
+      "detail": "missing: /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets",
+      "required": false
+    },
+    {
+      "name": "Style-Bert-VITS2 endpoint",
+      "status": "FAIL",
+      "detail": "unreachable: http://127.0.0.1:5000/docs (<urlopen error [Errno 111] Connection refused>)",
       "required": false
     }
   ]

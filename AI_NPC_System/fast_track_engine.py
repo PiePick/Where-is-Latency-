@@ -200,7 +200,10 @@ class HybridFastTrack:
             self.config.audio_cache_path,
             enabled=self.config.audio_cache_enabled,
             seed=self.config.seed,
-            expected_reference_id=os.getenv("FISH_SPEECH_REFERENCE_ID"),
+            expected_reference_id=os.getenv(
+                "FAST_TRACK_AUDIO_CACHE_REFERENCE_ID",
+                os.getenv("FISH_SPEECH_REFERENCE_ID"),
+            ),
         )
         self.device = choose_device(torch, self.config.device)
         self.classifier = pipeline(

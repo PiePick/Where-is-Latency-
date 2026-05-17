@@ -8,7 +8,7 @@
 # these defaults.
 
 export CREDO_PROJECT_CONFIG_VERSION="credo-local-v01"
-export CREDO_EXPERIMENT_PROFILE="open-llm-vtuber-qwen7b-fish-s2pro"
+export CREDO_EXPERIMENT_PROFILE="open-llm-vtuber-qwen7b-stylebert-fast-fish-slow"
 
 # FastTrack emotion and reaction assets.
 export EMOTION_MODEL_NAME="joeddav/distilbert-base-uncased-go-emotions-student"
@@ -17,13 +17,15 @@ export REACTION_DB_FILE="hybrid_reactions.json"
 export FISH_SPEECH_CUE_FILE="fish_speech_nonverbal_cues.json"
 export FISH_SPEECH_CUES_ENABLED="1"
 export FISH_SPEECH_CUE_PROBABILITY="0.65"
-export FAST_TRACK_AUDIO_CACHE_ENABLED="0"
+export FAST_TRACK_AUDIO_CACHE_ENABLED="1"
 export FAST_TRACK_AUDIO_CACHE_FILE="fast_track_audio_cache/manifest.json"
 export FAST_TRACK_KEYWORD_SOURCE_BIAS="1"
 export FAST_TRACK_DEVICE="cpu"
 export FAST_TRACK_EVERYDAY_WEIGHT="0.60"
 export FAST_TRACK_STREAM_WEIGHT="0.40"
-export FAST_TRACK_TTS_MODE="fish_speech"
+export FAST_TRACK_TTS_MODE="stylebert_vits2"
+export FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
+export FAST_TRACK_AUDIO_CACHE_REFERENCE_ID="credo_voice_sample"
 
 # FastTrack low-latency TTS. Style-Bert-VITS2 should be trained or configured
 # with the same CREDO voice source used by Fish Speech for perceptual voice
@@ -41,6 +43,7 @@ export STYLEBERT_VITS2_STYLE_WEIGHT="5.0"
 export STYLEBERT_VITS2_LANGUAGE="EN"
 export STYLEBERT_VITS2_REFERENCE_VOICE="credo_voice_sample"
 export STYLEBERT_VITS2_AUTO_PLAY="0"
+export STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES="1"
 
 # SlowTrack local LLM server and generation settings.
 export LOCAL_LLM_HOST="127.0.0.1"
@@ -53,7 +56,7 @@ export LOCAL_LLM_API_KEY="EMPTY"
 export LOCAL_LLM_TIMEOUT="20"
 export LOCAL_LLM_TEMPERATURE="0.7"
 export LOCAL_LLM_MAX_TOKENS="180"
-export LOCAL_LLM_CUDA_VISIBLE_DEVICES="1"
+export LOCAL_LLM_CUDA_VISIBLE_DEVICES="0"
 export LOCAL_LLM_GPU_MEMORY_UTILIZATION="0.70"
 export LOCAL_LLM_MAX_MODEL_LEN="2048"
 export LOCAL_LLM_CONDA_ENV="agentscope"
@@ -105,7 +108,7 @@ export FISH_SPEECH_REPETITION_PENALTY="1.1"
 export FISH_SPEECH_MAX_NEW_TOKENS="1024"
 export FISH_SPEECH_CHUNK_LENGTH="200"
 export FISH_SPEECH_AUTO_PLAY="1"
-export FISH_SPEECH_CUDA_VISIBLE_DEVICES="0"
+export FISH_SPEECH_CUDA_VISIBLE_DEVICES="1"
 
 # Open-LLM-VTuber CREDO integration.
 export OPEN_LLM_VTUBER_CHARACTER_NAME="CREDO"

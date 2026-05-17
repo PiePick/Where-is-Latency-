@@ -81,7 +81,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             self._credo_config.FAST_TRACK_AUDIO_CACHE_PATH,
             enabled=self._credo_config.FAST_TRACK_AUDIO_CACHE_ENABLED,
             seed=self.settings.get("seed"),
-            expected_reference_id=self._credo_config.FISH_SPEECH_REFERENCE_ID,
+            expected_reference_id=self._credo_config.FAST_TRACK_AUDIO_CACHE_REFERENCE_ID,
         )
 
         logger.info(f"CREDO latency-cover agent loaded from {self.ai_npc_path}")
@@ -180,11 +180,15 @@ class CredoLatencyCoverAgent(AgentInterface):
                 transcript=fast_display_text,
                 actions=fast_actions,
             )
-        else:
+        elif self._credo_config.FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK:
             yield SentenceOutput(
                 display_text=self._display(fast_display_text),
                 tts_text=fast_tts_text,
                 actions=fast_actions,
+            )
+        else:
+            logger.warning(
+                "Skipping FastTrack Open-LLM TTS fallback because dedicated FastTrack audio is unavailable."
             )
 
         if not self.slow_enabled:
@@ -496,7 +500,11 @@ class CredoLatencyCoverAgent(AgentInterface):
             return None
 
     async def _resolve_fast_audio(self, fast_result: dict[str, Any], text: str) -> Path | None:
-        """Prefer the configured FastTrack TTS engine, then cached audio if configured."""
+        """Prefer CREDO's own cached FastTrack audio, then the configured fast TTS engine."""
+        cached_path = fast_result.get("fast_audio_path")
+        if cached_path and Path(str(cached_path)).exists():
+            return Path(str(cached_path))
+
         if self._credo_config.FAST_TRACK_TTS_MODE == "fish_speech":
             audio = await self._try_synthesize_fast_fish_audio(text)
             if audio:
@@ -507,9 +515,6 @@ class CredoLatencyCoverAgent(AgentInterface):
             if audio:
                 return audio
 
-        cached_path = fast_result.get("fast_audio_path")
-        if cached_path and Path(str(cached_path)).exists():
-            return Path(str(cached_path))
         return None
 
     async def _try_synthesize_fast_fish_audio(self, text: str) -> Path | None:

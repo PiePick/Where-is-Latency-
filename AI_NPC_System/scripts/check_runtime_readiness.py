@@ -163,6 +163,39 @@ def check_fish_reference_voice(reference_dir: Path) -> CheckResult:
     return ok("Fish Speech reference voice", f"{reference_dir} ({len(pairs)} pairs)")
 
 
+def check_fast_track_audio_cache(cfg: Any) -> CheckResult:
+    """Verify that cached FastTrack audio matches the configured reference."""
+    manifest_path = cfg.FAST_TRACK_AUDIO_CACHE_PATH
+    if not cfg.FAST_TRACK_AUDIO_CACHE_ENABLED:
+        return skip("FastTrack audio cache", "disabled by FAST_TRACK_AUDIO_CACHE_ENABLED=0", required=False)
+    if not manifest_path.exists():
+        return fail("FastTrack audio cache", f"missing: {manifest_path}", required=False)
+
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    metadata = payload.get("tts_reference", {}) if isinstance(payload, dict) else {}
+    reference_id = str(metadata.get("reference_id", "")).strip()
+    expected = str(cfg.FAST_TRACK_AUDIO_CACHE_REFERENCE_ID or "").strip()
+    if expected and reference_id != expected:
+        return fail(
+            "FastTrack audio cache",
+            f"reference mismatch: manifest={reference_id!r}, expected={expected!r}",
+            required=False,
+        )
+
+    root = manifest_path.parent
+    usable = 0
+    for item in payload.get("items", []):
+        audio_path = Path(str(item.get("audio_path", "")))
+        if not audio_path.is_absolute():
+            audio_path = root / audio_path
+        if audio_path.exists():
+            usable += 1
+
+    if usable == 0:
+        return fail("FastTrack audio cache", f"no usable audio items in {manifest_path}", required=False)
+    return ok("FastTrack audio cache", f"{manifest_path}; reference={reference_id}; usable_items={usable}", required=False)
+
+
 def collect_checks() -> list[CheckResult]:
     cfg = load_config()
     open_llm_dir = PROJECT_ROOT / "vendor" / "open-llm-vtuber"
@@ -177,6 +210,7 @@ def collect_checks() -> list[CheckResult]:
         check_path("SetFit optimized intent model", ROOT / "models" / "setfit_swda_intent_minilm_optimized" / "model_head.pkl"),
         check_path("Hybrid reaction list", ROOT / "hybrid_reactions.json"),
         check_path("Expressive audio manifest", ROOT / "expressive_audio_pool" / "manifest.json", required=False),
+        check_fast_track_audio_cache(cfg),
         check_intent_matrix(),
         check_motion_groups(),
         check_import("spacy"),

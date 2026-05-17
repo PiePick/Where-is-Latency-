@@ -11,7 +11,7 @@ fast_track.py              Stable FastTrack facade.
 fast_track_engine.py       DistilBERT emotion, spaCy keyword, reaction routing.
 slow_track.py              OpenAI-compatible local LLM caller.
 tts_client.py              Fish Speech client for SlowTrack.
-stylebert_vits2_client.py  StyleBERT-VITS2 client for FastTrack.
+stylebert_vits2_client.py  Dedicated StyleBERT-VITS2 client for FastTrack.
 tts_cues.py                Fish Speech cue selection helpers.
 memory_store.py            JSON-backed memory for SlowTrack prompts.
 integrations/open_llm_vtuber/ Open-LLM-VTuber adapter and Live2D assets.
@@ -58,7 +58,7 @@ Open:
 http://localhost:12393
 ```
 
-StyleBERT-VITS2 FastTrack TTS is configured but requires `vendor/Style-Bert-VITS2` and model assets:
+Dedicated FastTrack StyleBERT-VITS2 TTS is the default and requires `vendor/Style-Bert-VITS2` plus CREDO voice-compatible model assets:
 
 ```bash
 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
