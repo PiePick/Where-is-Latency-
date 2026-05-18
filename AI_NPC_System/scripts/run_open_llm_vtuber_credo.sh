@@ -44,6 +44,10 @@ if [[ "${allow_open_llm_fast_tts}" != "1" && "${FAST_TRACK_TTS_MODE:-stylebert_v
   echo "Open-LLM-VTuber default TTS fallback is disabled to avoid the wrong cute FastTrack voice." >&2
   echo "Start the FastTrack StyleBERT-VITS2 server first:" >&2
   echo "  AI_NPC_System/scripts/start_stylebert_vits2_server.sh" >&2
+  echo "If that script appears to stall, rerun it with visible fast-fail diagnostics:" >&2
+  echo "  STYLEBERT_VITS2_IMPORT_TIMEOUT=30 AI_NPC_System/scripts/start_stylebert_vits2_server.sh" >&2
+  echo "If it reports JP-only model_assets with STYLEBERT_VITS2_LANGUAGE=EN, install a CREDO-compatible English StyleBERT model under vendor/Style-Bert-VITS2/model_assets." >&2
+  echo "Temporary JP smoke tests can use STYLEBERT_VITS2_LANGUAGE=JP, but that is not the CREDO English FastTrack configuration." >&2
   echo "Health URL checked: ${STYLEBERT_VITS2_HEALTH_URL:-http://127.0.0.1:5000/docs}" >&2
   exit 2
 fi

@@ -29,6 +29,7 @@ AUTO_DOWNLOAD_BERT="${STYLEBERT_VITS2_AUTO_DOWNLOAD_BERT:-0}"
 AUTO_DOWNLOAD_MODELS="${STYLEBERT_VITS2_AUTO_DOWNLOAD_MODELS:-0}"
 ALLOW_LANGUAGE_MISMATCH="${STYLEBERT_VITS2_ALLOW_LANGUAGE_MISMATCH:-0}"
 FASTTRACK_LANGUAGE="${STYLEBERT_VITS2_LANGUAGE:-EN}"
+PYTHON_IMPORT_TIMEOUT="${STYLEBERT_VITS2_IMPORT_TIMEOUT:-90}"
 
 info() { printf '[StyleBERT] %s\n' "$*"; }
 warn() { printf '[StyleBERT][WARN] %s\n' "$*" >&2; }
@@ -37,6 +38,16 @@ is_on() { case "${1:-0}" in 1|true|TRUE|yes|YES|on|ON) return 0 ;; *) return 1 ;
 
 run_pip() {
   "${PYTHON_BIN}" -m pip "$@"
+}
+
+run_python_check() {
+  local seconds="$1"
+  shift
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "${seconds}" "${PYTHON_BIN}" "$@"
+  else
+    "${PYTHON_BIN}" "$@"
+  fi
 }
 
 normalize_shell_line_endings() {
@@ -146,7 +157,8 @@ patch_requirements_for_python312() {
 }
 
 install_python_deps_if_needed() {
-  if "${PYTHON_BIN}" - <<'PY' >/dev/null 2>&1
+  info "Checking StyleBERT Python imports: fastapi, torch, uvicorn, yaml (timeout ${PYTHON_IMPORT_TIMEOUT}s)."
+  if run_python_check "${PYTHON_IMPORT_TIMEOUT}" - <<'PY' >/dev/null 2>&1
 import fastapi
 import torch
 import uvicorn
@@ -170,7 +182,8 @@ PY
 }
 
 ensure_python312_compat_packages() {
-  if "${PYTHON_BIN}" - <<'PY' >/dev/null 2>&1
+  info "Checking Python 3.12 media compatibility imports: pkg_resources, av, faster_whisper (timeout ${PYTHON_IMPORT_TIMEOUT}s)."
+  if run_python_check "${PYTHON_IMPORT_TIMEOUT}" - <<'PY' >/dev/null 2>&1
 import pkg_resources
 import av
 import faster_whisper
@@ -192,6 +205,7 @@ ensure_stylebert_config() {
     cp "${STYLEBERT_DIR}/default_config.yml" "${STYLEBERT_DIR}/config.yml"
   fi
 
+  info "Ensuring StyleBERT config.yml uses port ${PORT} and CUDA device mode."
   "${PYTHON_BIN}" - "${STYLEBERT_DIR}/config.yml" "${PORT}" <<'PY'
 from pathlib import Path
 import sys
@@ -213,6 +227,7 @@ has_stylebert_model_assets() {
 }
 
 ensure_model_assets() {
+  info "Checking StyleBERT model assets under ${MODEL_DIR}."
   if has_stylebert_model_assets; then
     return 0
   fi
@@ -233,6 +248,7 @@ ensure_model_assets() {
 }
 
 ensure_fasttrack_language_compatibility() {
+  info "Checking StyleBERT model language compatibility for STYLEBERT_VITS2_LANGUAGE=${FASTTRACK_LANGUAGE}."
   if is_on "${ALLOW_LANGUAGE_MISMATCH}"; then
     warn "Skipping StyleBERT language/model compatibility check because STYLEBERT_VITS2_ALLOW_LANGUAGE_MISMATCH=1."
     return 0
@@ -269,6 +285,7 @@ PY
 }
 
 ensure_japanese_bert_weights() {
+  info "Checking StyleBERT Japanese BERT weights needed by the bundled default models."
   local bert_dir="${STYLEBERT_DIR}/bert/deberta-v2-large-japanese-char-wwm"
   local weight_file="${bert_dir}/pytorch_model.bin"
   if [[ -f "${weight_file}" || -f "${bert_dir}/model.safetensors" ]]; then
@@ -303,18 +320,30 @@ print_launch_summary() {
   info "Python: ${PYTHON_BIN}"
   info "Model dir: ${MODEL_DIR}"
   info "CUDA_VISIBLE_DEVICES=${CUDA_DEVICES}"
-  info "Auto fix=${AUTO_FIX}, auto install=${AUTO_INSTALL}, auto apt=${AUTO_APT}, auto model download=${AUTO_DOWNLOAD_MODELS}, auto BERT download=${AUTO_DOWNLOAD_BERT}, language=${FASTTRACK_LANGUAGE}"
+  info "Auto fix=${AUTO_FIX}, auto install=${AUTO_INSTALL}, auto apt=${AUTO_APT}, auto model download=${AUTO_DOWNLOAD_MODELS}, auto BERT download=${AUTO_DOWNLOAD_BERT}, language=${FASTTRACK_LANGUAGE}, import timeout=${PYTHON_IMPORT_TIMEOUT}s"
 }
 
+info "Loaded CREDO config: ${CONFIG_FILE}"
+info "StyleBERT preflight starts. If a step stalls, rerun with STYLEBERT_VITS2_IMPORT_TIMEOUT=30 for faster failure."
+info "Preflight 1/10: normalize shell line endings."
 normalize_shell_line_endings
+info "Preflight 2/10: check vendor repo."
 require_vendor_repo
+info "Preflight 3/10: check Ubuntu packages."
 check_system_prereqs
+info "Preflight 4/10: check Python venv."
 ensure_venv
+info "Preflight 5/10: patch Python 3.12 incompatible requirement pins."
 patch_requirements_for_python312
+info "Preflight 6/10: check Python package imports."
 install_python_deps_if_needed
+info "Preflight 7/10: check Python 3.12 media compatibility."
 ensure_python312_compat_packages
+info "Preflight 8/10: ensure StyleBERT config."
 ensure_stylebert_config
+info "Preflight 9/10: check model assets."
 ensure_model_assets
+info "Preflight 10/10: check model/language compatibility and BERT weights."
 ensure_fasttrack_language_compatibility
 ensure_japanese_bert_weights
 
