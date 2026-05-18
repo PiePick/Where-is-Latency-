@@ -46,7 +46,7 @@ if [[ "${allow_open_llm_fast_tts}" != "1" && "${FAST_TRACK_TTS_MODE:-stylebert_v
   echo "  AI_NPC_System/scripts/start_stylebert_vits2_server.sh" >&2
   echo "If that script appears to stall, rerun it with visible fast-fail diagnostics:" >&2
   echo "  STYLEBERT_VITS2_IMPORT_TIMEOUT=30 AI_NPC_System/scripts/start_stylebert_vits2_server.sh" >&2
-  echo "If it reports JP-only model_assets with STYLEBERT_VITS2_LANGUAGE=EN, install a CREDO-compatible English StyleBERT model under vendor/Style-Bert-VITS2/model_assets." >&2
+  echo "If it reports JP-only model_assets with STYLEBERT_VITS2_LANGUAGE=EN, install a CREDO-compatible English StyleBERT model under vendor/Style-Bert-VITS2/model_assets and set STYLEBERT_VITS2_MODEL_NAME." >&2
   echo "Temporary JP smoke tests can use STYLEBERT_VITS2_LANGUAGE=JP, but that is not the CREDO English FastTrack configuration." >&2
   echo "Health URL checked: ${STYLEBERT_VITS2_HEALTH_URL:-http://127.0.0.1:5000/docs}" >&2
   exit 2
@@ -60,5 +60,5 @@ echo "Starting Open-LLM-VTuber with CREDO latency-cover agent."
 echo "Open: http://localhost:12393"
 echo "CREDO config: ${CONFIG_FILE}"
 echo "SlowTrack LLM: ${LOCAL_LLM_MODEL} (${LOCAL_LLM_BASE_URL})"
-echo "GPU placement: Fish/StyleBERT TTS GPU${FISH_SPEECH_CUDA_VISIBLE_DEVICES:-0}/${STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES:-0}, Local LLM GPU${LOCAL_LLM_CUDA_VISIBLE_DEVICES:-1}"
+echo "GPU placement: Fish Speech GPU${FISH_SPEECH_CUDA_VISIBLE_DEVICES:-0}, StyleBERT ${STYLEBERT_VITS2_DEVICE:-cpu} mode, Local LLM GPU${LOCAL_LLM_CUDA_VISIBLE_DEVICES:-1}"
 exec "$VENV_DIR/bin/python" run_server.py

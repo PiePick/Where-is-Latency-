@@ -232,6 +232,6 @@ Latency records are appended to `AI_NPC_System/latency_logs/events.jsonl`.
 
 ## Current Limitation
 
-StyleBERT-VITS2 is the realtime lightweight FastTrack TTS path and must be installed separately under `vendor/Style-Bert-VITS2` with CREDO voice-compatible model assets. FastTrack does not require prebuilt audio cache files and no longer falls back to Open-LLM-VTuber default TTS unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set.
+StyleBERT-VITS2 is the realtime lightweight FastTrack TTS path and must be installed separately under `vendor/Style-Bert-VITS2` with CREDO voice-compatible English model assets. FastTrack does not require prebuilt audio cache files and no longer falls back to Open-LLM-VTuber default TTS unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set.
 
 Project-owned voice samples, Fish Speech references, and the CREDO Live2D avatar/motions are tracked through explicit `.gitignore` exceptions. Large runtimes, virtual environments, model checkpoints, generated audio caches, and temporary experiment logs remain local-only.
