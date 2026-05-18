@@ -8,7 +8,7 @@
 # these defaults.
 
 export CREDO_PROJECT_CONFIG_VERSION="credo-local-v01"
-export CREDO_EXPERIMENT_PROFILE="open-llm-vtuber-qwen7b-stylebert-fast-fish-slow"
+export CREDO_EXPERIMENT_PROFILE="open-llm-vtuber-qwen7b-piper-fast-fish-slow"
 
 # FastTrack emotion and reaction assets.
 export EMOTION_MODEL_NAME="joeddav/distilbert-base-uncased-go-emotions-student"
@@ -24,14 +24,33 @@ export FAST_TRACK_KEYWORD_SOURCE_BIAS="1"
 export FAST_TRACK_DEVICE="cpu"
 export FAST_TRACK_EVERYDAY_WEIGHT="0.60"
 export FAST_TRACK_STREAM_WEIGHT="0.40"
-export FAST_TRACK_TTS_MODE="stylebert_vits2"
+export FAST_TRACK_TTS_MODE="piper_tts"
 export FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
 export FAST_TRACK_AUDIO_CACHE_REFERENCE_ID="credo_voice_sample"
 
-# FastTrack low-latency TTS. Style-Bert-VITS2 should be trained or configured
-# with the same CREDO voice source used by Fish Speech for perceptual voice
-# consistency. The default endpoint follows litagin02/Style-Bert-VITS2
-# server_fastapi.py, which exposes /voice.
+# FastTrack low-latency TTS. Piper is the default English realtime path.
+# It runs as a local CLI, not as a resident server, so Open-LLM invokes it per
+# short FastTrack utterance and fails fast when the binary or voice files are missing.
+export PIPER_TTS_DIR="vendor/piper-tts"
+export PIPER_TTS_VOICE="en_US-lessac-medium"
+export PIPER_TTS_HOST="127.0.0.1"
+export PIPER_TTS_PORT="5001"
+export PIPER_TTS_BASE_URL="http://127.0.0.1:5001"
+export PIPER_TTS_VOICE_URL="http://127.0.0.1:5001/voice"
+export PIPER_TTS_HEALTH_URL="http://127.0.0.1:5001/health"
+export PIPER_TTS_OUTPUT_DIR="tts_outputs/piper_fast"
+export PIPER_TTS_TIMEOUT="8"
+export PIPER_TTS_USE_CUDA="0"
+export PIPER_TTS_LENGTH_SCALE="1.0"
+export PIPER_TTS_NOISE_SCALE="0.667"
+export PIPER_TTS_NOISE_W="0.8"
+export PIPER_TTS_LENGTH_SCALE_POSITIVE="0.92"
+export PIPER_TTS_LENGTH_SCALE_NEGATIVE="1.08"
+export PIPER_TTS_LENGTH_SCALE_AMBIGUOUS="0.98"
+export PIPER_TTS_LENGTH_SCALE_NEUTRAL="1.0"
+
+# Legacy FastTrack TTS. Style-Bert-VITS2 is no longer the CREDO default because
+# the currently available local assets are JP-only. Keep these only for later experiments.
 export STYLEBERT_VITS2_BASE_URL="http://127.0.0.1:5000"
 export STYLEBERT_VITS2_VOICE_URL="http://127.0.0.1:5000/voice"
 export STYLEBERT_VITS2_HEALTH_URL="http://127.0.0.1:5000/docs"

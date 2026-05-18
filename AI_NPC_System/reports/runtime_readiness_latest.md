@@ -2,7 +2,7 @@
 
 - readiness: PARTIAL
 - required_failed: 0
-- optional_failed: 3
+- optional_failed: 1
 - warnings: 0
 
 ## Checks
@@ -23,15 +23,14 @@
 | OK | False | python import: faiss | importable |
 | OK | False | python import: websockets | importable |
 | OK | False | YouTube bridge dependency | websockets 16.0 |
-| OK | False | Local LLM endpoint | http://127.0.0.1:8001/v1/models responded HTTP 200 in 16.0 ms |
-| OK | False | Fish Speech endpoint | http://127.0.0.1:8080/v1/health responded HTTP 200 in 1.1 ms |
+| OK | False | Local LLM endpoint | http://127.0.0.1:8001/v1/models responded HTTP 200 in 15.5 ms |
+| OK | False | Fish Speech endpoint | http://127.0.0.1:8080/v1/health responded HTTP 200 in 1.2 ms |
 | FAIL | False | Open-LLM-VTuber web server | 127.0.0.1:12393 is closed or unreachable ([Errno 111] Connection refused) |
-| OK | False | Style-Bert-VITS2 repo | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2 |
-| OK | False | Style-Bert-VITS2 runtime | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/.venv/bin/python |
-| OK | False | Style-Bert-VITS2 model assets | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets |
-| FAIL | False | Style-Bert-VITS2 explicit English model | STYLEBERT_VITS2_MODEL_NAME is empty; set it to the English model directory under vendor/Style-Bert-VITS2/model_assets |
-| OK | False | Style-Bert-VITS2 device | cpu (system RAM mode; no VRAM reserved for FastTrack TTS) |
-| FAIL | False | Style-Bert-VITS2 endpoint | unreachable: http://127.0.0.1:5000/docs (<urlopen error [Errno 111] Connection refused>) |
+| OK | True | Piper FastTrack executable | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/piper-tts/.venv/bin/piper |
+| OK | True | Piper FastTrack English voice model | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/piper-tts/voices/en_US-lessac-medium.onnx |
+| OK | True | Piper FastTrack voice config | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/piper-tts/voices/en_US-lessac-medium.onnx.json |
+| OK | False | Piper FastTrack endpoint | http://127.0.0.1:5001/health responded HTTP 200 in 0.6 ms |
+| SKIP | False | Style-Bert-VITS2 | legacy backend disabled by FAST_TRACK_TTS_MODE=piper_tts |
 
 ## Interpretation
 - READY: the full configured demo stack is reachable.

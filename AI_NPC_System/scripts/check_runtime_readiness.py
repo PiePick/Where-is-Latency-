@@ -148,6 +148,19 @@ def check_youtube_bridge_dependency() -> CheckResult:
 
 
 
+def check_piper_tts(cfg: object) -> list[CheckResult]:
+    """Verify the Piper FastTrack CLI and English voice files."""
+    binary = Path(getattr(cfg, "PIPER_TTS_BIN", PROJECT_ROOT / "vendor" / "piper-tts" / ".venv" / "bin" / "piper"))
+    model = Path(getattr(cfg, "PIPER_TTS_MODEL_PATH", PROJECT_ROOT / "vendor" / "piper-tts" / "voices" / "en_US-lessac-medium.onnx"))
+    voice_config = Path(getattr(cfg, "PIPER_TTS_CONFIG_PATH", Path(f"{model}.json")))
+    return [
+        check_path("Piper FastTrack executable", binary, executable=True),
+        check_path("Piper FastTrack English voice model", model),
+        check_path("Piper FastTrack voice config", voice_config),
+        check_http("Piper FastTrack endpoint", getattr(cfg, "PIPER_TTS_HEALTH_URL", "http://127.0.0.1:5001/health"), required=False),
+    ]
+
+
 def check_stylebert_model_name(cfg: object, model_assets_dir: Path) -> CheckResult:
     model_name = str(getattr(cfg, "STYLEBERT_VITS2_MODEL_NAME", "") or "").strip()
     language = str(getattr(cfg, "STYLEBERT_VITS2_LANGUAGE", "EN") or "EN").upper()
@@ -259,7 +272,10 @@ def collect_checks() -> list[CheckResult]:
         check_http("Fish Speech endpoint", cfg.FISH_SPEECH_HEALTH_URL, required=False),
         check_tcp("Open-LLM-VTuber web server", "127.0.0.1", 12393, required=False),
     ]
-    if cfg.FAST_TRACK_TTS_MODE == "stylebert_vits2":
+    if cfg.FAST_TRACK_TTS_MODE == "piper_tts":
+        checks.extend(check_piper_tts(cfg))
+        checks.append(skip("Style-Bert-VITS2", "legacy backend disabled by FAST_TRACK_TTS_MODE=piper_tts"))
+    elif cfg.FAST_TRACK_TTS_MODE == "stylebert_vits2":
         checks.extend(
             [
                 check_path("Style-Bert-VITS2 repo", stylebert_dir, required=False),
@@ -276,12 +292,7 @@ def collect_checks() -> list[CheckResult]:
             ]
         )
     else:
-        checks.append(
-            skip(
-                "Style-Bert-VITS2",
-                f"disabled by FAST_TRACK_TTS_MODE={cfg.FAST_TRACK_TTS_MODE}",
-            )
-        )
+        checks.append(skip("FastTrack realtime TTS", f"disabled by FAST_TRACK_TTS_MODE={cfg.FAST_TRACK_TTS_MODE}"))
     return checks
 
 

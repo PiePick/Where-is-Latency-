@@ -65,6 +65,15 @@ def _env_text(name: str, default: str) -> str:
     return os.getenv(name, default).replace("\\n", "\n")
 
 
+def _project_path(name: str, default: str) -> Path:
+    """Resolve project-relative paths from environment variables."""
+    raw = os.getenv(name, default)
+    path = Path(raw).expanduser()
+    if path.is_absolute():
+        return path
+    return ROOT_DIR.parent / path
+
+
 CREDO_OUTPUT_LANGUAGE = os.getenv("CREDO_OUTPUT_LANGUAGE", "English")
 CREDO_ENGLISH_ONLY_OUTPUT = _env_bool("CREDO_ENGLISH_ONLY_OUTPUT", True)
 CREDO_LANGUAGE_POLICY = _env_text(
@@ -91,7 +100,7 @@ EMOTION_MODEL_NAME = os.getenv(
 SPACY_MODEL_NAME = os.getenv("SPACY_MODEL_NAME", "en_core_web_sm")
 REACTION_DB_FILE = os.getenv("REACTION_DB_FILE", "hybrid_reactions.json")
 REACTION_DB_PATH = ROOT_DIR / REACTION_DB_FILE
-FAST_TRACK_TTS_MODE = os.getenv("FAST_TRACK_TTS_MODE", "stylebert_vits2")
+FAST_TRACK_TTS_MODE = os.getenv("FAST_TRACK_TTS_MODE", "piper_tts")
 FISH_SPEECH_CUE_FILE = os.getenv("FISH_SPEECH_CUE_FILE", "fish_speech_nonverbal_cues.json")
 FISH_SPEECH_CUE_PATH = ROOT_DIR / FISH_SPEECH_CUE_FILE
 FAST_TRACK_INLINE_CUES_ENABLED = _env_bool(
@@ -117,7 +126,38 @@ FAST_TRACK_AUDIO_CACHE_REFERENCE_ID = os.getenv(
     os.getenv("FISH_SPEECH_REFERENCE_ID", "credo_voice_sample"),
 )
 
-# FastTrack TTS: Style-Bert-VITS2 is used for low-latency short reactions.
+# FastTrack TTS: Piper is the default realtime lightweight English path.
+PIPER_TTS_DIR = _project_path("PIPER_TTS_DIR", "vendor/piper-tts")
+PIPER_TTS_BIN = _project_path("PIPER_TTS_BIN", str(PIPER_TTS_DIR / ".venv" / "bin" / "piper"))
+PIPER_TTS_VOICE = os.getenv("PIPER_TTS_VOICE", "en_US-lessac-medium")
+PIPER_TTS_HOST = os.getenv("PIPER_TTS_HOST", "127.0.0.1")
+PIPER_TTS_PORT = _env_int("PIPER_TTS_PORT", 5001)
+PIPER_TTS_BASE_URL = os.getenv("PIPER_TTS_BASE_URL", f"http://{PIPER_TTS_HOST}:{PIPER_TTS_PORT}")
+PIPER_TTS_VOICE_URL = os.getenv("PIPER_TTS_VOICE_URL", f"{PIPER_TTS_BASE_URL}/voice")
+PIPER_TTS_HEALTH_URL = os.getenv("PIPER_TTS_HEALTH_URL", f"{PIPER_TTS_BASE_URL}/health")
+PIPER_TTS_MODEL_PATH = _project_path(
+    "PIPER_TTS_MODEL_PATH", str(PIPER_TTS_DIR / "voices" / f"{PIPER_TTS_VOICE}.onnx")
+)
+PIPER_TTS_CONFIG_PATH = _project_path(
+    "PIPER_TTS_CONFIG_PATH", f"{PIPER_TTS_MODEL_PATH}.json"
+)
+PIPER_TTS_OUTPUT_DIR = ROOT_DIR / os.getenv("PIPER_TTS_OUTPUT_DIR", "tts_outputs/piper_fast")
+PIPER_TTS_TIMEOUT = _env_float("PIPER_TTS_TIMEOUT", 8.0)
+PIPER_TTS_USE_CUDA = _env_bool("PIPER_TTS_USE_CUDA", False)
+PIPER_TTS_SPEAKER_ID = os.getenv("PIPER_TTS_SPEAKER_ID", "")
+PIPER_TTS_LENGTH_SCALE = _env_float("PIPER_TTS_LENGTH_SCALE", 1.0)
+PIPER_TTS_NOISE_SCALE = _env_float("PIPER_TTS_NOISE_SCALE", 0.667)
+PIPER_TTS_NOISE_W = _env_float("PIPER_TTS_NOISE_W", 0.8)
+PIPER_TTS_LENGTH_SCALE_POSITIVE = _env_float("PIPER_TTS_LENGTH_SCALE_POSITIVE", 0.92)
+PIPER_TTS_LENGTH_SCALE_NEGATIVE = _env_float("PIPER_TTS_LENGTH_SCALE_NEGATIVE", 1.08)
+PIPER_TTS_LENGTH_SCALE_AMBIGUOUS = _env_float("PIPER_TTS_LENGTH_SCALE_AMBIGUOUS", 0.98)
+PIPER_TTS_LENGTH_SCALE_NEUTRAL = _env_float("PIPER_TTS_LENGTH_SCALE_NEUTRAL", 1.0)
+PIPER_TTS_NOISE_SCALE_POSITIVE = _env_float("PIPER_TTS_NOISE_SCALE_POSITIVE", PIPER_TTS_NOISE_SCALE)
+PIPER_TTS_NOISE_SCALE_NEGATIVE = _env_float("PIPER_TTS_NOISE_SCALE_NEGATIVE", PIPER_TTS_NOISE_SCALE)
+PIPER_TTS_NOISE_SCALE_AMBIGUOUS = _env_float("PIPER_TTS_NOISE_SCALE_AMBIGUOUS", PIPER_TTS_NOISE_SCALE)
+PIPER_TTS_NOISE_SCALE_NEUTRAL = _env_float("PIPER_TTS_NOISE_SCALE_NEUTRAL", PIPER_TTS_NOISE_SCALE)
+
+# Legacy FastTrack TTS: kept for experiments, not the CREDO default.
 STYLEBERT_VITS2_BASE_URL = os.getenv("STYLEBERT_VITS2_BASE_URL", "http://127.0.0.1:5000")
 STYLEBERT_VITS2_VOICE_URL = os.getenv("STYLEBERT_VITS2_VOICE_URL", f"{STYLEBERT_VITS2_BASE_URL}/voice")
 STYLEBERT_VITS2_HEALTH_URL = os.getenv("STYLEBERT_VITS2_HEALTH_URL", f"{STYLEBERT_VITS2_BASE_URL}/docs")

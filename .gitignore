@@ -30,6 +30,7 @@ vendor/*/.venv/
 vendor/*/logs/
 vendor/open-llm-vtuber/conf.yaml.backup
 vendor/Style-Bert-VITS2/
+vendor/piper-tts/
 vendor/fish-speech/*
 !vendor/fish-speech/
 !vendor/fish-speech/references/

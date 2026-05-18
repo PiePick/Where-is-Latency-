@@ -60,13 +60,13 @@ Main config file:
 - `AI_NPC_System/project_config.sh`
 
 Important values:
-- `FAST_TRACK_TTS_MODE="stylebert_vits2"`
+- `FAST_TRACK_TTS_MODE="piper_tts"`
 - `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"`
 - `FAST_TRACK_AUDIO_CACHE_ENABLED="0"` by default; FastTrack uses realtime lightweight TTS, not prebuilt audio.
-- `FAST_TRACK_INLINE_CUES_ENABLED="0"`; StyleBERT FastTrack uses API style parameters, not Fish Speech bracket cue bundles.
-- `STYLEBERT_VITS2_MODEL_NAME` must name the CREDO-compatible English StyleBERT model directory; do not rely on JP-only default model_id=0.
-- `STYLEBERT_VITS2_DEVICE="cpu"` is the default RAM mode for FastTrack TTS. Use `cuda` only when GPU0 has enough free VRAM.
-- `STYLEBERT_VITS2_STYLE_POSITIVE/NEGATIVE/AMBIGUOUS/NEUTRAL` map FastTrack emotions to StyleBERT style names for the currently installed model.
+- `FAST_TRACK_INLINE_CUES_ENABLED="0"`; Piper FastTrack uses request parameters, not Fish Speech bracket cue bundles.
+- `PIPER_TTS_BASE_URL="http://127.0.0.1:5001"`; the resident Piper server must be running for sub-second FastTrack TTS.
+- `PIPER_TTS_VOICE="en_US-lessac-medium"`; replace only with another English Piper voice that benchmarks under the target.
+- `PIPER_TTS_LENGTH_SCALE_*` and `PIPER_TTS_NOISE_SCALE_*` map FastTrack emotions to Piper voice-control parameters.
 - `FISH_SPEECH_REFERENCE_ID="credo_voice_sample"`
 - `FISH_SPEECH_GLOBAL_STYLE_TAG=""`
 - `OPEN_LLM_VTUBER_SLOW_TTS_MODE="credo_fish_speech"`
@@ -74,8 +74,8 @@ Important values:
 - Latency-cover planning must use the artifact-backed kNN predictor in `AI_NPC_System/latency_predictor.py`; rebuild `AI_NPC_System/reports/latency_prediction_model.json` from `latency_logs/events.jsonl` after new benchmark/runtime measurements.
 
 Do not put bracketed style tags such as `[chuckle]`, `[sigh]`, or `[pause]`
-inside spoken text. For the current StyleBERT FastTrack path, emotion is passed
-through StyleBERT style parameters. Nonverbal behavior must be controlled by the
+inside spoken text. For the current Piper FastTrack path, emotion is passed
+through Piper request parameters such as length/noise scale. Nonverbal behavior must be controlled by the
 audio and motion layers.
 
 ## Startup Order
@@ -94,11 +94,12 @@ cd /mnt/c/Users/CGLAB/Desktop/CREDO
 AI_NPC_System/scripts/start_fish_speech_server.sh
 ```
 
-Start the dedicated FastTrack StyleBERT-VITS2 TTS server on GPU0:
+Prepare/start the dedicated FastTrack Piper TTS server:
 
 ```bash
 cd /mnt/c/Users/CGLAB/Desktop/CREDO
-AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+PIPER_TTS_AUTO_INSTALL=1 PIPER_TTS_AUTO_DOWNLOAD_VOICE=1 AI_NPC_System/scripts/setup_piper_fasttrack_tts.sh
+AI_NPC_System/scripts/start_piper_fasttrack_tts_server.sh
 ```
 
 Start Open-LLM-VTuber with CREDO:

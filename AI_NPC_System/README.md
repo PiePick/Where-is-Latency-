@@ -11,7 +11,8 @@ fast_track.py              Stable FastTrack facade.
 fast_track_engine.py       DistilBERT emotion, spaCy keyword, reaction routing.
 slow_track.py              OpenAI-compatible local LLM caller.
 tts_client.py              Fish Speech client for SlowTrack.
-stylebert_vits2_client.py  Dedicated StyleBERT-VITS2 client for FastTrack.
+piper_tts_client.py         Dedicated Piper client for FastTrack.
+stylebert_vits2_client.py  Legacy StyleBERT-VITS2 client for experiments.
 tts_cues.py                Fish Speech cue selection helpers.
 memory_store.py            JSON-backed memory for SlowTrack prompts.
 integrations/open_llm_vtuber/ Open-LLM-VTuber adapter and Live2D assets.
@@ -49,6 +50,7 @@ From WSL:
 cd /mnt/c/Users/CGLAB/Desktop/CREDO
 AI_NPC_System/scripts/start_local_llm_server.sh
 AI_NPC_System/scripts/start_fish_speech_server.sh
+AI_NPC_System/scripts/start_piper_fasttrack_tts_server.sh
 AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
 ```
 
@@ -58,10 +60,11 @@ Open:
 http://localhost:12393
 ```
 
-Dedicated FastTrack StyleBERT-VITS2 TTS is the default and requires `vendor/Style-Bert-VITS2` plus CREDO voice-compatible model assets:
+Dedicated FastTrack Piper TTS is the default and requires `vendor/piper-tts` plus an English ONNX voice. Prepare it once, then keep the resident server running for sub-second synthesis:
 
 ```bash
-AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+PIPER_TTS_AUTO_INSTALL=1 PIPER_TTS_AUTO_DOWNLOAD_VOICE=1 AI_NPC_System/scripts/setup_piper_fasttrack_tts.sh
+AI_NPC_System/scripts/start_piper_fasttrack_tts_server.sh
 ```
 
 ## Evaluate

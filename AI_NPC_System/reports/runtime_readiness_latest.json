@@ -2,9 +2,9 @@
   "summary": {
     "readiness": "PARTIAL",
     "required_failed": 0,
-    "optional_failed": 3,
+    "optional_failed": 1,
     "warnings": 0,
-    "checked_at_unix": 1779087714.5361402
+    "checked_at_unix": 1779092929.1782544
   },
   "checks": [
     {
@@ -100,13 +100,13 @@
     {
       "name": "Local LLM endpoint",
       "status": "OK",
-      "detail": "http://127.0.0.1:8001/v1/models responded HTTP 200 in 16.0 ms",
+      "detail": "http://127.0.0.1:8001/v1/models responded HTTP 200 in 15.5 ms",
       "required": false
     },
     {
       "name": "Fish Speech endpoint",
       "status": "OK",
-      "detail": "http://127.0.0.1:8080/v1/health responded HTTP 200 in 1.1 ms",
+      "detail": "http://127.0.0.1:8080/v1/health responded HTTP 200 in 1.2 ms",
       "required": false
     },
     {
@@ -116,39 +116,33 @@
       "required": false
     },
     {
-      "name": "Style-Bert-VITS2 repo",
+      "name": "Piper FastTrack executable",
       "status": "OK",
-      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2",
-      "required": false
+      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/piper-tts/.venv/bin/piper",
+      "required": true
     },
     {
-      "name": "Style-Bert-VITS2 runtime",
+      "name": "Piper FastTrack English voice model",
       "status": "OK",
-      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/.venv/bin/python",
-      "required": false
+      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/piper-tts/voices/en_US-lessac-medium.onnx",
+      "required": true
     },
     {
-      "name": "Style-Bert-VITS2 model assets",
+      "name": "Piper FastTrack voice config",
       "status": "OK",
-      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets",
-      "required": false
+      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/piper-tts/voices/en_US-lessac-medium.onnx.json",
+      "required": true
     },
     {
-      "name": "Style-Bert-VITS2 explicit English model",
-      "status": "FAIL",
-      "detail": "STYLEBERT_VITS2_MODEL_NAME is empty; set it to the English model directory under vendor/Style-Bert-VITS2/model_assets",
-      "required": false
-    },
-    {
-      "name": "Style-Bert-VITS2 device",
+      "name": "Piper FastTrack endpoint",
       "status": "OK",
-      "detail": "cpu (system RAM mode; no VRAM reserved for FastTrack TTS)",
+      "detail": "http://127.0.0.1:5001/health responded HTTP 200 in 0.6 ms",
       "required": false
     },
     {
-      "name": "Style-Bert-VITS2 endpoint",
-      "status": "FAIL",
-      "detail": "unreachable: http://127.0.0.1:5000/docs (<urlopen error [Errno 111] Connection refused>)",
+      "name": "Style-Bert-VITS2",
+      "status": "SKIP",
+      "detail": "legacy backend disabled by FAST_TRACK_TTS_MODE=piper_tts",
       "required": false
     }
   ]

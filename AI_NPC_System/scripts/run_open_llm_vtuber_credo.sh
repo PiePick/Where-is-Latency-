@@ -32,23 +32,43 @@ case "${FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK:-0}" in
   1|true|TRUE|yes|YES|on|ON) allow_open_llm_fast_tts=1 ;;
 esac
 
+resolve_path() {
+  case "$1" in
+    /*) printf '%s\n' "$1" ;;
+    *) printf '%s/%s\n' "$ROOT_DIR" "$1" ;;
+  esac
+}
+
+fast_tts_mode="${FAST_TRACK_TTS_MODE:-piper_tts}"
+if [[ "${allow_open_llm_fast_tts}" != "1" && "${fast_tts_mode}" == "piper_tts" ]]; then
+  piper_health="${PIPER_TTS_HEALTH_URL:-http://127.0.0.1:5001/health}"
+  if ! "$VENV_DIR/bin/python" -c 'import sys, urllib.request; urllib.request.urlopen(sys.argv[1], timeout=1.5).close()' "${piper_health}" >/dev/null 2>&1; then
+    echo "FastTrack realtime lightweight TTS is not ready." >&2
+    echo "Open-LLM-VTuber default TTS fallback is disabled to avoid the wrong cute FastTrack voice." >&2
+    echo "CREDO now uses a resident Piper FastTrack TTS server to avoid CLI cold-start latency." >&2
+    echo "Prepare Piper once if needed:" >&2
+    echo "  PIPER_TTS_AUTO_INSTALL=1 PIPER_TTS_AUTO_DOWNLOAD_VOICE=1 AI_NPC_System/scripts/setup_piper_fasttrack_tts.sh" >&2
+    echo "Then start the FastTrack TTS server:" >&2
+    echo "  AI_NPC_System/scripts/start_piper_fasttrack_tts_server.sh" >&2
+    echo "Health URL checked: ${piper_health}" >&2
+    exit 2
+  fi
+fi
+
 stylebert_ready=0
-if [[ "${FAST_TRACK_TTS_MODE:-stylebert_vits2}" == "stylebert_vits2" ]]; then
+if [[ "${fast_tts_mode}" == "stylebert_vits2" ]]; then
   if "$VENV_DIR/bin/python" -c 'import sys, urllib.request; urllib.request.urlopen(sys.argv[1], timeout=1.5).close()'     "${STYLEBERT_VITS2_HEALTH_URL:-http://127.0.0.1:5000/docs}" >/dev/null 2>&1; then
     stylebert_ready=1
   fi
 fi
 
-if [[ "${allow_open_llm_fast_tts}" != "1" && "${FAST_TRACK_TTS_MODE:-stylebert_vits2}" == "stylebert_vits2" && "${stylebert_ready}" != "1" ]]; then
+if [[ "${allow_open_llm_fast_tts}" != "1" && "${fast_tts_mode}" == "stylebert_vits2" && "${stylebert_ready}" != "1" ]]; then
   echo "FastTrack realtime lightweight TTS is not ready." >&2
   echo "Open-LLM-VTuber default TTS fallback is disabled to avoid the wrong cute FastTrack voice." >&2
-  echo "Start the FastTrack StyleBERT-VITS2 server first:" >&2
-  echo "  AI_NPC_System/scripts/start_stylebert_vits2_server.sh" >&2
-  echo "If that script appears to stall, rerun it with visible fast-fail diagnostics:" >&2
-  echo "  STYLEBERT_VITS2_IMPORT_TIMEOUT=30 AI_NPC_System/scripts/start_stylebert_vits2_server.sh" >&2
-  echo "If it reports JP-only model_assets with STYLEBERT_VITS2_LANGUAGE=EN, install a CREDO-compatible English StyleBERT model under vendor/Style-Bert-VITS2/model_assets and set STYLEBERT_VITS2_MODEL_NAME." >&2
-  echo "Temporary JP smoke tests can use STYLEBERT_VITS2_LANGUAGE=JP, but that is not the CREDO English FastTrack configuration." >&2
-  echo "Health URL checked: ${STYLEBERT_VITS2_HEALTH_URL:-http://127.0.0.1:5000/docs}" >&2
+  echo "StyleBERT-VITS2 is legacy for CREDO; use Piper unless you intentionally provide an English StyleBERT model." >&2
+  echo "Piper setup:" >&2
+  echo "  PIPER_TTS_AUTO_INSTALL=1 PIPER_TTS_AUTO_DOWNLOAD_VOICE=1 AI_NPC_System/scripts/setup_piper_fasttrack_tts.sh" >&2
+  echo "StyleBERT health URL checked: ${STYLEBERT_VITS2_HEALTH_URL:-http://127.0.0.1:5000/docs}" >&2
   exit 2
 fi
 
@@ -60,5 +80,5 @@ echo "Starting Open-LLM-VTuber with CREDO latency-cover agent."
 echo "Open: http://localhost:12393"
 echo "CREDO config: ${CONFIG_FILE}"
 echo "SlowTrack LLM: ${LOCAL_LLM_MODEL} (${LOCAL_LLM_BASE_URL})"
-echo "GPU placement: Fish Speech GPU${FISH_SPEECH_CUDA_VISIBLE_DEVICES:-0}, StyleBERT ${STYLEBERT_VITS2_DEVICE:-cpu} mode, Local LLM GPU${LOCAL_LLM_CUDA_VISIBLE_DEVICES:-1}"
+echo "Compute placement: Fish Speech GPU${FISH_SPEECH_CUDA_VISIBLE_DEVICES:-0}, FastTrack TTS ${FAST_TRACK_TTS_MODE:-piper_tts}, Local LLM GPU${LOCAL_LLM_CUDA_VISIBLE_DEVICES:-1}"
 exec "$VENV_DIR/bin/python" run_server.py

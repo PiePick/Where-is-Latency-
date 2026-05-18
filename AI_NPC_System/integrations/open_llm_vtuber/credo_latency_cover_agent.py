@@ -76,6 +76,9 @@ class CredoLatencyCoverAgent(AgentInterface):
         self.fast_stylebert_tts = None
         if self._credo_config.FAST_TRACK_TTS_MODE == "stylebert_vits2":
             self.fast_stylebert_tts = self._stylebert_vits2_client.StyleBertVITS2Client()
+        self.fast_piper_tts = None
+        if self._credo_config.FAST_TRACK_TTS_MODE == "piper_tts":
+            self.fast_piper_tts = self._piper_tts_client.PiperTTSClient()
 
         self.proactive_audio_cache = self._fast_track_audio_cache.FastTrackAudioCache(
             self._credo_config.FAST_TRACK_AUDIO_CACHE_PATH,
@@ -109,6 +112,7 @@ class CredoLatencyCoverAgent(AgentInterface):
         import slow_track
         import tts_client
         import stylebert_vits2_client
+        import piper_tts_client
         import fast_track_audio_cache
         import cover_composer
         import latency_observer
@@ -119,6 +123,7 @@ class CredoLatencyCoverAgent(AgentInterface):
         self._slow_track = slow_track
         self._tts_client = tts_client
         self._stylebert_vits2_client = stylebert_vits2_client
+        self._piper_tts_client = piper_tts_client
         self._fast_track_audio_cache = fast_track_audio_cache
         self._cover_composer = cover_composer
         self._latency_observer = latency_observer
@@ -548,6 +553,11 @@ class CredoLatencyCoverAgent(AgentInterface):
 
         if self._credo_config.FAST_TRACK_TTS_MODE == "stylebert_vits2":
             audio = await asyncio.to_thread(self._synthesize_fast_audio_sync, text, emotion=emotion)
+            if audio:
+                return audio
+
+        if self._credo_config.FAST_TRACK_TTS_MODE == "piper_tts":
+            audio = await asyncio.to_thread(self._synthesize_fast_piper_audio_sync, text, emotion=emotion)
             if audio:
                 return audio
 

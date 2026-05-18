@@ -15,7 +15,7 @@ Viewer text / mic input
        DistilBERT emotion classifier
        spaCy keyword extraction
        hybrid reaction list
-       StyleBERT-VITS2 short TTS
+       Piper resident short TTS
   -> CREDO SlowTrack
        local OpenAI-compatible LLM
        Fish Speech expressive TTS
@@ -103,29 +103,20 @@ Start Fish Speech for SlowTrack TTS on GPU0:
 AI_NPC_System/scripts/start_fish_speech_server.sh
 ```
 
-Start the dedicated FastTrack StyleBERT-VITS2 TTS server after its repo and CREDO-compatible English model assets are installed. By default CREDO runs StyleBERT on CPU so FastTrack TTS uses system RAM instead of GPU VRAM; set `STYLEBERT_VITS2_DEVICE=cuda` only when GPU0 has enough room. The launcher now preflights WSL line endings, Python 3.12 media dependencies, StyleBERT config drift, and BERT weight presence:
+Prepare Piper once for the dedicated FastTrack TTS path, then start its resident server. Piper keeps the English voice model loaded in RAM, avoiding per-request CLI cold-start latency:
 
 ```bash
-AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+PIPER_TTS_AUTO_INSTALL=1 PIPER_TTS_AUTO_DOWNLOAD_VOICE=1 AI_NPC_System/scripts/setup_piper_fasttrack_tts.sh
+AI_NPC_System/scripts/start_piper_fasttrack_tts_server.sh
 ```
 
-For a fresh StyleBERT venv, allow local Python dependency repair:
+Measure the FastTrack TTS target on this machine:
 
 ```bash
-STYLEBERT_VITS2_AUTO_INSTALL=1 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
-
-# Download temporary default StyleBERT voices if model_assets is empty:
-STYLEBERT_VITS2_AUTO_DOWNLOAD_MODELS=1 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
-
-# The downloaded default voices are JP-only. This is only for Japanese smoke tests:
-STYLEBERT_VITS2_LANGUAGE=JP AI_NPC_System/scripts/start_stylebert_vits2_server.sh
-
-# For CREDO English FastTrack, place a CREDO-compatible English StyleBERT model under vendor/Style-Bert-VITS2/model_assets/<model_name>, then set STYLEBERT_VITS2_MODEL_NAME=<model_name>. JP-only default models must not be used for CREDO English FastTrack.
-# Default CPU/RAM mode:
-STYLEBERT_VITS2_MODEL_NAME=<model_name> STYLEBERT_VITS2_DEVICE=cpu AI_NPC_System/scripts/start_stylebert_vits2_server.sh
-# Optional GPU mode only when GPU0 has room:
-STYLEBERT_VITS2_MODEL_NAME=<model_name> STYLEBERT_VITS2_DEVICE=cuda STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=0 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+python3 AI_NPC_System/scripts/benchmark_fasttrack_tts_latency.py --engine piper_tts --text "That sounds good." --runs 5 --warmup 1
 ```
+
+StyleBERT-VITS2 is kept only as a legacy experiment path. The local default StyleBERT model assets are JP-only and must not be used for CREDO English FastTrack.
 
 Run the Open-LLM-VTuber CREDO integration after the LLM, Fish Speech, and FastTrack TTS servers are up:
 
@@ -160,14 +151,14 @@ Key variables:
 ```text
 LOCAL_LLM_MODEL                  SlowTrack local LLM served name
 LOCAL_LLM_BASE_URL               OpenAI-compatible local LLM endpoint
-FAST_TRACK_TTS_MODE              stylebert_vits2 dedicated FastTrack TTS
-FAST_TRACK_INLINE_CUES_ENABLED   0 for StyleBERT FastTrack; Fish inline cues only when explicitly enabled
+FAST_TRACK_TTS_MODE              piper_tts dedicated FastTrack TTS
+FAST_TRACK_INLINE_CUES_ENABLED   0 for Piper FastTrack; Fish inline cues only when explicitly enabled
 FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK 0 prevents default cute TTS fallback
 FAST_TRACK_AUDIO_CACHE_ENABLED   0 for realtime FastTrack TTS by default
-STYLEBERT_VITS2_BASE_URL         FastTrack TTS endpoint
-STYLEBERT_VITS2_MODEL_NAME       explicit English StyleBERT model directory name
-STYLEBERT_VITS2_DEVICE           cpu by default for RAM mode, cuda for GPU mode
-STYLEBERT_VITS2_STYLE_*          emotion-specific StyleBERT API style names
+PIPER_TTS_BASE_URL               resident FastTrack Piper server endpoint
+PIPER_TTS_VOICE                  English Piper voice name
+PIPER_TTS_LENGTH_SCALE_*         emotion-specific speed/style controls
+PIPER_TTS_NOISE_SCALE_*          emotion-specific variation controls
 FISH_SPEECH_BASE_URL             SlowTrack TTS endpoint
 FISH_SPEECH_REFERENCE_ID         voice reference id
 OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME Live2D model name
@@ -179,7 +170,7 @@ CREDO_ENABLE_EXTRA_COVER_AUDIO   enable expressive audio blocks
 LATENCY_PREDICTOR_MODEL_FILE  generated artifact-backed kNN latency predictor
 LOCAL_LLM_CUDA_VISIBLE_DEVICES   GPU1 for SlowTrack local LLM
 FISH_SPEECH_CUDA_VISIBLE_DEVICES GPU0 for heavier SlowTrack Fish Speech
-STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES GPU0 for FastTrack TTS only when STYLEBERT_VITS2_DEVICE=cuda
+PIPER_TTS_USE_CUDA               0 by default; FastTrack Piper stays CPU/RAM unless explicitly changed
 ```
 
 ## Data and Model Tasks
@@ -232,6 +223,6 @@ Latency records are appended to `AI_NPC_System/latency_logs/events.jsonl`.
 
 ## Current Limitation
 
-StyleBERT-VITS2 is the realtime lightweight FastTrack TTS path and must be installed separately under `vendor/Style-Bert-VITS2` with CREDO voice-compatible English model assets. FastTrack does not require prebuilt audio cache files and no longer falls back to Open-LLM-VTuber default TTS unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set.
+Piper is the realtime lightweight FastTrack TTS path and is prepared under `vendor/piper-tts` with an English ONNX voice. The resident Piper server keeps the model loaded so short FastTrack utterances can synthesize under the one-second target. FastTrack does not require prebuilt audio cache files and no longer falls back to Open-LLM-VTuber default TTS unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set.
 
 Project-owned voice samples, Fish Speech references, and the CREDO Live2D avatar/motions are tracked through explicit `.gitignore` exceptions. Large runtimes, virtual environments, model checkpoints, generated audio caches, and temporary experiment logs remain local-only.

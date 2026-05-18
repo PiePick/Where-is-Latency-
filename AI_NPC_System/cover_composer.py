@@ -174,14 +174,31 @@ class CoverComposer:
         )
 
     def _style_control(self, emotion: str) -> dict[str, Any]:
-        style_map = {
+        stylebert_map = {
             "positive": config.STYLEBERT_VITS2_STYLE_POSITIVE,
             "negative": config.STYLEBERT_VITS2_STYLE_NEGATIVE,
             "ambiguous": config.STYLEBERT_VITS2_STYLE_AMBIGUOUS,
             "neutral": config.STYLEBERT_VITS2_STYLE_NEUTRAL,
         }
+        piper_length_map = {
+            "positive": config.PIPER_TTS_LENGTH_SCALE_POSITIVE,
+            "negative": config.PIPER_TTS_LENGTH_SCALE_NEGATIVE,
+            "ambiguous": config.PIPER_TTS_LENGTH_SCALE_AMBIGUOUS,
+            "neutral": config.PIPER_TTS_LENGTH_SCALE_NEUTRAL,
+        }
+        piper_noise_map = {
+            "positive": config.PIPER_TTS_NOISE_SCALE_POSITIVE,
+            "negative": config.PIPER_TTS_NOISE_SCALE_NEGATIVE,
+            "ambiguous": config.PIPER_TTS_NOISE_SCALE_AMBIGUOUS,
+            "neutral": config.PIPER_TTS_NOISE_SCALE_NEUTRAL,
+        }
         return {
-            "stylebert_vits2": style_map.get(emotion, config.STYLEBERT_VITS2_STYLE),
+            "piper_tts": {
+                "length_scale": piper_length_map.get(emotion, config.PIPER_TTS_LENGTH_SCALE),
+                "noise_scale": piper_noise_map.get(emotion, config.PIPER_TTS_NOISE_SCALE),
+                "noise_w": config.PIPER_TTS_NOISE_W,
+            },
+            "stylebert_vits2": stylebert_map.get(emotion, config.STYLEBERT_VITS2_STYLE),
             "fish_speech_cues": FISH_SPEECH_CUE_BUNDLES.get(emotion, FISH_SPEECH_CUE_BUNDLES["neutral"]),
             "inline_cues_enabled": config.FAST_TRACK_INLINE_CUES_ENABLED,
         }
