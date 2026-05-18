@@ -91,7 +91,11 @@ STYLEBERT_VITS2_AUTO_DOWNLOAD_MODELS=1 AI_NPC_System/scripts/start_stylebert_vit
 # The downloaded default voices are JP-only. This is only for Japanese smoke tests:
 STYLEBERT_VITS2_LANGUAGE=JP AI_NPC_System/scripts/start_stylebert_vits2_server.sh
 
-# For CREDO English FastTrack, place a CREDO-compatible English StyleBERT model under vendor/Style-Bert-VITS2/model_assets.
+# For CREDO English FastTrack, place a CREDO-compatible English StyleBERT model under vendor/Style-Bert-VITS2/model_assets/<model_name>, then set STYLEBERT_VITS2_MODEL_NAME=<model_name>. Do not use the bundled JP-only default models for CREDO English FastTrack.
+# Default CPU/RAM mode avoids reserving GPU VRAM for FastTrack TTS:
+STYLEBERT_VITS2_MODEL_NAME=<model_name> STYLEBERT_VITS2_DEVICE=cpu AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+# Optional GPU mode only when GPU0 has room:
+STYLEBERT_VITS2_MODEL_NAME=<model_name> STYLEBERT_VITS2_DEVICE=cuda STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=0 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
 
 # Also download missing ku-nlp/deberta-v2-large-japanese-char-wwm weights:
 STYLEBERT_VITS2_AUTO_INSTALL=1 STYLEBERT_VITS2_AUTO_DOWNLOAD_BERT=1 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
@@ -156,7 +160,9 @@ FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=0
 FAST_TRACK_AUDIO_CACHE_ENABLED=0
 FAST_TRACK_INLINE_CUES_ENABLED=0
 FISH_SPEECH_CUES_ENABLED=0
+STYLEBERT_VITS2_DEVICE=cpu
 STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=0
+STYLEBERT_VITS2_MODEL_NAME=<english_model_directory>
 STYLEBERT_VITS2_STYLE_POSITIVE=Neutral
 STYLEBERT_VITS2_STYLE_NEGATIVE=Neutral
 STYLEBERT_VITS2_STYLE_AMBIGUOUS=Neutral
@@ -179,15 +185,16 @@ AI_NPC_System/scripts/build_fast_track_audio_cache.py --engine fish_speech --for
 
 ## GPU Allocation
 
-Default async server placement:
+Default async server placement. StyleBERT is CPU/RAM by default; switch it to CUDA only after confirming GPU0 has headroom:
 
 ```text
 LOCAL_LLM_CUDA_VISIBLE_DEVICES=1
 FISH_SPEECH_CUDA_VISIBLE_DEVICES=0
-STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=0
+STYLEBERT_VITS2_DEVICE=cpu
+STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=0  # used only when STYLEBERT_VITS2_DEVICE=cuda
 ```
 
-GPU0 is reserved for the heavier TTS side, especially Fish Speech. GPU1 is used for the local LLM server.
+GPU0 is reserved for the heavier TTS side, especially Fish Speech. GPU1 is used for the local LLM server. CPU/RAM StyleBERT avoids extra VRAM pressure at the cost of slower FastTrack synthesis.
 
 ## Apply Integration
 

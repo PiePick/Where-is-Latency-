@@ -2,9 +2,9 @@
   "summary": {
     "readiness": "PARTIAL",
     "required_failed": 0,
-    "optional_failed": 4,
+    "optional_failed": 3,
     "warnings": 0,
-    "checked_at_unix": 1779058883.770789
+    "checked_at_unix": 1779087714.5361402
   },
   "checks": [
     {
@@ -99,14 +99,14 @@
     },
     {
       "name": "Local LLM endpoint",
-      "status": "FAIL",
-      "detail": "unreachable: http://127.0.0.1:8001/v1/models (<urlopen error [Errno 111] Connection refused>)",
+      "status": "OK",
+      "detail": "http://127.0.0.1:8001/v1/models responded HTTP 200 in 16.0 ms",
       "required": false
     },
     {
       "name": "Fish Speech endpoint",
-      "status": "FAIL",
-      "detail": "unreachable: http://127.0.0.1:8080/v1/health (<urlopen error [Errno 111] Connection refused>)",
+      "status": "OK",
+      "detail": "http://127.0.0.1:8080/v1/health responded HTTP 200 in 1.1 ms",
       "required": false
     },
     {
@@ -131,6 +131,18 @@
       "name": "Style-Bert-VITS2 model assets",
       "status": "OK",
       "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets",
+      "required": false
+    },
+    {
+      "name": "Style-Bert-VITS2 explicit English model",
+      "status": "FAIL",
+      "detail": "STYLEBERT_VITS2_MODEL_NAME is empty; set it to the English model directory under vendor/Style-Bert-VITS2/model_assets",
+      "required": false
+    },
+    {
+      "name": "Style-Bert-VITS2 device",
+      "status": "OK",
+      "detail": "cpu (system RAM mode; no VRAM reserved for FastTrack TTS)",
       "required": false
     },
     {

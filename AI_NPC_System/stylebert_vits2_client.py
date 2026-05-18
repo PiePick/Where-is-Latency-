@@ -22,6 +22,7 @@ class StyleBertVITS2Config:
     output_dir: Path = config.STYLEBERT_VITS2_OUTPUT_DIR
     timeout: float = config.STYLEBERT_VITS2_TIMEOUT
     model_id: int = config.STYLEBERT_VITS2_MODEL_ID
+    model_name: str = config.STYLEBERT_VITS2_MODEL_NAME
     speaker_id: int = config.STYLEBERT_VITS2_SPEAKER_ID
     style: str = config.STYLEBERT_VITS2_STYLE
     style_weight: float = config.STYLEBERT_VITS2_STYLE_WEIGHT
@@ -65,6 +66,8 @@ class StyleBertVITS2Client:
             "style_weight": str(self.cfg.style_weight if style_weight is None else style_weight),
             "language": self.cfg.language,
         }
+        if self.cfg.model_name:
+            params["model_name"] = self.cfg.model_name
         data = urllib.parse.urlencode(params).encode("utf-8")
         req = urllib.request.Request(
             self.cfg.voice_url,

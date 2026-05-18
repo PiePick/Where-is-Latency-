@@ -105,6 +105,7 @@ def cache_reference(engine: str) -> dict[str, Any]:
         "engine": engine,
         "reference_id": config.STYLEBERT_VITS2_REFERENCE_VOICE,
         "model_id": config.STYLEBERT_VITS2_MODEL_ID,
+        "model_name": config.STYLEBERT_VITS2_MODEL_NAME,
         "speaker_id": config.STYLEBERT_VITS2_SPEAKER_ID,
         "style": config.STYLEBERT_VITS2_STYLE,
         "style_weight": config.STYLEBERT_VITS2_STYLE_WEIGHT,

@@ -38,6 +38,9 @@ export STYLEBERT_VITS2_HEALTH_URL="http://127.0.0.1:5000/docs"
 export STYLEBERT_VITS2_OUTPUT_DIR="tts_outputs/stylebert_fast"
 export STYLEBERT_VITS2_TIMEOUT="30"
 export STYLEBERT_VITS2_MODEL_ID="0"
+# Put the English CREDO-compatible StyleBERT model directory name here, for example:
+# export STYLEBERT_VITS2_MODEL_NAME="credo_english"
+export STYLEBERT_VITS2_MODEL_NAME=""
 export STYLEBERT_VITS2_SPEAKER_ID="0"
 export STYLEBERT_VITS2_STYLE="Neutral"
 export STYLEBERT_VITS2_STYLE_WEIGHT="5.0"
@@ -48,6 +51,8 @@ export STYLEBERT_VITS2_STYLE_NEUTRAL="Neutral"
 export STYLEBERT_VITS2_LANGUAGE="EN"
 export STYLEBERT_VITS2_REFERENCE_VOICE="credo_voice_sample"
 export STYLEBERT_VITS2_AUTO_PLAY="0"
+# CPU mode keeps FastTrack TTS on system RAM instead of GPU VRAM. Set to cuda only when GPU0 has room.
+export STYLEBERT_VITS2_DEVICE="cpu"
 export STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES="0"
 
 # SlowTrack local LLM server and generation settings.

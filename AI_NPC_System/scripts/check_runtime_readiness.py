@@ -147,6 +147,42 @@ def check_youtube_bridge_dependency() -> CheckResult:
     return ok("YouTube bridge dependency", f"websockets {proc.stdout.strip()}", required=False)
 
 
+
+def check_stylebert_model_name(cfg: object, model_assets_dir: Path) -> CheckResult:
+    model_name = str(getattr(cfg, "STYLEBERT_VITS2_MODEL_NAME", "") or "").strip()
+    language = str(getattr(cfg, "STYLEBERT_VITS2_LANGUAGE", "EN") or "EN").upper()
+    if language == "JP":
+        return skip("Style-Bert-VITS2 explicit English model", "STYLEBERT_VITS2_LANGUAGE=JP smoke-test mode", required=False)
+    if not model_name:
+        return fail(
+            "Style-Bert-VITS2 explicit English model",
+            "STYLEBERT_VITS2_MODEL_NAME is empty; set it to the English model directory under vendor/Style-Bert-VITS2/model_assets",
+            required=False,
+        )
+    config_path = model_assets_dir / model_name / "config.json"
+    if not config_path.exists():
+        return fail(
+            "Style-Bert-VITS2 explicit English model",
+            f"missing {config_path}",
+            required=False,
+        )
+    return ok("Style-Bert-VITS2 explicit English model", f"{model_name} ({config_path})", required=False)
+
+
+def check_stylebert_device(cfg: object) -> CheckResult:
+    device = str(getattr(cfg, "STYLEBERT_VITS2_DEVICE", "cpu") or "cpu").strip().lower()
+    if device not in {"cpu", "cuda"}:
+        return fail(
+            "Style-Bert-VITS2 device",
+            f"STYLEBERT_VITS2_DEVICE must be cpu or cuda, got: {device}",
+            required=False,
+        )
+    if device == "cpu":
+        return ok("Style-Bert-VITS2 device", "cpu (system RAM mode; no VRAM reserved for FastTrack TTS)", required=False)
+    cuda_devices = str(getattr(cfg, "STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES", "0") or "0")
+    return ok("Style-Bert-VITS2 device", f"cuda on CUDA_VISIBLE_DEVICES={cuda_devices}", required=False)
+
+
 def check_fish_reference_voice(reference_dir: Path) -> CheckResult:
     """Verify that Fish Speech has at least one wav/lab reference pair."""
     if not reference_dir.exists():
@@ -234,6 +270,8 @@ def collect_checks() -> list[CheckResult]:
                     executable=True,
                 ),
                 check_path("Style-Bert-VITS2 model assets", stylebert_dir / "model_assets", required=False),
+                check_stylebert_model_name(cfg, stylebert_dir / "model_assets"),
+                check_stylebert_device(cfg),
                 check_http("Style-Bert-VITS2 endpoint", cfg.STYLEBERT_VITS2_HEALTH_URL, required=False),
             ]
         )

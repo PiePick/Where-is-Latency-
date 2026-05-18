@@ -8,6 +8,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 CONFIG_FILE="${CREDO_PROJECT_CONFIG:-${ROOT_DIR}/AI_NPC_System/project_config.sh}"
 ENV_STYLEBERT_VITS2_LANGUAGE="${STYLEBERT_VITS2_LANGUAGE:-}"
+ENV_STYLEBERT_VITS2_MODEL_NAME="${STYLEBERT_VITS2_MODEL_NAME:-}"
+ENV_STYLEBERT_VITS2_DEVICE="${STYLEBERT_VITS2_DEVICE:-}"
+ENV_STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES="${STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES:-}"
+ENV_STYLEBERT_VITS2_ALLOW_LANGUAGE_MISMATCH="${STYLEBERT_VITS2_ALLOW_LANGUAGE_MISMATCH:-}"
 if [[ -f "${CONFIG_FILE}" ]]; then
   # shellcheck source=/dev/null
   source "${CONFIG_FILE}"
@@ -15,13 +19,32 @@ fi
 if [[ -n "${ENV_STYLEBERT_VITS2_LANGUAGE}" ]]; then
   export STYLEBERT_VITS2_LANGUAGE="${ENV_STYLEBERT_VITS2_LANGUAGE}"
 fi
+if [[ -n "${ENV_STYLEBERT_VITS2_MODEL_NAME}" ]]; then
+  export STYLEBERT_VITS2_MODEL_NAME="${ENV_STYLEBERT_VITS2_MODEL_NAME}"
+fi
+if [[ -n "${ENV_STYLEBERT_VITS2_DEVICE}" ]]; then
+  export STYLEBERT_VITS2_DEVICE="${ENV_STYLEBERT_VITS2_DEVICE}"
+fi
+if [[ -n "${ENV_STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES}" ]]; then
+  export STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES="${ENV_STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES}"
+fi
+if [[ -n "${ENV_STYLEBERT_VITS2_ALLOW_LANGUAGE_MISMATCH}" ]]; then
+  export STYLEBERT_VITS2_ALLOW_LANGUAGE_MISMATCH="${ENV_STYLEBERT_VITS2_ALLOW_LANGUAGE_MISMATCH}"
+fi
 
 STYLEBERT_DIR="${STYLEBERT_VITS2_REPO_DIR:-${ROOT_DIR}/vendor/Style-Bert-VITS2}"
 PYTHON_BIN="${STYLEBERT_VITS2_PYTHON:-${STYLEBERT_DIR}/.venv/bin/python}"
 HOST="${STYLEBERT_VITS2_HOST:-127.0.0.1}"
 PORT="${STYLEBERT_VITS2_PORT:-5000}"
 MODEL_DIR="${STYLEBERT_VITS2_MODEL_DIR:-${STYLEBERT_DIR}/model_assets}"
+MODEL_NAME="${STYLEBERT_VITS2_MODEL_NAME:-}"
+DEVICE="${STYLEBERT_VITS2_DEVICE:-cpu}"
+DEVICE="$(printf '%s' "${DEVICE}" | tr '[:upper:]' '[:lower:]')"
 CUDA_DEVICES="${STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES:-0}"
+case "${DEVICE}" in
+  cpu|cuda) ;;
+  *) printf '[StyleBERT][ERROR] STYLEBERT_VITS2_DEVICE must be cpu or cuda, got: %s\n' "${DEVICE}" >&2; exit 1 ;;
+esac
 AUTO_FIX="${STYLEBERT_VITS2_AUTO_FIX:-1}"
 AUTO_INSTALL="${STYLEBERT_VITS2_AUTO_INSTALL:-0}"
 AUTO_APT="${STYLEBERT_VITS2_AUTO_APT:-0}"
@@ -205,18 +228,19 @@ ensure_stylebert_config() {
     cp "${STYLEBERT_DIR}/default_config.yml" "${STYLEBERT_DIR}/config.yml"
   fi
 
-  info "Ensuring StyleBERT config.yml uses port ${PORT} and CUDA device mode."
-  "${PYTHON_BIN}" - "${STYLEBERT_DIR}/config.yml" "${PORT}" <<'PY'
+  info "Ensuring StyleBERT config.yml uses port ${PORT} and device ${DEVICE}."
+  "${PYTHON_BIN}" - "${STYLEBERT_DIR}/config.yml" "${PORT}" "${DEVICE}" <<'PY'
 from pathlib import Path
 import sys
 import yaml
 
 path = Path(sys.argv[1])
 port = int(sys.argv[2])
+device = sys.argv[3]
 data = yaml.safe_load(path.read_text(encoding='utf-8'))
 server = data.setdefault('server', {})
 server['port'] = port
-server['device'] = 'cuda'
+server['device'] = device
 path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True), encoding='utf-8')
 PY
 }
@@ -254,18 +278,32 @@ ensure_fasttrack_language_compatibility() {
     return 0
   fi
 
-  "${PYTHON_BIN}" - "${MODEL_DIR}" "${FASTTRACK_LANGUAGE}" <<'PY'
+  "${PYTHON_BIN}" - "${MODEL_DIR}" "${FASTTRACK_LANGUAGE}" "${MODEL_NAME}" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 model_dir = Path(sys.argv[1])
 language = sys.argv[2].upper()
+model_name = sys.argv[3].strip()
 configs = sorted(model_dir.glob('*/config.json'))
 if not configs:
     raise SystemExit('No StyleBERT model config.json files found.')
+
+if model_name:
+    config_path = model_dir / model_name / 'config.json'
+    if not config_path.exists():
+        existing = ', '.join(path.parent.name for path in configs[:12])
+        raise SystemExit(
+            f'STYLEBERT_VITS2_MODEL_NAME={model_name!r} was requested, but {config_path} does not exist. '
+            f'Existing model directories: {existing}'
+        )
+    check_paths = [config_path]
+else:
+    check_paths = configs
+
 versions = []
-for path in configs:
+for path in check_paths:
     try:
         payload = json.loads(path.read_text(encoding='utf-8'))
     except Exception:
@@ -274,12 +312,23 @@ for path in configs:
 
 jp_only = versions and all('JP' in version.upper() for version in versions)
 if language != 'JP' and jp_only:
-    names = ', '.join(path.parent.name for path in configs[:8])
+    names = ', '.join(path.parent.name for path in check_paths[:8])
+    if model_name:
+        detail = f'STYLEBERT_VITS2_MODEL_NAME={model_name} points to JP-only model ({names}).'
+    else:
+        detail = f'model_assets contains only JP-only models ({names}).'
     raise SystemExit(
-        f'StyleBERT model/language mismatch: configured STYLEBERT_VITS2_LANGUAGE={language}, '
-        f'but model_assets contains JP-only default models ({names}). '
-        'Use a CREDO-compatible English StyleBERT model, set STYLEBERT_VITS2_LANGUAGE=JP only for Japanese test speech, '
-        'or set STYLEBERT_VITS2_ALLOW_LANGUAGE_MISMATCH=1 to bypass this guard.'
+        f'StyleBERT model/language mismatch: configured STYLEBERT_VITS2_LANGUAGE={language}, but {detail} '
+        'Install a CREDO-compatible English StyleBERT model under vendor/Style-Bert-VITS2/model_assets/<model_name> '
+        'and set STYLEBERT_VITS2_MODEL_NAME=<model_name>. '
+        'STYLEBERT_VITS2_LANGUAGE=JP is only for temporary Japanese smoke tests, not CREDO English FastTrack.'
+    )
+
+if language != 'JP' and not model_name:
+    names = ', '.join(path.parent.name for path in configs[:12])
+    raise SystemExit(
+        f'STYLEBERT_VITS2_LANGUAGE={language} requires explicit STYLEBERT_VITS2_MODEL_NAME so CREDO does not accidentally use JP default model_id=0. '
+        f'Install/select an English model directory under model_assets and set STYLEBERT_VITS2_MODEL_NAME. Existing model directories: {names}'
     )
 PY
 }
@@ -319,7 +368,12 @@ print_launch_summary() {
   info "Repo: ${STYLEBERT_DIR}"
   info "Python: ${PYTHON_BIN}"
   info "Model dir: ${MODEL_DIR}"
-  info "CUDA_VISIBLE_DEVICES=${CUDA_DEVICES}"
+  if [[ "${DEVICE}" == "cpu" ]]; then
+    info "Device=cpu (system RAM mode; CUDA_VISIBLE_DEVICES is cleared for StyleBERT)"
+  else
+    info "Device=cuda, CUDA_VISIBLE_DEVICES=${CUDA_DEVICES}"
+  fi
+  info "Model name=${MODEL_NAME:-<unset>}, model_id=${STYLEBERT_VITS2_MODEL_ID:-0}"
   info "Auto fix=${AUTO_FIX}, auto install=${AUTO_INSTALL}, auto apt=${AUTO_APT}, auto model download=${AUTO_DOWNLOAD_MODELS}, auto BERT download=${AUTO_DOWNLOAD_BERT}, language=${FASTTRACK_LANGUAGE}, import timeout=${PYTHON_IMPORT_TIMEOUT}s"
 }
 
@@ -348,7 +402,11 @@ ensure_fasttrack_language_compatibility
 ensure_japanese_bert_weights
 
 cd "${STYLEBERT_DIR}"
-export CUDA_VISIBLE_DEVICES="${CUDA_DEVICES}"
+if [[ "${DEVICE}" == "cpu" ]]; then
+  export CUDA_VISIBLE_DEVICES=""
+else
+  export CUDA_VISIBLE_DEVICES="${CUDA_DEVICES}"
+fi
 print_launch_summary
 # Recent Style-Bert-VITS2 reads host/port from config.yml and accepts --dir only.
 exec "${PYTHON_BIN}" server_fastapi.py --dir "${MODEL_DIR}"

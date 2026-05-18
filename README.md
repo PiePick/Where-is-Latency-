@@ -103,7 +103,7 @@ Start Fish Speech for SlowTrack TTS on GPU0:
 AI_NPC_System/scripts/start_fish_speech_server.sh
 ```
 
-Start the dedicated FastTrack StyleBERT-VITS2 TTS server on GPU0 after its repo and CREDO-compatible model assets are installed. The launcher now preflights WSL line endings, Python 3.12 media dependencies, StyleBERT config drift, and BERT weight presence:
+Start the dedicated FastTrack StyleBERT-VITS2 TTS server after its repo and CREDO-compatible English model assets are installed. By default CREDO runs StyleBERT on CPU so FastTrack TTS uses system RAM instead of GPU VRAM; set `STYLEBERT_VITS2_DEVICE=cuda` only when GPU0 has enough room. The launcher now preflights WSL line endings, Python 3.12 media dependencies, StyleBERT config drift, and BERT weight presence:
 
 ```bash
 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
@@ -120,7 +120,11 @@ STYLEBERT_VITS2_AUTO_DOWNLOAD_MODELS=1 AI_NPC_System/scripts/start_stylebert_vit
 # The downloaded default voices are JP-only. This is only for Japanese smoke tests:
 STYLEBERT_VITS2_LANGUAGE=JP AI_NPC_System/scripts/start_stylebert_vits2_server.sh
 
-# For CREDO English FastTrack, place a CREDO-compatible English StyleBERT model under vendor/Style-Bert-VITS2/model_assets.
+# For CREDO English FastTrack, place a CREDO-compatible English StyleBERT model under vendor/Style-Bert-VITS2/model_assets/<model_name>, then set STYLEBERT_VITS2_MODEL_NAME=<model_name>. JP-only default models must not be used for CREDO English FastTrack.
+# Default CPU/RAM mode:
+STYLEBERT_VITS2_MODEL_NAME=<model_name> STYLEBERT_VITS2_DEVICE=cpu AI_NPC_System/scripts/start_stylebert_vits2_server.sh
+# Optional GPU mode only when GPU0 has room:
+STYLEBERT_VITS2_MODEL_NAME=<model_name> STYLEBERT_VITS2_DEVICE=cuda STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES=0 AI_NPC_System/scripts/start_stylebert_vits2_server.sh
 ```
 
 Run the Open-LLM-VTuber CREDO integration after the LLM, Fish Speech, and FastTrack TTS servers are up:
@@ -161,6 +165,8 @@ FAST_TRACK_INLINE_CUES_ENABLED   0 for StyleBERT FastTrack; Fish inline cues onl
 FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK 0 prevents default cute TTS fallback
 FAST_TRACK_AUDIO_CACHE_ENABLED   0 for realtime FastTrack TTS by default
 STYLEBERT_VITS2_BASE_URL         FastTrack TTS endpoint
+STYLEBERT_VITS2_MODEL_NAME       explicit English StyleBERT model directory name
+STYLEBERT_VITS2_DEVICE           cpu by default for RAM mode, cuda for GPU mode
 STYLEBERT_VITS2_STYLE_*          emotion-specific StyleBERT API style names
 FISH_SPEECH_BASE_URL             SlowTrack TTS endpoint
 FISH_SPEECH_REFERENCE_ID         voice reference id
@@ -173,7 +179,7 @@ CREDO_ENABLE_EXTRA_COVER_AUDIO   enable expressive audio blocks
 LATENCY_PREDICTOR_MODEL_FILE  generated artifact-backed kNN latency predictor
 LOCAL_LLM_CUDA_VISIBLE_DEVICES   GPU1 for SlowTrack local LLM
 FISH_SPEECH_CUDA_VISIBLE_DEVICES GPU0 for heavier SlowTrack Fish Speech
-STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES GPU0 for FastTrack TTS
+STYLEBERT_VITS2_CUDA_VISIBLE_DEVICES GPU0 for FastTrack TTS only when STYLEBERT_VITS2_DEVICE=cuda
 ```
 
 ## Data and Model Tasks
