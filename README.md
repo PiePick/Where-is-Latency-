@@ -6,20 +6,41 @@ Team handoff and machine setup notes live in [`TEAM_CODEX_PROMPT.md`](TEAM_CODEX
 Codex-based dependency and open-source runtime recovery steps live in
 [`CODEX_SETUP.md`](CODEX_SETUP.md).
 
+## Current Handoff Snapshot
+
+The current research direction is **latency cover by real-time selection and sequencing**, not real-time FastTrack TTS synthesis.
+
+Current decisions:
+- Audience-facing output is English-only.
+- FastTrack realtime TTS is discarded for the main path. Do not revive Piper/StyleBERT as the default FastTrack TTS without a new experiment decision.
+- Fish Speech is used for SlowTrack high-quality TTS and offline audio/bundle generation, not per-turn FastTrack synthesis.
+- The first latency-cover block should be a pre-generated nonverbal interjection audio clip selected by DistilBERT emotion, paired with matching Live2D AvatarMotion.
+- The second block uses the offline persona reaction bundle: 4 emotions x 6 response intents x 5 style tags x 5 variants = 600 selected text reactions.
+- If predicted residual latency remains, use pre-generated filler audio such as a long “Hmm...” clip.
+- Normal speech should keep Idle/Talk/lip-sync. Emotion motions should be tied to pre-generated nonverbal audio blocks only.
+
+Generated bundle files:
+- `AI_NPC_System/persona_reaction_bundle/manifest.json` is the runtime bundle. It has 120 cells and 600 selected reactions.
+- `AI_NPC_System/persona_reaction_bundle/seed_provenance.json` stores the 30 GoEmotions/SWDA seed pairs per cell for reproducibility. This is not the runtime candidate list.
+
 ## Current Architecture
 
 ```text
 Viewer text / mic input
   -> Open-LLM-VTuber websocket loop
-  -> CREDO FastTrack
+  -> CREDO analysis
        DistilBERT emotion classifier
-       spaCy keyword extraction
-       hybrid reaction list
-       Piper resident short TTS
+       SetFit/SWDA intent classifier
+       SWDA response-intent transition
+       latency predictor
+  -> Latency-cover block sequence
+       pre-generated nonverbal audio + emotion motion
+       persona reaction bundle text/audio candidate
+       optional residual filler audio
   -> CREDO SlowTrack
        local OpenAI-compatible LLM
        Fish Speech expressive TTS
-  -> Live2D avatar response
+  -> Live2D avatar response with Idle/Talk/lip-sync preserved for speech
 ```
 
 The old Unity project and WinTTS prototype were removed. The active runtime is now:
@@ -103,25 +124,18 @@ Start Fish Speech for SlowTrack TTS on GPU0:
 AI_NPC_System/scripts/start_fish_speech_server.sh
 ```
 
-Prepare Piper once for the dedicated FastTrack TTS path, then start its resident server. Piper keeps the English voice model loaded in RAM, avoiding per-request CLI cold-start latency:
+FastTrack realtime TTS is not part of the current default run. Do not start Piper or StyleBERT for the main CREDO path. Piper and StyleBERT scripts remain only as legacy experiments.
 
-```bash
-PIPER_TTS_AUTO_INSTALL=1 PIPER_TTS_AUTO_DOWNLOAD_VOICE=1 AI_NPC_System/scripts/setup_piper_fasttrack_tts.sh
-AI_NPC_System/scripts/start_piper_fasttrack_tts_server.sh
-```
-
-Measure the FastTrack TTS target on this machine:
-
-```bash
-python3 AI_NPC_System/scripts/benchmark_fasttrack_tts_latency.py --engine piper_tts --text "That sounds good." --runs 5 --warmup 1
-```
-
-StyleBERT-VITS2 is kept only as a legacy experiment path. The local default StyleBERT model assets are JP-only and must not be used for CREDO English FastTrack.
-
-Run the Open-LLM-VTuber CREDO integration after the LLM, Fish Speech, and FastTrack TTS servers are up:
+Run the Open-LLM-VTuber CREDO integration after the LLM and Fish Speech servers are up:
 
 ```bash
 AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
+```
+
+For a SlowTrack-only ablation run that skips FastTrack analysis, FastTrack text, FastTrack TTS, and FastTrack motion, do not start Piper. Use:
+
+```bash
+AI_NPC_System/scripts/run_open_llm_vtuber_credo_no_fasttrack.sh
 ```
 
 Open the UI:
@@ -151,14 +165,12 @@ Key variables:
 ```text
 LOCAL_LLM_MODEL                  SlowTrack local LLM served name
 LOCAL_LLM_BASE_URL               OpenAI-compatible local LLM endpoint
-FAST_TRACK_TTS_MODE              piper_tts dedicated FastTrack TTS
-FAST_TRACK_INLINE_CUES_ENABLED   0 for Piper FastTrack; Fish inline cues only when explicitly enabled
-FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK 0 prevents default cute TTS fallback
-FAST_TRACK_AUDIO_CACHE_ENABLED   0 for realtime FastTrack TTS by default
-PIPER_TTS_BASE_URL               resident FastTrack Piper server endpoint
-PIPER_TTS_VOICE                  English Piper voice name
-PIPER_TTS_LENGTH_SCALE_*         emotion-specific speed/style controls
-PIPER_TTS_NOISE_SCALE_*          emotion-specific variation controls
+FAST_TRACK_ENABLED               1 by default; set 0 for SlowTrack-only ablation
+FAST_TRACK_TTS_MODE              none/offline path; realtime FastTrack TTS is deprecated
+FAST_TRACK_INLINE_CUES_ENABLED   0; do not put Fish bracket cues in spoken text
+FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK 0 prevents default cute FastTrack TTS fallback
+SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK 0 prevents wrong-voice SlowTrack fallback when Fish Speech fails
+FAST_TRACK_AUDIO_CACHE_ENABLED   optional only for offline/prebuilt audio experiments
 FISH_SPEECH_BASE_URL             SlowTrack TTS endpoint
 FISH_SPEECH_REFERENCE_ID         voice reference id
 OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME Live2D model name
@@ -170,7 +182,6 @@ CREDO_ENABLE_EXTRA_COVER_AUDIO   enable expressive audio blocks
 LATENCY_PREDICTOR_MODEL_FILE  generated artifact-backed kNN latency predictor
 LOCAL_LLM_CUDA_VISIBLE_DEVICES   GPU1 for SlowTrack local LLM
 FISH_SPEECH_CUDA_VISIBLE_DEVICES GPU0 for heavier SlowTrack Fish Speech
-PIPER_TTS_USE_CUDA               0 by default; FastTrack Piper stays CPU/RAM unless explicitly changed
 ```
 
 ## Data and Model Tasks
@@ -211,6 +222,16 @@ Generate the temporary Fish Speech extreme nonverbal audio pool:
 vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_extreme_nonverbal_reactions.py --force
 ```
 
+Build or refresh the persona-conditioned reaction bundle. This generates 600 short text reactions from the 4 emotion x 6 intent x 5 style-tag grid. Each cell samples 30 labeled GoEmotions/SWDA seed pairs and the local LLM filters/re-writes 5 persona-matched reactions. The runtime file stores only the selected reactions; full seed pairs are kept separately in `seed_provenance.json`.
+
+```bash
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_persona_reaction_bundle.py --skip-existing --seed-max-words 7 --seed-max-chars 70 --max-tokens 240
+```
+
+If offline audio is needed later, synthesize from the completed bundle with Fish Speech as a batch job rather than live FastTrack TTS.
+
+See `AI_NPC_System/docs/persona_reaction_bundle.md` for the manifest schema and smoke-test commands.
+
 Measure Fish Speech latency by text length for dynamic cover planning:
 
 ```bash
@@ -223,6 +244,8 @@ Latency records are appended to `AI_NPC_System/latency_logs/events.jsonl`.
 
 ## Current Limitation
 
-Piper is the realtime lightweight FastTrack TTS path and is prepared under `vendor/piper-tts` with an English ONNX voice. The resident Piper server keeps the model loaded so short FastTrack utterances can synthesize under the one-second target. FastTrack does not require prebuilt audio cache files and no longer falls back to Open-LLM-VTuber default TTS unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set.
+FastTrack realtime TTS was tested and then removed from the main path. The current unresolved research work is to finish the runtime selection/blending of pre-generated nonverbal audio, emotion motion, persona reaction bundle items, and residual filler clips. Piper and StyleBERT may remain as legacy scripts, but they are not required startup dependencies.
+
+SlowTrack uses Fish Speech. CREDO serializes SlowTrack Fish requests because the GPU-heavy server is most stable with one long request at a time. `FISH_SPEECH_TIMEOUT=300` and `LOCAL_LLM_MAX_TOKENS=96` are the current runtime defaults to reduce client-side disconnects. If Fish Speech is cancelled, times out, or disconnects, CREDO suppresses Open-LLM-VTuber fallback TTS by default so the response does not suddenly switch to the wrong voice. Keep `SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=0` for voice-consistency experiments. If a temporary fallback is intentionally enabled, the emergency Edge voice is `en-US-JennyNeural`, not the child-like `en-US-AnaNeural`.
 
 Project-owned voice samples, Fish Speech references, and the CREDO Live2D avatar/motions are tracked through explicit `.gitignore` exceptions. Large runtimes, virtual environments, model checkpoints, generated audio caches, and temporary experiment logs remain local-only.

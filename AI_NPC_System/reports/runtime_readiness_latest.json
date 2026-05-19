@@ -4,7 +4,7 @@
     "required_failed": 0,
     "optional_failed": 1,
     "warnings": 0,
-    "checked_at_unix": 1779092929.1782544
+    "checked_at_unix": 1779100163.499627
   },
   "checks": [
     {
@@ -100,13 +100,13 @@
     {
       "name": "Local LLM endpoint",
       "status": "OK",
-      "detail": "http://127.0.0.1:8001/v1/models responded HTTP 200 in 15.5 ms",
+      "detail": "http://127.0.0.1:8001/v1/models responded HTTP 200 in 14.0 ms",
       "required": false
     },
     {
       "name": "Fish Speech endpoint",
       "status": "OK",
-      "detail": "http://127.0.0.1:8080/v1/health responded HTTP 200 in 1.2 ms",
+      "detail": "http://127.0.0.1:8080/v1/health responded HTTP 200 in 1.4 ms",
       "required": false
     },
     {
@@ -116,33 +116,15 @@
       "required": false
     },
     {
-      "name": "Piper FastTrack executable",
-      "status": "OK",
-      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/piper-tts/.venv/bin/piper",
-      "required": true
-    },
-    {
-      "name": "Piper FastTrack English voice model",
-      "status": "OK",
-      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/piper-tts/voices/en_US-lessac-medium.onnx",
-      "required": true
-    },
-    {
-      "name": "Piper FastTrack voice config",
-      "status": "OK",
-      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/piper-tts/voices/en_US-lessac-medium.onnx.json",
-      "required": true
-    },
-    {
-      "name": "Piper FastTrack endpoint",
-      "status": "OK",
-      "detail": "http://127.0.0.1:5001/health responded HTTP 200 in 0.6 ms",
+      "name": "FastTrack",
+      "status": "SKIP",
+      "detail": "disabled by FAST_TRACK_ENABLED=0 for SlowTrack-only experiment",
       "required": false
     },
     {
-      "name": "Style-Bert-VITS2",
+      "name": "FastTrack realtime TTS",
       "status": "SKIP",
-      "detail": "legacy backend disabled by FAST_TRACK_TTS_MODE=piper_tts",
+      "detail": "not required when FastTrack is disabled",
       "required": false
     }
   ]

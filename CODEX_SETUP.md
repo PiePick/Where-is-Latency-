@@ -74,25 +74,7 @@ Install Fish Speech runtime:
 AI_NPC_System/scripts/install_fish_speech_runtime.sh
 ```
 
-Prepare Piper for the dedicated FastTrack TTS server. Piper is used because the local StyleBERT assets are JP-only, while CREDO FastTrack must synthesize English reactions in real time. It installs into `vendor/piper-tts` and downloads one English ONNX voice:
-
-```bash
-PIPER_TTS_AUTO_INSTALL=1 PIPER_TTS_AUTO_DOWNLOAD_VOICE=1 AI_NPC_System/scripts/setup_piper_fasttrack_tts.sh
-```
-
-Start the resident Piper FastTrack server before Open-LLM-VTuber. This server keeps the model loaded in RAM; do not use per-request CLI synthesis for the latency-cover path.
-
-```bash
-AI_NPC_System/scripts/start_piper_fasttrack_tts_server.sh
-```
-
-Benchmark the target latency after the server is up:
-
-```bash
-python3 AI_NPC_System/scripts/benchmark_fasttrack_tts_latency.py --engine piper_tts --text "That sounds good." --runs 5 --warmup 1
-```
-
-StyleBERT-VITS2 remains only as a legacy experiment path. JP-only default StyleBERT voices are not a valid CREDO English FastTrack configuration.
+Do not prepare or start Piper/StyleBERT for the current default path. Realtime FastTrack TTS has been discarded for the main research design. Piper and StyleBERT scripts remain only as legacy experiment paths and should not block a teammate from running CREDO.
 
 Download the Fish Speech S2-Pro checkpoint locally. This is intentionally not
 tracked in git:
@@ -143,25 +125,30 @@ CREDO_ENGLISH_ONLY_OUTPUT=1
 
 FastTrack, SlowTrack, VTuber idle monologues, and donation reactions should understand multilingual viewer input as context but answer in natural English without mentioning the policy.
 
-## FastTrack Realtime TTS
+## FastTrack Runtime Policy
 
-FastTrack uses a dedicated resident Piper TTS server by default. It does not require prebuilt FastTrack audio cache files:
+Realtime FastTrack TTS is no longer the default design. The current pipeline is:
 
 ```text
-FAST_TRACK_TTS_MODE=piper_tts
-FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=0
-FAST_TRACK_AUDIO_CACHE_ENABLED=0
-FAST_TRACK_INLINE_CUES_ENABLED=0
-FISH_SPEECH_CUES_ENABLED=0
-PIPER_TTS_BASE_URL=http://127.0.0.1:5001
-PIPER_TTS_VOICE=en_US-lessac-medium
-PIPER_TTS_LENGTH_SCALE_POSITIVE=0.92
-PIPER_TTS_LENGTH_SCALE_NEGATIVE=1.08
-PIPER_TTS_LENGTH_SCALE_AMBIGUOUS=0.98
-PIPER_TTS_LENGTH_SCALE_NEUTRAL=1.0
+DistilBERT emotion
+  -> pre-generated nonverbal Fish Speech audio + emotion AvatarMotion
+  -> offline persona reaction bundle candidate
+  -> optional pre-generated residual filler audio
+  -> SlowTrack local LLM + Fish Speech main answer
 ```
 
-This keeps the pipeline as: FastTrack reaction text selection, immediate Piper synthesis with emotion-specific request parameters, then playback. Fish Speech bracket cue bundles are not inserted into FastTrack text unless `FAST_TRACK_TTS_MODE=fish_speech` and `FAST_TRACK_INLINE_CUES_ENABLED=1` are both explicitly set. Open-LLM-VTuber's default cute TTS is blocked unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set.
+Important config policy:
+
+```text
+FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=0
+FISH_SPEECH_CUES_ENABLED=0
+FISH_SPEECH_GLOBAL_STYLE_TAG=
+SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=0
+```
+
+Do not insert bracket tags such as `[playful]` into `tts_text`; Fish Speech may read them aloud. Style tags belong in metadata and retrieval conditions. Open-LLM-VTuber's default cute TTS is blocked unless `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=1` is explicitly set for a controlled test.
+
+SlowTrack Fish Speech fallback is also blocked by default. Keep `SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=0` so a Fish Speech timeout or `ClientDisconnect` does not switch the character to Open-LLM-VTuber's fallback voice. The emergency Edge voice is set to `en-US-JennyNeural` only for explicit fallback tests.
 
 Latency-cover planning uses `AI_NPC_System/reports/latency_prediction_model.json` as an artifact-backed kNN index. Local `latency_logs/events.jsonl` is preferred when present; otherwise the committed artifact still provides real kNN neighbors for SlowTrack Fish Speech TTS prediction. Rebuild it after benchmark runs with:
 
@@ -175,18 +162,34 @@ The cache builder remains available only as an optional experiment tool:
 AI_NPC_System/scripts/build_fast_track_audio_cache.py --engine fish_speech --force
 ```
 
+
+## Persona Reaction Bundle
+
+Current generated files:
+
+```text
+AI_NPC_System/persona_reaction_bundle/manifest.json
+AI_NPC_System/persona_reaction_bundle/seed_provenance.json
+```
+
+`manifest.json` is the runtime file: 120 cells and 600 selected reactions. `seed_provenance.json` stores 30 GoEmotions/SWDA seed pairs per cell for reproducibility and should not be confused with runtime candidates.
+
+Refresh text bundle only when needed:
+
+```bash
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_persona_reaction_bundle.py --skip-existing --seed-max-words 7 --seed-max-chars 70 --max-tokens 240
+```
+
 ## GPU Allocation
 
-Default async server placement. Piper FastTrack runs on CPU/RAM through its resident server; Fish Speech remains the heavier GPU-side TTS and the local LLM stays on GPU1:
+Default async server placement:
 
 ```text
 LOCAL_LLM_CUDA_VISIBLE_DEVICES=1
 FISH_SPEECH_CUDA_VISIBLE_DEVICES=0
-PIPER_TTS_USE_CUDA=0
-PIPER_TTS_BASE_URL=http://127.0.0.1:5001
 ```
 
-GPU0 is reserved for the heavier TTS side, especially Fish Speech. GPU1 is used for the local LLM server. Piper keeps its English ONNX model in system RAM so FastTrack synthesis avoids extra VRAM pressure while staying sub-second.
+GPU0 is reserved for the heavier TTS side, especially Fish Speech. GPU1 is used for the local LLM server. No realtime FastTrack TTS server is required in the current default setup.
 
 ## Apply Integration
 
@@ -243,12 +246,14 @@ AI_NPC_System/scripts/start_fish_speech_server.sh
 
 ```bash
 cd /mnt/c/Users/CGLAB/Desktop/CREDO
-AI_NPC_System/scripts/start_piper_fasttrack_tts_server.sh
+AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
 ```
+
+SlowTrack-only ablation, with FastTrack fully skipped:
 
 ```bash
 cd /mnt/c/Users/CGLAB/Desktop/CREDO
-AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
+AI_NPC_System/scripts/run_open_llm_vtuber_credo_no_fasttrack.sh
 ```
 
 Open:

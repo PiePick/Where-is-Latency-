@@ -59,24 +59,37 @@ vendor/open-llm-vtuber/.venv/bin/python -m spacy download en_core_web_sm
 Main config file:
 - `AI_NPC_System/project_config.sh`
 
-Important values:
-- `FAST_TRACK_TTS_MODE="piper_tts"`
-- `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"`
-- `FAST_TRACK_AUDIO_CACHE_ENABLED="0"` by default; FastTrack uses realtime lightweight TTS, not prebuilt audio.
-- `FAST_TRACK_INLINE_CUES_ENABLED="0"`; Piper FastTrack uses request parameters, not Fish Speech bracket cue bundles.
-- `PIPER_TTS_BASE_URL="http://127.0.0.1:5001"`; the resident Piper server must be running for sub-second FastTrack TTS.
-- `PIPER_TTS_VOICE="en_US-lessac-medium"`; replace only with another English Piper voice that benchmarks under the target.
-- `PIPER_TTS_LENGTH_SCALE_*` and `PIPER_TTS_NOISE_SCALE_*` map FastTrack emotions to Piper voice-control parameters.
+Important current decisions:
+- Realtime FastTrack TTS is discarded for the main handoff path. Do not require Piper or StyleBERT to run CREDO.
+- The latency-cover path is real-time selection/sequencing of prepared assets, not real-time synthesis.
+- `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"` should remain disabled so the wrong cute fallback voice does not appear.
 - `FISH_SPEECH_REFERENCE_ID="credo_voice_sample"`
 - `FISH_SPEECH_GLOBAL_STYLE_TAG=""`
 - `OPEN_LLM_VTUBER_SLOW_TTS_MODE="credo_fish_speech"`
+- Fish Speech is for SlowTrack high-quality TTS and offline audio/bundle generation.
 - Strong CREDO emotion motions should be attached only to prebuilt nonverbal latency-cover audio; normal speech should stay on Idle/Talk/lip-sync.
 - Latency-cover planning must use the artifact-backed kNN predictor in `AI_NPC_System/latency_predictor.py`; rebuild `AI_NPC_System/reports/latency_prediction_model.json` from `latency_logs/events.jsonl` after new benchmark/runtime measurements.
 
-Do not put bracketed style tags such as `[chuckle]`, `[sigh]`, or `[pause]`
-inside spoken text. For the current Piper FastTrack path, emotion is passed
-through Piper request parameters such as length/noise scale. Nonverbal behavior must be controlled by the
-audio and motion layers.
+Do not put bracketed style tags such as `[chuckle]`, `[sigh]`, `[playful]`, or `[pause]` inside spoken text. Fish Speech may read them aloud. Store style tags as metadata only.
+
+
+## Current Research State
+
+Current block pipeline:
+1. DistilBERT emotion selects a pre-generated nonverbal Fish Speech interjection audio clip.
+2. The matching emotion AvatarMotion plays with that nonverbal audio.
+3. The offline persona reaction bundle supplies a short text/audio reaction candidate.
+4. If predicted SlowTrack latency remains, a pre-generated residual filler such as a long “Hmm...” clip may be inserted.
+5. SlowTrack local LLM + Fish Speech produces the main answer.
+
+Persona reaction bundle files:
+- `AI_NPC_System/persona_reaction_bundle/manifest.json`: runtime file with 120 cells and 600 selected reactions.
+- `AI_NPC_System/persona_reaction_bundle/seed_provenance.json`: 30 GoEmotions/SWDA seed pairs per cell for reproducibility. This is not the runtime candidate list.
+- `AI_NPC_System/scripts/build_persona_reaction_bundle.py`: generator. It handles `Ambiguous -> SURPRISE` GoEmotions aliasing and robust local-LLM JSON parsing.
+
+FastTrack realtime TTS status:
+- Discarded for the main research path.
+- Piper/StyleBERT files may remain in the repo as legacy experiments, but a new Codex should not make them required startup dependencies.
 
 ## Startup Order
 
@@ -94,13 +107,7 @@ cd /mnt/c/Users/CGLAB/Desktop/CREDO
 AI_NPC_System/scripts/start_fish_speech_server.sh
 ```
 
-Prepare/start the dedicated FastTrack Piper TTS server:
-
-```bash
-cd /mnt/c/Users/CGLAB/Desktop/CREDO
-PIPER_TTS_AUTO_INSTALL=1 PIPER_TTS_AUTO_DOWNLOAD_VOICE=1 AI_NPC_System/scripts/setup_piper_fasttrack_tts.sh
-AI_NPC_System/scripts/start_piper_fasttrack_tts_server.sh
-```
+Do not start Piper or StyleBERT for the current default path. They are legacy experiment scripts only.
 
 Start Open-LLM-VTuber with CREDO:
 

@@ -54,8 +54,8 @@ For each user turn, the CREDO agent emits:
 1. A FastTrack latency-cover output.
    - Uses pre-generated Fish Speech audio when available.
    - Falls back to Open-LLM-VTuber TTS if the cached wav is missing.
-   - Sends Live2D expression actions mapped from Positive, Negative,
-     Ambiguous, or Neutral.
+   - Sends Open-LLM-VTuber expression actions plus CREDO speech-safe motion tags.
+   - Nonverbal cover audio uses stronger `credo_fast_motion:*` motion tags.
 2. A SlowTrack continuation.
    - Uses the local OpenAI-compatible LLM configured in `AI_NPC_System/config.py`.
    - Can synthesize through the local Fish Speech HTTP server.
@@ -73,5 +73,11 @@ neutral: ['neutral', 'idle', 'neutral_01', 'neutral_02', 'neutral_03']
 ```
 
 For the custom Live2D model, put matching keys in Open-LLM-VTuber's
-`model_dict.json` `emotionMap`. The adapter will use the first matching
-expression per turn.
+`model_dict.json` `emotionMap`. The adapter keeps that default expression path
+alive and also adds `credo_speech_motion:positive|negative|ambiguous|neutral`
+during spoken output. The frontend maps those tags to the mouth-stripped
+`PositiveTalk`, `NegativeTalk`, `AmbiguousTalk`, and `NeutralTalk` motion groups
+so lip-sync can continue controlling the mouth.
+
+Prebuilt nonverbal cover audio still uses `credo_fast_motion:*`, mapped to the
+stronger non-talk motion groups.

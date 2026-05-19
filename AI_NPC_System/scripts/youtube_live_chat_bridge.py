@@ -36,6 +36,8 @@ except ImportError as exc:  # pragma: no cover - runtime guidance
 
 YOUTUBE_API = "https://www.googleapis.com/youtube/v3"
 DEFAULT_PROXY_URL = os.getenv("YOUTUBE_CHAT_PROXY_URL", "ws://localhost:12393/proxy-ws")
+DEFAULT_SOURCE_LABEL = os.getenv("YOUTUBE_CHAT_SOURCE_LABEL", "YouTube")
+DEFAULT_AUTHOR_MODE = os.getenv("YOUTUBE_CHAT_AUTHOR_MODE", "none")
 
 
 @dataclass(frozen=True)
@@ -135,11 +137,38 @@ def fetch_chat_page(
     return messages, next_page_token, max(float(interval_ms) / 1000.0, 1.0)
 
 
-def format_for_vtuber(message: ChatMessage, *, include_author: bool) -> str:
-    """Format a chat message as a VTuber text input."""
-    if include_author:
-        return f"Viewer {message.author} says: {message.text}"
-    return message.text
+def format_for_vtuber(
+    message: ChatMessage,
+    *,
+    author_mode: str,
+    source_label: str,
+    role_context: bool,
+) -> str:
+    """Format a chat message as a VTuber text input.
+
+    The CREDO adapter can only send a normal text-input event through the
+    Open-LLM-VTuber proxy, so role context is embedded in the text itself.
+    This avoids the model confusing a live viewer comment with its own speech.
+    """
+    text = message.text.strip()
+    if not role_context:
+        if author_mode == "display":
+            return f"Viewer {message.author} says: {text}"
+        if author_mode == "anonymous":
+            return f"Viewer says: {text}"
+        return text
+
+    if author_mode == "display":
+        speaker = f'viewer "{message.author}"'
+    elif author_mode == "anonymous":
+        speaker = "an anonymous viewer"
+    else:
+        speaker = "a viewer"
+
+    return (
+        f"[Live chat: {source_label}] {speaker} says: \"{text}\" "
+        f"Respond as CREDO to the stream. Do not speak as the viewer."
+    )
 
 
 async def send_to_proxy(proxy_url: str, text: str) -> None:
@@ -207,7 +236,13 @@ async def run_bridge(args: argparse.Namespace) -> None:
                 if skip_page:
                     continue
 
-                text = format_for_vtuber(message, include_author=args.include_author)
+                author_mode = "display" if args.include_author else args.author_mode
+                text = format_for_vtuber(
+                    message,
+                    author_mode=author_mode,
+                    source_label=args.source_label,
+                    role_context=not args.legacy_raw_text,
+                )
                 print(f"[{time.strftime('%H:%M:%S')}] {message.author}: {message.text}")
                 await send_to_proxy(args.proxy_url, text)
                 await asyncio.sleep(args.send_gap)
@@ -234,7 +269,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--send-gap", type=float, default=float(os.getenv("YOUTUBE_CHAT_SEND_GAP", "1.0")), help="Delay between forwarded messages.")
     parser.add_argument("--min-chars", type=int, default=int(os.getenv("YOUTUBE_CHAT_MIN_CHARS", "2")), help="Ignore messages shorter than this.")
     parser.add_argument("--max-seen", type=int, default=2000, help="Deduplication window size.")
-    parser.add_argument("--include-author", action="store_true", help="Include the author name in text sent to VTuber.")
+    parser.add_argument(
+        "--author-mode",
+        choices=("none", "display", "anonymous"),
+        default=DEFAULT_AUTHOR_MODE,
+        help="How viewer names are included in text sent to VTuber. Defaults to YOUTUBE_CHAT_AUTHOR_MODE or none.",
+    )
+    parser.add_argument(
+        "--source-label",
+        default=DEFAULT_SOURCE_LABEL,
+        help="Source label embedded in role-context text. Defaults to YOUTUBE_CHAT_SOURCE_LABEL or YouTube.",
+    )
+    parser.add_argument(
+        "--legacy-raw-text",
+        action="store_true",
+        help="Send old plain chat text format without role context.",
+    )
+    parser.add_argument("--include-author", action="store_true", help="Backward-compatible alias for --author-mode display.")
     parser.add_argument(
         "--ignore-first-page",
         action="store_true",

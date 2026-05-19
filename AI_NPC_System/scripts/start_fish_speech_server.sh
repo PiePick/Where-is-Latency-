@@ -21,8 +21,9 @@ MODEL_REPO="${FISH_SPEECH_MODEL_REPO:-fishaudio/s2-pro}"
 API_KEY="${FISH_SPEECH_API_KEY:-}"
 EXTRA_ARGS="${FISH_SPEECH_EXTRA_ARGS:-}"
 DEFAULT_VENV_PYTHON="${FISH_DIR}/.venv/bin/python"
-REFERENCE_ID="${FISH_SPEECH_REFERENCE_ID:-credo_bright_female}"
-REFERENCE_VOICE="${FISH_SPEECH_REFERENCE_VOICE:-en-US-AnaNeural}"
+REFERENCE_ID="${FISH_SPEECH_REFERENCE_ID:-credo_voice_sample}"
+REFERENCE_SOURCE="${FISH_SPEECH_REFERENCE_SOURCE:-AI_NPC_System/VoiceSample/VoicePack1_Morning.wav}"
+EDGE_REFERENCE_VOICE="${FISH_SPEECH_EDGE_REFERENCE_VOICE:-en-US-JennyNeural}"
 REFERENCE_TEXT="${FISH_SPEECH_REFERENCE_TEXT:-Hi hi, good work. Let us keep the stream bright and fun.}"
 REGENERATE_REFERENCE="${FISH_SPEECH_REGENERATE_REFERENCE:-0}"
 REFERENCE_TIMEOUT="${FISH_SPEECH_REFERENCE_TIMEOUT:-60s}"
@@ -64,13 +65,13 @@ if [ "${REFERENCE_ID}" = "credo_bright_female" ] && [ "${should_generate_referen
   mkdir -p "${REFERENCE_DIR}"
   tmp_mp3="${REFERENCE_DIR}/sample.edge.mp3"
   if timeout "${REFERENCE_TIMEOUT}" "${EDGE_TTS_PYTHON}" -m edge_tts \
-    --voice "${REFERENCE_VOICE}" \
+    --voice "${EDGE_REFERENCE_VOICE}" \
     --text "${REFERENCE_TEXT}" \
     --write-media "${tmp_mp3}" >/dev/null 2>&1 && \
     "${FFMPEG_BIN}" -y -v error -i "${tmp_mp3}" -ar 44100 -ac 1 "${REFERENCE_DIR}/sample.wav"; then
     printf '%s\n' "${REFERENCE_TEXT}" > "${REFERENCE_DIR}/sample.lab"
     rm -f "${tmp_mp3}"
-    echo "Generated Fish Speech reference voice with ${REFERENCE_VOICE}."
+    echo "Generated Fish Speech fallback reference with Edge voice ${EDGE_REFERENCE_VOICE}."
   else
     echo "Could not generate ${REFERENCE_ID} with edge-tts; using existing/cache fallback." >&2
     if [ ! -f "${REFERENCE_DIR}/sample.wav" ]; then
@@ -99,6 +100,12 @@ echo "Starting Fish Speech server on http://${HOST}:${PORT}"
 echo "Using CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES}"
 echo "Using Python: ${PYTHON_BIN}"
 echo "Using Fish Speech checkpoint: ${CHECKPOINT_DIR}"
-echo "Using Fish Speech reference voice: ${REFERENCE_ID}"
-echo "Using Fish Speech reference source voice: ${REFERENCE_VOICE}"
+echo "Using Fish Speech reference id: ${REFERENCE_ID}"
+if [ "${REFERENCE_ID}" = "credo_voice_sample" ]; then
+  echo "Using Fish Speech reference source sample: ${ROOT_DIR}/${REFERENCE_SOURCE}"
+elif [ "${REFERENCE_ID}" = "credo_bright_female" ]; then
+  echo "Using Fish Speech generated fallback source voice: ${EDGE_REFERENCE_VOICE}"
+else
+  echo "Using Fish Speech reference directory: ${REFERENCE_DIR}"
+fi
 "${cmd[@]}" ${EXTRA_ARGS}

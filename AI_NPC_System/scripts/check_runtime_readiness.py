@@ -272,7 +272,10 @@ def collect_checks() -> list[CheckResult]:
         check_http("Fish Speech endpoint", cfg.FISH_SPEECH_HEALTH_URL, required=False),
         check_tcp("Open-LLM-VTuber web server", "127.0.0.1", 12393, required=False),
     ]
-    if cfg.FAST_TRACK_TTS_MODE == "piper_tts":
+    if not getattr(cfg, "FAST_TRACK_ENABLED", True):
+        checks.append(skip("FastTrack", "disabled by FAST_TRACK_ENABLED=0 for SlowTrack-only experiment"))
+        checks.append(skip("FastTrack realtime TTS", "not required when FastTrack is disabled"))
+    elif cfg.FAST_TRACK_TTS_MODE == "piper_tts":
         checks.extend(check_piper_tts(cfg))
         checks.append(skip("Style-Bert-VITS2", "legacy backend disabled by FAST_TRACK_TTS_MODE=piper_tts"))
     elif cfg.FAST_TRACK_TTS_MODE == "stylebert_vits2":

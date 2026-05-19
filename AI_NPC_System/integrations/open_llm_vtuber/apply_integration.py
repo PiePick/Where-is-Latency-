@@ -17,14 +17,18 @@ DEFAULT_VENDOR = CREDO_ROOT / "vendor" / "open-llm-vtuber"
 AVATAR_MOTION_SRC = CREDO_ROOT / "reaction_sources" / "AvatarMotion"
 
 
+MOUTH_PARAMETER_IDS = {"ParamMouthOpenY", "ParamMouthForm"}
+TALK_SAFE_MOTION_FILES = {
+    "neutral.motion3.json": "neutral_talk.motion3.json",
+    "smile.motion3.json": "smile_talk.motion3.json",
+    "surprised_intro.motion3.json": "surprised_intro_talk.motion3.json",
+    "sad_sigh_intro.motion3.json": "sad_sigh_intro_talk.motion3.json",
+    "angry.motion3.json": "angry_talk.motion3.json",
+}
+
 CREDO_MOTION_GROUPS = {
     "Idle": [{"File": "motions/neutral.motion3.json"}],
-    "Talk": [
-        {"File": "motions/neutral.motion3.json"},
-        {"File": "motions/smile.motion3.json"},
-        {"File": "motions/surprised_intro.motion3.json"},
-        {"File": "motions/sad_sigh_intro.motion3.json"},
-    ],
+    "Talk": [{"File": "motions/neutral_talk.motion3.json"}],
     "Positive": [{"File": "motions/smile.motion3.json"}],
     "Negative": [
         {"File": "motions/sad_sigh_intro.motion3.json"},
@@ -32,6 +36,13 @@ CREDO_MOTION_GROUPS = {
     ],
     "Ambiguous": [{"File": "motions/surprised_intro.motion3.json"}],
     "Neutral": [{"File": "motions/neutral.motion3.json"}],
+    "PositiveTalk": [{"File": "motions/smile_talk.motion3.json"}],
+    "NegativeTalk": [
+        {"File": "motions/sad_sigh_intro_talk.motion3.json"},
+        {"File": "motions/angry_talk.motion3.json"},
+    ],
+    "AmbiguousTalk": [{"File": "motions/surprised_intro_talk.motion3.json"}],
+    "NeutralTalk": [{"File": "motions/neutral_talk.motion3.json"}],
 }
 
 
@@ -55,6 +66,57 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
     return text.replace(old, new, 1)
 
 
+def _motion_curve_counts(curves: list[dict]) -> tuple[int, int]:
+    """Return Live2D motion3 segment and point counts for Meta."""
+    segment_count = 0
+    point_count = 0
+    for curve in curves:
+        segments = curve.get("Segments") or []
+        if len(segments) >= 2:
+            point_count += 1
+        index = 2
+        while index < len(segments):
+            segment_type = int(segments[index])
+            index += 1
+            segment_count += 1
+            if segment_type == 0:
+                index += 2
+                point_count += 1
+            elif segment_type == 1:
+                index += 6
+                point_count += 3
+            elif segment_type in {2, 3}:
+                index += 2
+                point_count += 1
+            else:
+                raise RuntimeError(f"Unsupported motion3 segment type: {segment_type}")
+    return segment_count, point_count
+
+
+def write_talk_safe_motion(source: Path, destination: Path) -> None:
+    """Create a speech-safe motion by stripping mouth curves for lip-sync."""
+    motion = json.loads(source.read_text(encoding="utf-8"))
+    curves = [
+        curve
+        for curve in motion.get("Curves", [])
+        if not (
+            curve.get("Target") == "Parameter"
+            and str(curve.get("Id")) in MOUTH_PARAMETER_IDS
+        )
+    ]
+    motion["Curves"] = curves
+    meta = motion.setdefault("Meta", {})
+    segment_count, point_count = _motion_curve_counts(curves)
+    meta["CurveCount"] = len(curves)
+    meta["TotalSegmentCount"] = segment_count
+    meta["TotalPointCount"] = point_count
+    destination.write_text(
+        json.dumps(motion, ensure_ascii=False, indent="	") + "
+",
+        encoding="utf-8",
+    )
+
+
 def install_avatar_motions(model_dir: Path) -> None:
     """Install CREDO Live2D motion files and register model3 motion groups."""
     if not AVATAR_MOTION_SRC.exists():
@@ -64,6 +126,11 @@ def install_avatar_motions(model_dir: Path) -> None:
     motion_dst.mkdir(parents=True, exist_ok=True)
     for motion_file in AVATAR_MOTION_SRC.glob("*.motion3.json"):
         shutil.copy2(motion_file, motion_dst / motion_file.name)
+
+    for source_name, talk_safe_name in TALK_SAFE_MOTION_FILES.items():
+        source_path = motion_dst / source_name
+        if source_path.exists():
+            write_talk_safe_motion(source_path, motion_dst / talk_safe_name)
 
     model3_path = model_dir / "credo_avatar.model3.json"
     if not model3_path.exists():
@@ -116,9 +183,11 @@ class CredoLatencyCoverAgentConfig(I18nMixin, BaseModel):
 
     ai_npc_path: str = Field("../../AI_NPC_System", alias="ai_npc_path")
     character_name: str = Field("CREDO", alias="character_name")
+    fast_track_enabled: bool = Field(True, alias="fast_track_enabled")
     use_fast_audio: bool = Field(True, alias="use_fast_audio")
     slow_enabled: bool = Field(True, alias="slow_enabled")
     slow_tts_mode: str = Field("credo_fish_speech", alias="slow_tts_mode")
+    speech_emotion_motion_enabled: bool = Field(True, alias="speech_emotion_motion_enabled")
     record_memory: bool = Field(True, alias="record_memory")
     seed: Optional[int] = Field(None, alias="seed")
     expression_map: Dict[str, List[str]] = Field(default_factory=dict, alias="expression_map")
@@ -128,6 +197,10 @@ class CredoLatencyCoverAgentConfig(I18nMixin, BaseModel):
             en="Path to the CREDO AI_NPC_System runtime folder",
             zh="CREDO AI_NPC_System 运行目录路径",
         ),
+        "fast_track_enabled": Description(
+            en="Enable CREDO FastTrack analysis and latency-cover output. Disable for SlowTrack-only ablation experiments.",
+            zh="启用 CREDO FastTrack 分析和延迟遮盖输出。用于 SlowTrack-only 消融实验时可关闭。",
+        ),
         "use_fast_audio": Description(
             en="Use pre-generated FastTrack audio files when available",
             zh="可用时使用预生成的 FastTrack 音频",
@@ -136,16 +209,25 @@ class CredoLatencyCoverAgentConfig(I18nMixin, BaseModel):
             en="Slow response TTS mode: credo_fish_speech or open_llm",
             zh="慢速回应 TTS 模式：credo_fish_speech 或 open_llm",
         ),
+        "speech_emotion_motion_enabled": Description(
+            en="Use mouth-stripped emotion motion groups during spoken output so Live2D lip-sync can keep controlling the mouth",
+            zh="语音输出时使用去除嘴部参数的情绪动作组，以便 Live2D 口型同步继续控制嘴部。",
+        ),
     }
 
 
 '''
-    text = replace_once(
-        text,
-        "# =================================\n\n\nclass HumeAIConfig",
-        "# =================================\n\n\n" + class_block + "class HumeAIConfig",
-        "CredoLatencyCoverAgentConfig",
-    )
+    if "class CredoLatencyCoverAgentConfig" in text:
+        start = text.index("class CredoLatencyCoverAgentConfig")
+        end = text.index("class HumeAIConfig", start)
+        text = text[:start] + class_block.lstrip() + text[end:]
+    else:
+        text = replace_once(
+            text,
+            "# =================================\n\n\nclass HumeAIConfig",
+            "# =================================\n\n\n" + class_block + "class HumeAIConfig",
+            "CredoLatencyCoverAgentConfig",
+        )
     text = replace_once(
         text,
         "    letta_agent: Optional[LettaConfig] = Field(None, alias=\"letta_agent\")\n",
@@ -226,6 +308,30 @@ def patch_audio_pipeline(vendor: Path) -> None:
     )
     conversation_path.write_text(text, encoding="utf-8")
 
+    tts_manager_path = vendor / "src" / "open_llm_vtuber" / "conversations" / "tts_manager.py"
+    text = tts_manager_path.read_text(encoding="utf-8")
+    text = text.replace(
+        '                    await websocket_send(json.dumps(next_payload))\n                    self._next_sequence_to_send += 1\n',
+        '                    try:\n                        await websocket_send(json.dumps(next_payload))\n                    except RuntimeError as exc:\n                        if "websocket.close" in str(exc) or "response already completed" in str(exc):\n                            logger.warning(f"Skipping queued TTS payload because websocket is closed: {exc}")\n                            return\n                        raise\n                    self._next_sequence_to_send += 1\n',
+    )
+    tts_manager_path.write_text(text, encoding="utf-8")
+
+    single_path = vendor / "src" / "open_llm_vtuber" / "conversations" / "single_conversation.py"
+    text = single_path.read_text(encoding="utf-8")
+    text = text.replace(
+        '            await websocket_send(\n                json.dumps(\n                    {\n                        "type": "error",\n                        "message": f"Error processing agent response: {str(e)}",\n                    }\n                )\n            )\n',
+        '            try:\n                await websocket_send(\n                    json.dumps(\n                        {\n                            "type": "error",\n                            "message": f"Error processing agent response: {str(e)}",\n                        }\n                    )\n                )\n            except RuntimeError as send_exc:\n                logger.warning(f"Skipping agent error send because websocket is closed: {send_exc}")\n',
+    )
+    text = text.replace(
+        '            await websocket_send(json.dumps({"type": "backend-synth-complete"}))\n',
+        '            try:\n                await websocket_send(json.dumps({"type": "backend-synth-complete"}))\n            except RuntimeError as send_exc:\n                logger.warning(f"Skipping synth-complete send because websocket is closed: {send_exc}")\n',
+    )
+    text = text.replace(
+        '        await websocket_send(\n            json.dumps({"type": "error", "message": f"Conversation error: {str(e)}"})\n        )\n',
+        '        try:\n            await websocket_send(\n                json.dumps({"type": "error", "message": f"Conversation error: {str(e)}"})\n            )\n        except RuntimeError as send_exc:\n            logger.warning(f"Skipping conversation error send because websocket is closed: {send_exc}")\n',
+    )
+    single_path.write_text(text, encoding="utf-8")
+
     stream_path = vendor / "src" / "open_llm_vtuber" / "utils" / "stream_audio.py"
     text = stream_path.read_text(encoding="utf-8")
     text = replace_once(
@@ -296,9 +402,11 @@ def copy_files(vendor: Path) -> None:
     agent_settings = character_config["agent_config"]["agent_settings"]["credo_latency_cover_agent"]
     agent_settings["ai_npc_path"] = (CREDO_ROOT / "AI_NPC_System").as_posix()
     agent_settings["character_name"] = cfg.OPEN_LLM_VTUBER_CHARACTER_NAME
+    agent_settings["fast_track_enabled"] = cfg.FAST_TRACK_ENABLED
     agent_settings["use_fast_audio"] = cfg.OPEN_LLM_VTUBER_USE_FAST_AUDIO
     agent_settings["slow_enabled"] = cfg.OPEN_LLM_VTUBER_SLOW_ENABLED
     agent_settings["slow_tts_mode"] = cfg.OPEN_LLM_VTUBER_SLOW_TTS_MODE
+    agent_settings["speech_emotion_motion_enabled"] = cfg.CREDO_SPEECH_EMOTION_MOTION_ENABLED
     agent_settings["record_memory"] = cfg.OPEN_LLM_VTUBER_RECORD_MEMORY
     agent_settings["seed"] = cfg.OPEN_LLM_VTUBER_AGENT_SEED
 
@@ -442,6 +550,10 @@ def patch_vtuber_routes(vendor: Path) -> None:
     ]
     for old, new in replacements:
         text = text.replace(old, new)
+    text = text.replace(
+        '            await ws_handler.trigger_text_input(prompt)\n            await asyncio.sleep(float(vtuber_mode["interval"]))\n',
+        '            target_uid = ws_handler.first_client_uid()\n            active_task = ws_handler.current_conversation_tasks.get(target_uid) if target_uid else None\n            if active_task and not active_task.done():\n                logger.info("CREDO VTuber idle monologue skipped because a conversation is still running.")\n            else:\n                await ws_handler.trigger_text_input(prompt)\n            await asyncio.sleep(float(vtuber_mode["interval"]))\n',
+    )
     path.write_text(text, encoding="utf-8")
 
 

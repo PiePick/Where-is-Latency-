@@ -3,11 +3,15 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CONFIG_FILE="${CREDO_PROJECT_CONFIG:-${ROOT_DIR}/AI_NPC_System/project_config.sh}"
+USER_FAST_TRACK_ENABLED="${FAST_TRACK_ENABLED-}"
 if [ -f "${CONFIG_FILE}" ]; then
   set -a
   # shellcheck source=/dev/null
   source "${CONFIG_FILE}"
   set +a
+fi
+if [[ -n "${USER_FAST_TRACK_ENABLED}" ]]; then
+  export FAST_TRACK_ENABLED="${USER_FAST_TRACK_ENABLED}"
 fi
 
 OLV_DIR="$ROOT_DIR/vendor/open-llm-vtuber"
@@ -32,6 +36,11 @@ case "${FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK:-0}" in
   1|true|TRUE|yes|YES|on|ON) allow_open_llm_fast_tts=1 ;;
 esac
 
+fast_track_enabled=1
+case "${FAST_TRACK_ENABLED:-1}" in
+  0|false|FALSE|no|NO|off|OFF) fast_track_enabled=0 ;;
+esac
+
 resolve_path() {
   case "$1" in
     /*) printf '%s\n' "$1" ;;
@@ -40,7 +49,7 @@ resolve_path() {
 }
 
 fast_tts_mode="${FAST_TRACK_TTS_MODE:-piper_tts}"
-if [[ "${allow_open_llm_fast_tts}" != "1" && "${fast_tts_mode}" == "piper_tts" ]]; then
+if [[ "${fast_track_enabled}" == "1" && "${allow_open_llm_fast_tts}" != "1" && "${fast_tts_mode}" == "piper_tts" ]]; then
   piper_health="${PIPER_TTS_HEALTH_URL:-http://127.0.0.1:5001/health}"
   if ! "$VENV_DIR/bin/python" -c 'import sys, urllib.request; urllib.request.urlopen(sys.argv[1], timeout=1.5).close()' "${piper_health}" >/dev/null 2>&1; then
     echo "FastTrack realtime lightweight TTS is not ready." >&2
@@ -56,13 +65,13 @@ if [[ "${allow_open_llm_fast_tts}" != "1" && "${fast_tts_mode}" == "piper_tts" ]
 fi
 
 stylebert_ready=0
-if [[ "${fast_tts_mode}" == "stylebert_vits2" ]]; then
+if [[ "${fast_track_enabled}" == "1" && "${fast_tts_mode}" == "stylebert_vits2" ]]; then
   if "$VENV_DIR/bin/python" -c 'import sys, urllib.request; urllib.request.urlopen(sys.argv[1], timeout=1.5).close()'     "${STYLEBERT_VITS2_HEALTH_URL:-http://127.0.0.1:5000/docs}" >/dev/null 2>&1; then
     stylebert_ready=1
   fi
 fi
 
-if [[ "${allow_open_llm_fast_tts}" != "1" && "${fast_tts_mode}" == "stylebert_vits2" && "${stylebert_ready}" != "1" ]]; then
+if [[ "${fast_track_enabled}" == "1" && "${allow_open_llm_fast_tts}" != "1" && "${fast_tts_mode}" == "stylebert_vits2" && "${stylebert_ready}" != "1" ]]; then
   echo "FastTrack realtime lightweight TTS is not ready." >&2
   echo "Open-LLM-VTuber default TTS fallback is disabled to avoid the wrong cute FastTrack voice." >&2
   echo "StyleBERT-VITS2 is legacy for CREDO; use Piper unless you intentionally provide an English StyleBERT model." >&2
@@ -80,5 +89,10 @@ echo "Starting Open-LLM-VTuber with CREDO latency-cover agent."
 echo "Open: http://localhost:12393"
 echo "CREDO config: ${CONFIG_FILE}"
 echo "SlowTrack LLM: ${LOCAL_LLM_MODEL} (${LOCAL_LLM_BASE_URL})"
+if [[ "${fast_track_enabled}" == "1" ]]; then
+  echo "FastTrack: enabled (${FAST_TRACK_TTS_MODE:-piper_tts})"
+else
+  echo "FastTrack: disabled (SlowTrack-only experiment)"
+fi
 echo "Compute placement: Fish Speech GPU${FISH_SPEECH_CUDA_VISIBLE_DEVICES:-0}, FastTrack TTS ${FAST_TRACK_TTS_MODE:-piper_tts}, Local LLM GPU${LOCAL_LLM_CUDA_VISIBLE_DEVICES:-1}"
 exec "$VENV_DIR/bin/python" run_server.py
