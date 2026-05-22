@@ -9,12 +9,16 @@ grid proposed by the advisor:
 ```
 
 The local LLM is used offline only as a filter/re-writer over labeled dataset
-seeds. Each cell samples 30 same-emotion GoEmotions examples and 30 same-intent
-SWDA examples, pairs them, then asks the LLM to select/rewrite 5 reactions that
-match the single dataset-grounded VTuber persona. Fish Speech is then used offline to
-synthesize the selected sentences with the configured CREDO reference voice.
-Runtime should retrieve from the resulting manifest instead of calling the LLM or
-Fish Speech in the live FastTrack path.
+seeds. Before the LLM sees any seed text, the generator removes examples that are
+too specific for reusable live-chat reactions: proper names, brands, places,
+dates, numbers, politics/news terms, URLs, handles, and event-specific details.
+Each cell samples 30 same-emotion GoEmotions examples and 30 same-intent SWDA
+examples from that filtered pool, pairs them, then asks the LLM to
+select/rewrite 5 reactions that match the single dataset-grounded VTuber
+persona. Fish Speech is then used offline to synthesize the selected sentences
+with the configured CREDO reference voice. Runtime should retrieve from the
+resulting manifest instead of calling the LLM or Fish Speech in the live
+FastTrack path.
 
 ## Dimensions
 
@@ -31,8 +35,10 @@ represents one personality style axis, and synthesis expands that axis into a
 small chain of Fish Speech prosody cues. Those cues are limited to pitch, energy,
 pace, tension, and attitude. Nonverbal events such as laughs, giggles, sighs,
 sobs, or gasps are excluded from manifest text and inline TTS tags; they should
-be handled by separate timed motion/audio events. Manifest items also store seed
-sources and seed pairs for reproducibility.
+be handled by separate timed motion/audio events. The generator also validates
+LLM outputs with the same generic-context filter used for source seeds, so
+proper nouns or event-specific reactions are rejected before entering the
+manifest.
 
 ## Commands
 

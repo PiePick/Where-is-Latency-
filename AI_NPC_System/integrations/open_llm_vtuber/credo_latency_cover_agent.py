@@ -157,8 +157,14 @@ class CredoLatencyCoverAgent(AgentInterface):
     async def chat(self, input_data: BaseInput) -> AsyncIterator[AudioOutput | SentenceOutput]:
         """Yield immediate cover, then continue with SlowTrack when ready."""
         turn_started = time.perf_counter()
+        metadata = input_data.metadata if isinstance(input_data, BatchInput) and input_data.metadata else {}
         user_text, is_proactive = self._extract_input(input_data)
         if not user_text:
+            return
+
+        if metadata.get("vtuber_mode"):
+            async for output in self._chat_vtuber_mode(user_text, metadata, turn_started):
+                yield output
             return
 
         if not self.fast_track_enabled:
@@ -320,7 +326,7 @@ class CredoLatencyCoverAgent(AgentInterface):
                 actions=speech_actions,
             )
 
-        if self.memory:
+        if self.memory and not metadata.get("skip_memory"):
             self.memory.record_turn(
                 user_text=user_text,
                 assistant_text=slow_text,
@@ -336,6 +342,109 @@ class CredoLatencyCoverAgent(AgentInterface):
             engine="open_llm_vtuber_credo",
             metadata={"emotion": emotion, "intent": intent},
         )
+
+    async def _chat_vtuber_mode(
+        self,
+        user_text: str,
+        metadata: dict[str, Any],
+        turn_started: float,
+    ) -> AsyncIterator[AudioOutput | SentenceOutput]:
+        """Generate a cohesive solo/live-stream segment for CREDO VTuber mode."""
+        event = str(metadata.get("vtuber_event") or "idle")
+        emotion = str(metadata.get("emotion") or "positive").lower()
+        speech_actions = self._speech_actions(emotion, style_tag=metadata.get("style_tag"), text=user_text)
+        memory_context = self.memory.build_prompt_context() if self.memory else None
+
+        prompt = self._build_vtuber_prompt(user_text, metadata)
+        slow_started = time.perf_counter()
+        slow_text = await self._slow_track.generate_response(
+            prompt,
+            fast_reaction=None,
+            strategy=f"vtuber_mode:{event}",
+            memory_context=memory_context,
+            mode="vtuber_monologue",
+            max_tokens=getattr(self._credo_config, "CREDO_VTUBER_LLM_MAX_TOKENS", 180),
+        )
+        self._log_latency(
+            "vtuber_mode_llm",
+            slow_started,
+            text=prompt,
+            engine=self._credo_config.LOCAL_LLM_MODEL,
+            metadata={"event": event},
+        )
+
+        slow_text = self._clean_spoken_text(slow_text) or "Chat got quiet for a second, so I am keeping the room warm. What should we talk about next?"
+        speech_actions = self._speech_actions(emotion, style_tag=metadata.get("style_tag"), text=slow_text)
+
+        slow_tts_started = time.perf_counter()
+        slow_audio = await self._try_synthesize_slow_audio(slow_text)
+        self._log_latency(
+            "vtuber_mode_tts",
+            slow_tts_started,
+            text=slow_text,
+            engine="fish_speech" if slow_audio else "open_llm_tts_fallback",
+            metadata={"event": event, "audio_path": str(slow_audio) if slow_audio else None},
+        )
+
+        if slow_audio:
+            yield AudioOutput(
+                audio_path=str(slow_audio),
+                display_text=self._display(slow_text),
+                transcript=slow_text,
+                actions=speech_actions,
+            )
+        elif getattr(self._credo_config, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", False):
+            yield SentenceOutput(
+                display_text=self._display(slow_text),
+                tts_text=slow_text,
+                actions=speech_actions,
+            )
+        else:
+            yield SentenceOutput(
+                display_text=self._display(slow_text),
+                tts_text="",
+                actions=speech_actions,
+            )
+
+        if self.memory and not metadata.get("skip_memory"):
+            self.memory.record_turn(
+                user_text=f"VTuber mode {event}: {user_text}",
+                assistant_text=slow_text,
+                fast_reaction="",
+                emotion=emotion,
+                keywords=[str(metadata.get("topic") or ""), event],
+            )
+
+        self._log_latency(
+            "vtuber_mode_total",
+            turn_started,
+            text=slow_text,
+            engine="open_llm_vtuber_credo",
+            metadata={"event": event},
+        )
+
+    def _build_vtuber_prompt(self, text: str, metadata: dict[str, Any]) -> str:
+        """Make route-provided stream state explicit without exposing internals."""
+        topic = str(metadata.get("topic") or "").strip()
+        silence = metadata.get("silence_seconds")
+        last_chat = str(metadata.get("last_chat") or "").strip()
+        event = str(metadata.get("vtuber_event") or "idle")
+        parts = [str(text or "").strip()]
+        if topic:
+            parts.append(f"Current stream topic anchor: {topic}.")
+        if last_chat:
+            parts.append(f"Most recent viewer/chat context: {last_chat}")
+        if silence is not None:
+            parts.append(f"The chat has been quiet for about {int(float(silence))} seconds.")
+        if event == "idle":
+            parts.append(
+                "Continue the stream by yourself for a short while. Keep one clear thread, add one small detail, then invite chat back in."
+            )
+        elif event == "manual_monologue":
+            parts.append("Make this feel like an intentional streamer monologue, not a Q&A answer.")
+        elif event == "donation":
+            parts.append("React to the support warmly, then fold it back into the stream topic.")
+        return "\n".join(part for part in parts if part)
 
     async def _chat_slow_only(
         self,

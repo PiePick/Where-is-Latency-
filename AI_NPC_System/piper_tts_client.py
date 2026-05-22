@@ -42,7 +42,7 @@ class PiperTTSClient:
     def is_ready(self) -> tuple[bool, str]:
         """Return whether the resident Piper FastTrack server is reachable."""
         try:
-            with urllib.request.urlopen(self.cfg.health_url, timeout=1.5) as response:
+            with urllib.request.urlopen(self.cfg.health_url, timeout=5.0) as response:
                 if 200 <= response.status < 500:
                     return True, "Piper FastTrack TTS server is ready."
                 return False, f"Piper health returned HTTP {response.status}: {self.cfg.health_url}"
@@ -80,18 +80,32 @@ class PiperTTSClient:
             headers={"Content-Type": "application/x-www-form-urlencoded", "Accept": "audio/wav"},
             method="POST",
         )
-        try:
-            with urllib.request.urlopen(req, timeout=self.cfg.timeout) as response:
-                audio = response.read()
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"Piper FastTrack failed: HTTP {exc.code}: {body}") from exc
-        except urllib.error.URLError as exc:
-            raise RuntimeError(f"Piper FastTrack server is unreachable at {self.cfg.voice_url}: {exc}") from exc
+        audio = self._request_audio(req)
 
         out_path = self.cfg.output_dir / f"{prefix}_{int(time.time() * 1000)}.wav"
         out_path.write_bytes(audio)
         return out_path
+
+    def _request_audio(self, req: urllib.request.Request) -> bytes:
+        last_error: Exception | None = None
+        for attempt in range(1, 4):
+            try:
+                with urllib.request.urlopen(req, timeout=self.cfg.timeout) as response:
+                    return response.read()
+            except urllib.error.HTTPError as exc:
+                if 500 <= exc.code < 600 and attempt < 3:
+                    last_error = exc
+                    time.sleep(0.5 * attempt)
+                    continue
+                body = exc.read().decode("utf-8", errors="replace")
+                raise RuntimeError(f"Piper FastTrack failed: HTTP {exc.code}: {body}") from exc
+            except urllib.error.URLError as exc:
+                last_error = exc
+                if attempt < 3:
+                    time.sleep(0.5 * attempt)
+                    continue
+                raise RuntimeError(f"Piper FastTrack server is unreachable at {self.cfg.voice_url}: {exc}") from exc
+        raise RuntimeError(f"Piper FastTrack failed after retries: {last_error}")
 
     def speak(
         self,

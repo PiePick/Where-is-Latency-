@@ -23,6 +23,7 @@ DEFAULT_MEMORY = {
         "name": None,
         "likes": [],
         "dislikes": [],
+        "facts": [],
         "speaking_style": "casual",
     },
     "emotional_events": [],
@@ -59,6 +60,8 @@ class MemoryStore:
             lines.append(f"- User likes: {', '.join(profile['likes'][:8])}")
         if profile.get("dislikes"):
             lines.append(f"- User dislikes: {', '.join(profile['dislikes'][:8])}")
+        if profile.get("facts"):
+            lines.append(f"- Useful user facts: {'; '.join(profile['facts'][:8])}")
         if profile.get("speaking_style"):
             lines.append(f"- User speaking style: {profile['speaking_style']}")
 
@@ -147,6 +150,25 @@ class MemoryStore:
             match = re.search(pattern, text, flags=re.IGNORECASE)
             if match:
                 self._append_unique(profile.setdefault(field, []), self._trim_phrase(match.group(1)), 12)
+
+        fact_patterns = [
+            r"\bi(?:'m| am) working on\s+([^.!?]{2,100})",
+            r"\bi(?:'m| am) studying\s+([^.!?]{2,100})",
+            r"\bi(?:'m| am) building\s+([^.!?]{2,100})",
+            r"\bmy project is\s+([^.!?]{2,100})",
+            r"\bmy favorite\s+([^.!?]{2,100})",
+            r"\bi(?:'m| am) from\s+([^.!?]{2,80})",
+        ]
+        for pattern in fact_patterns:
+            match = re.search(pattern, text, flags=re.IGNORECASE)
+            if match:
+                self._append_unique(profile.setdefault("facts", []), self._trim_phrase(match.group(0)), 16)
+                break
+
+        if re.search(r"\b(?:speak|talk|answer|reply)\b.*\bcasual(?:ly)?\b", text, flags=re.IGNORECASE):
+            profile["speaking_style"] = "casual"
+        elif re.search(r"\b(?:speak|talk|answer|reply)\b.*\bshort(?:ly)?\b", text, flags=re.IGNORECASE):
+            profile["speaking_style"] = "brief"
 
     def _append_recent_turn(
         self,

@@ -31,6 +31,27 @@ REFERENCE_DIR="${FISH_DIR}/references/${REFERENCE_ID}"
 FFMPEG_BIN="${FFMPEG_BIN:-${ROOT_DIR}/vendor/open-llm-vtuber/.venv/bin/ffmpeg}"
 EDGE_TTS_PYTHON="${EDGE_TTS_PYTHON:-${ROOT_DIR}/vendor/open-llm-vtuber/.venv/bin/python}"
 
+if "${ROOT_DIR}/vendor/open-llm-vtuber/.venv/bin/python" - "${HOST}" "${PORT}" <<'PY'
+import socket
+import sys
+
+host, port = sys.argv[1], int(sys.argv[2])
+sock = socket.socket()
+sock.settimeout(1.0)
+try:
+    sock.connect((host, port))
+except OSError:
+    raise SystemExit(1)
+else:
+    raise SystemExit(0)
+finally:
+    sock.close()
+PY
+then
+  echo "Fish Speech server already appears to be running on http://${HOST}:${PORT}; not starting a duplicate."
+  exit 0
+fi
+
 if [ -n "${FISH_SPEECH_PYTHON:-}" ]; then
   PYTHON_BIN="${FISH_SPEECH_PYTHON}"
 elif [ -x "${DEFAULT_VENV_PYTHON}" ]; then

@@ -1,0 +1,11 @@
+{
+  "engine": "open_llm_vtuber.cosyvoice2_tts",
+  "client_url": "http://127.0.0.1:50000/",
+  "mode_checkbox_group": "3s极速复刻",
+  "text": "Oh yeah, that sounds awesome!",
+  "prompt_wav": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/VoiceSample/cosyvoice_refs/second_try_16k.wav",
+  "prompt_text": "I’m just like any other mom. My kids are a handful, my husband works shifts, and I have no time to myself. I wonder, Could time grow on trees?",
+  "latency_seconds": 4.031,
+  "returned_path": "/mnt/c/Users/CGLAB/AppData/Local/Temp/gradio/c86bacb6fa0aa3994170519b2937d3e50e7ce39ee9c3616cec68c697c450c200/audio.wav",
+  "audio_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_style_examples/cosyvoice2_open_llm_vtuber/cosyvoice2_openllm_client_second_try_sample.wav"
+}

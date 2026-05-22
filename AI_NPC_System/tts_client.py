@@ -46,7 +46,7 @@ class FishSpeechTTSClient:
         """Check whether the Fish Speech API server is reachable."""
         req = urllib.request.Request(self.cfg.health_url, method="GET")
         try:
-            with urllib.request.urlopen(req, timeout=3.0) as response:
+            with urllib.request.urlopen(req, timeout=15.0) as response:
                 return response.status == 200
         except Exception:
             return False
@@ -82,19 +82,34 @@ class FishSpeechTTSClient:
             headers["Authorization"] = f"Bearer {self.cfg.api_key}"
 
         req = urllib.request.Request(self.cfg.tts_url, data=data, headers=headers, method="POST")
-        try:
-            with urllib.request.urlopen(req, timeout=self.cfg.timeout) as response:
-                audio = response.read()
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"Fish Speech TTS failed: HTTP {exc.code}: {body}") from exc
-        except urllib.error.URLError as exc:
-            raise RuntimeError(f"Fish Speech TTS server is unreachable at {self.cfg.tts_url}: {exc}") from exc
+        audio = self._request_audio(req)
 
         suffix = self.cfg.audio_format
         out_path = self.cfg.output_dir / f"{prefix}_{int(time.time() * 1000)}.{suffix}"
         out_path.write_bytes(audio)
         return out_path
+
+    def _request_audio(self, req: urllib.request.Request) -> bytes:
+        """Request audio with a small retry budget for transient local server hiccups."""
+        last_error: Exception | None = None
+        for attempt in range(1, 4):
+            try:
+                with urllib.request.urlopen(req, timeout=self.cfg.timeout) as response:
+                    return response.read()
+            except urllib.error.HTTPError as exc:
+                if 500 <= exc.code < 600 and attempt < 3:
+                    last_error = exc
+                    time.sleep(1.5 * attempt)
+                    continue
+                body = exc.read().decode("utf-8", errors="replace")
+                raise RuntimeError(f"Fish Speech TTS failed: HTTP {exc.code}: {body}") from exc
+            except urllib.error.URLError as exc:
+                last_error = exc
+                if attempt < 3:
+                    time.sleep(1.5 * attempt)
+                    continue
+                raise RuntimeError(f"Fish Speech TTS server is unreachable at {self.cfg.tts_url}: {exc}") from exc
+        raise RuntimeError(f"Fish Speech TTS failed after retries: {last_error}")
 
     def speak(self, text: str, *, prefix: str = "tts") -> Path:
         """Synthesize audio and play it when auto-play is enabled."""

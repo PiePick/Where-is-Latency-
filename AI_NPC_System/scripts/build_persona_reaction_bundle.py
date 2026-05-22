@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import fcntl
 import json
 import re
 import sys
@@ -30,7 +31,17 @@ from tts_client import FishSpeechTTSClient, FishSpeechTTSConfig  # noqa: E402
 
 
 EMOTIONS = ("Positive", "Negative", "Ambiguous", "Neutral")
-INTENTS = ("QUESTION", "INFORM", "ACKNOWLEDGE", "DIRECTIVE", "EXPRESSIVE", "REJECT")
+USER_INTENTS = ("QUESTION", "INFORM", "ACKNOWLEDGE", "DIRECTIVE", "EXPRESSIVE", "REJECT")
+RESPONSE_ACTS = ("QUESTION", "INFORM", "ACKNOWLEDGE", "DIRECTIVE", "EXPRESSIVE", "REJECT")
+INTENTS = USER_INTENTS
+RESPONSE_ACT_DESCRIPTIONS = {
+    "QUESTION": "ask a short follow-up question or invite clarification",
+    "INFORM": "add a small observation or grounded comment",
+    "ACKNOWLEDGE": "show that the viewer was heard with a short acknowledgement",
+    "DIRECTIVE": "give a light suggestion, encouragement, or next-step nudge",
+    "EXPRESSIVE": "react emotionally with surprise, delight, concern, or emphasis",
+    "REJECT": "softly push back, decline, or express uncertainty without hostility",
+}
 STYLE_TAGS = {
     "high-pitched": {
         "label": "high-pitched",
@@ -92,6 +103,69 @@ DISALLOWED_TTS_EVENT_CUES = {
     "gasping",
 }
 
+SPECIFIC_CONTENT_RE = re.compile(
+    r"(?ix)"
+    r"(https?://|www\.|[@#][A-Za-z0-9_]+|\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b)"
+    r"|\b(?:19|20)\d{2}\b"
+    r"|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\b"
+    r"|\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b"
+    r"|[$€£¥]\s*\d|\b\d+(?:\.\d+)?\s*(?:percent|%)\b"
+    r"|\b(?:president|senator|minister|parliament|congress|election|campaign|court|lawsuit|trial)\b"
+    r"|\b(?:facebook|twitter|x\.com|youtube|tiktok|instagram|reddit|netflix|disney|google|microsoft|apple|amazon)\b"
+    r"|\b(?:username|screen\s*name|handle)\b"
+)
+
+CONCRETE_TOPIC_RE = re.compile(
+    r"\b(?:"
+    r"lake house|parliament|congress|court|trial|election|campaign|"
+    r"movie|show|episode|series|song|album|book|novel|game|games|match|team|player|"
+    r"school|college|university|class|exam|hospital|airport|restaurant|hotel|"
+    r"house|apartment|office|company|store|car|truck|phone|computer"
+    r")\b"
+    r"|\bwhat kind of\s+[a-z]+",
+    flags=re.I,
+)
+
+TITLE_OR_PLACE_RE = re.compile(
+    r"\b(?:Mr|Mrs|Ms|Dr|Prof|President|Senator|Governor|Mayor|Minister)\.?\s+[A-Z][a-z]+"
+    r"|\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}\b"
+    r"|\b[A-Z][a-z]+\s+(?:City|County|State|University|College|Hospital|Airport|Street|Avenue|Road)\b"
+)
+
+ALLOWED_TITLECASE_TOKENS = {"I", "I'm", "I've", "I'll", "I'd", "OK", "TV", "AI", "LLM", "TTS"}
+
+GENERIC_REACTION_WORDS = {
+    "a", "about", "ah", "all", "actually", "again", "ago", "alright", "always", "am", "and", "any", "anything", "are", "as", "at", "aww",
+    "be", "best", "bet", "bit", "but", "can", "can't", "check", "come", "cool", "could", "did", "didn't", "do", "does",
+    "don't", "even", "ever", "expect", "feel", "feels", "fine", "for", "from", "fun", "funny", "get", "give", "go",
+    "good", "got", "great", "guess", "ha", "haha", "happen", "happened", "hard", "have", "heard", "hey",
+    "honestly", "how", "huh", "i", "i'd", "i'll", "i'm", "i've", "idea", "if", "in", "is",
+    "isn't", "it", "it's", "just", "kind", "know", "like", "looks", "love", "maybe", "mean",
+    "believe", "curious", "amazing", "awesome", "decide", "ideas", "interesting", "known", "let's", "made", "makes", "point", "real", "sense", "serious", "seriously",
+    "me", "more", "much", "nah", "nice", "no", "not", "now", "of", "oh", "okay", "on", "one",
+    "or", "out", "please", "pretty", "really", "right", "same", "say", "see", "serious", "so",
+    "some", "someone", "something", "sort", "sounds", "special", "still", "stuff", "sure", "sweet", "tell", "that", "that's", "the", "them", "then",
+    "there", "they", "thing", "think", "this", "those", "though", "time", "to", "too", "totally", "true",
+    "uh", "um", "up", "view", "wanna", "wait", "was", "way", "we", "well", "what", "what's", "whoa", "why", "wild",
+    "with", "wow", "yeah", "yep", "yes", "you", "you'd", "you'll", "you're", "you've", "your",
+    "bad", "better", "big", "breathe", "calm", "careful", "couldn't", "easy", "else", "enough",
+    "everything", "hard", "hear", "heavy", "hold", "hurts", "keep", "long", "little", "lot", "memories", "might",
+    "must", "nothing", "oof", "ready", "rough", "sad", "should", "small", "sorry", "start",
+    "stop", "tough", "try", "trying", "understand", "weird", "worse", "would", "wouldn't",
+    "next", "particularly", "plate", "relax", "seem", "share", "shot", "show", "take", "want", "wrong", "yikes",
+}
+
+FRAGMENT_END_RE = re.compile(
+    r"(?i)\b(?:"
+    r"a|an|and|any|are|at|but|can|could|do|does|did|else|ever|for|from|if|in|is|"
+    r"just|like|of|on|or|really|say|so|that|the|then|to|try|uh|um|well|what|with|would"
+    r")\s*[?.!]*$"
+)
+INCOMPLETE_QUESTION_RE = re.compile(
+    r"(?i)\b(?:did|do|does|can|could|would|will|have|has|had|are|is|was|were)\s+you[?.!]*$"
+)
+REPEATED_TOKEN_RE = re.compile(r"(?i)\b([a-z]+),?\s+\1\b")
+
 DEFAULT_VARIANTS_PER_CELL = 5
 DEFAULT_PERSONALITY_ID = "dataset_grounded_playful_vtuber"
 DEFAULT_PERSONALITY = (
@@ -107,12 +181,12 @@ DEFAULT_PERSONALITY = (
 @dataclass(frozen=True)
 class Cell:
     emotion: str
-    intent: str
+    response_act: str
     style_tag: str
 
     @property
     def id(self) -> str:
-        return f"{self.emotion.lower()}_{self.intent.lower()}_{self.style_tag}"
+        return f"{self.emotion.lower()}_{self.response_act.lower()}_{self.style_tag}"
 
 
 def parse_args() -> argparse.Namespace:
@@ -124,6 +198,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--emotion-data", type=Path, default=ROOT / "prepared_fasttrack_data" / "go_emotions_coarse.jsonl")
     parser.add_argument("--intent-data", type=Path, default=ROOT / "prepared_fasttrack_data" / "swda_intent_coarse.jsonl")
     parser.add_argument("--candidate-pool-size", type=int, default=30)
+    parser.add_argument(
+        "--allow-specific-content",
+        action="store_true",
+        help="Disable generic-context filtering for names, dates, brands, politics, places, and news-like seeds.",
+    )
     parser.add_argument("--seed-max-words", type=int, default=10)
     parser.add_argument("--seed-max-chars", type=int, default=96)
     parser.add_argument("--model", default=config.LOCAL_LLM_MODEL)
@@ -132,16 +211,44 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--timeout", type=float, default=max(config.LOCAL_LLM_TIMEOUT, 60.0))
     parser.add_argument("--temperature", type=float, default=0.8)
     parser.add_argument("--max-tokens", type=int, default=300)
+    parser.add_argument("--llm-attempts", type=int, default=10, help="Maximum LLM retries per cell when filtering removes invalid candidates.")
     parser.add_argument("--limit-cells", type=int, default=0, help="Debug limit. 0 means all 120 cells.")
     parser.add_argument("--skip-existing", action="store_true", help="Reuse existing text cells.")
     parser.add_argument("--synthesize", action="store_true", help="Also synthesize missing Fish Speech audio.")
+    parser.add_argument(
+        "--disable-tts-cues",
+        action="store_true",
+        help="Synthesize plain reaction text without inline Fish Speech style cues. Use this when cues are read aloud.",
+    )
     parser.add_argument("--audio-limit", type=int, default=0, help="Debug limit for synthesis. 0 means all missing audio.")
     parser.add_argument("--format", default=config.FISH_SPEECH_FORMAT, choices=("wav", "mp3", "opus", "pcm"))
     return parser.parse_args()
 
 
 def cells() -> list[Cell]:
-    return [Cell(emotion, intent, style) for emotion in EMOTIONS for intent in INTENTS for style in STYLE_TAGS]
+    return [
+        Cell(emotion, response_act, style)
+        for emotion in EMOTIONS
+        for response_act in RESPONSE_ACTS
+        for style in STYLE_TAGS
+    ]
+
+
+def acquire_output_lock(output_dir: Path):
+    """Prevent concurrent writers from corrupting the same manifest/audio tree."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    lock_path = output_dir / ".build_persona_reaction_bundle.lock"
+    lock_file = lock_path.open("w", encoding="utf-8")
+    try:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError as exc:
+        raise SystemExit(
+            f"Another bundle build is already using {output_dir}. "
+            f"Wait for it to finish, or stop it before retrying. Lock: {lock_path}"
+        ) from exc
+    lock_file.write(f"pid={getattr(__import__('os'), 'getpid')()}\n")
+    lock_file.flush()
+    return lock_file
 
 
 def chat_completion(args: argparse.Namespace, messages: list[dict[str, str]]) -> str:
@@ -174,6 +281,7 @@ def chat_completion(args: argparse.Namespace, messages: list[dict[str, str]]) ->
 
 def clean_dataset_text(text: str) -> str:
     text = re.sub(r"\s+", " ", str(text or "")).strip()
+    text = text.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
     text = text.replace("\\/", "/")
     # SWDA/GPT-style transcript markers such as D, F, C, and trailing slash are labels, not spoken text.
     text = re.sub(r"(?<![A-Za-z])(?:[CDFM])\s*,?\s+", "", text)
@@ -185,7 +293,12 @@ def clean_dataset_text(text: str) -> str:
     return text
 
 
-def load_labeled_jsonl(path: Path, allowed_labels: set[str] | dict[str, tuple[str, ...]]) -> dict[str, list[str]]:
+def load_labeled_jsonl(
+    path: Path,
+    allowed_labels: set[str] | dict[str, tuple[str, ...]],
+    *,
+    allow_specific_content: bool = False,
+) -> dict[str, list[str]]:
     if isinstance(allowed_labels, dict):
         label_aliases = {
             str(target).upper(): tuple(str(alias).upper() for alias in aliases)
@@ -210,12 +323,102 @@ def load_labeled_jsonl(path: Path, allowed_labels: set[str] | dict[str, tuple[st
             if target_label is None:
                 continue
             text = clean_dataset_text(row.get("text", ""))
-            if is_usable_seed(text):
+            if is_usable_seed(text, allow_specific_content=allow_specific_content):
                 buckets[target_label].append(text)
     return buckets
 
 
-def is_usable_seed(text: str) -> bool:
+def is_general_context_text(text: str) -> bool:
+    """Reject seeds/reactions that are too specific for reusable FastTrack speech."""
+    text = clean_dataset_text(text)
+    if SPECIFIC_CONTENT_RE.search(text):
+        return False
+
+    if TITLE_OR_PLACE_RE.search(text):
+        return False
+
+    if CONCRETE_TOPIC_RE.search(text):
+        return False
+
+    if len(re.findall(r"\d", text)) >= 2:
+        return False
+
+    return True
+
+
+def is_generic_reaction_text(text: str) -> bool:
+    """Apply a stricter generic-live-chat filter to final LLM reactions."""
+    text = clean_reaction_text(text)
+    if not is_general_context_text(text):
+        return False
+    if not text.endswith((".", "!", "?")):
+        return False
+    if "#" in text:
+        return False
+    if FRAGMENT_END_RE.search(text):
+        return False
+    if INCOMPLETE_QUESTION_RE.search(text):
+        return False
+    if REPEATED_TOKEN_RE.search(text):
+        return False
+    if re.search(r"(?i)\b(?:uh|um)\b", text):
+        return False
+    tokens = re.findall(r"[A-Za-z][A-Za-z']*", text.lower())
+    if not tokens:
+        return False
+    unknown = [token for token in tokens if token not in GENERIC_REACTION_WORDS]
+    if unknown:
+        return False
+    return True
+
+
+def is_response_act_compatible(text: str, response_act: str) -> bool:
+    """Reject lines that do not perform the requested response act.
+
+    This is intentionally simple and conservative. The LLM may rewrite seeds,
+    but final candidates still need an observable dialogue act so runtime can
+    sample response_act probabilistically from the incoming user intent.
+    """
+    text = clean_reaction_text(text)
+    lowered = text.lower()
+    act = str(response_act or "ACKNOWLEDGE").upper()
+    if act == "QUESTION":
+        return text.endswith("?") or "tell me more" in lowered
+    if act == "DIRECTIVE":
+        return bool(
+            re.search(
+                r"\b(?:try|keep|go|do|take|tell|show|start|stop|wait|hold|give|check|relax|want to|let's|you can|you should|should)\b",
+                lowered,
+            )
+        )
+    if act == "ACKNOWLEDGE":
+        return bool(
+            re.search(r"\b(?:yeah|yep|yes|okay|ok|sure|right|got it|i see|fair enough|makes sense|that's true)\b", lowered)
+        )
+    if act == "EXPRESSIVE":
+        return bool(
+            re.search(r"\b(?:wow|whoa|woah|oh|no way|oof|yikes|awesome|amazing|wild|nice|great|really|seriously)\b", lowered)
+            or text.endswith("!")
+        )
+    if act == "REJECT":
+        return bool(
+            re.search(
+                r"\b(?:no|nah|nope|not|can't|cannot|don't|wouldn't|maybe not|not always|not what|hard to|i'm not sure|unsure|you sure|are you serious|you're serious|didn't expect|sort of)\b",
+                lowered,
+            )
+        )
+    if act == "INFORM":
+        if text.endswith("?"):
+            return False
+        if is_response_act_compatible(text, "DIRECTIVE") or is_response_act_compatible(text, "REJECT"):
+            return False
+        return bool(
+            re.search(r"\b(?:that|this|it|they|you|sounds|feels|looks|is|was|seems|means|kind of)\b", lowered)
+        )
+    return True
+
+
+def is_usable_seed(text: str, *, allow_specific_content: bool = False) -> bool:
     if not text:
         return False
     words = text.split()
@@ -225,16 +428,26 @@ def is_usable_seed(text: str) -> bool:
         return False
     if sum(ch.isalpha() for ch in text) < 8:
         return False
+    if not allow_specific_content and not is_general_context_text(text):
+        return False
     return True
 
 
 def build_seed_pools(args: argparse.Namespace) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     emotion_labels = {emotion.upper(): (emotion.upper(),) for emotion in EMOTIONS}
     emotion_labels["AMBIGUOUS"] = ("AMBIGUOUS", "SURPRISE")
-    intent_labels = {intent.upper() for intent in INTENTS}
+    intent_labels = {intent.upper() for intent in RESPONSE_ACTS}
     return (
-        load_labeled_jsonl(args.emotion_data, emotion_labels),
-        load_labeled_jsonl(args.intent_data, intent_labels),
+        load_labeled_jsonl(
+            args.emotion_data,
+            emotion_labels,
+            allow_specific_content=args.allow_specific_content,
+        ),
+        load_labeled_jsonl(
+            args.intent_data,
+            intent_labels,
+            allow_specific_content=args.allow_specific_content,
+        ),
     )
 
 
@@ -284,18 +497,28 @@ def build_prompt(
     user = {
         "personality": args.personality,
         "emotion": cell.emotion,
-        "response_intent": cell.intent,
+        "response_act": cell.response_act,
+        "response_act_description": RESPONSE_ACT_DESCRIPTIONS[cell.response_act],
         "style_tag": cell.style_tag,
         "style_instruction": style["instruction"],
         "labeled_seed_pairs": seed_pairs,
         "task": (
             f"Pick exactly {args.variants_per_cell} rows from labeled_seed_pairs and rewrite each into one short FastTrack reaction. "
-            "Keys: pair_id=row id, emotion_seed=same-emotion evidence, intent_seed=same-intent evidence. "
+            "Keys: pair_id=row id, emotion_seed=same-emotion evidence, intent_seed=response-act evidence. "
+            "The intent_seed is evidence for the response act, not the incoming viewer intent. "
             "Ground every reaction in one row's emotion_seed+intent_seed; do not create from scratch. "
+            "Every reaction must perform the requested response_act. For example, response_act=QUESTION means the VTuber asks a follow-up question; response_act=DIRECTIVE means the VTuber gives a light suggestion; response_act=ACKNOWLEDGE means the VTuber simply acknowledges. "
+            "Do not make a fixed answer for an incoming user intent; runtime will sample response_act probabilistically from the detected user intent. "
             "Make the persona/style obvious only through tone, rhythm, informality, punctuation, and wording grounded in the selected seeds. "
-            "Do not add catchphrases, meme words, names, character-lore terms, or topic details unless they are present in the seeds. "
-            "Remove dataset transcript markers such as standalone C, D, F, M, slashes, and broken hesitation labels. "
-            "Each reaction must be 3 to 12 words, self-contained, audience-safe, and not a dataset quote. "
+            "Avoid proper nouns, personal names, brands, locations, dates, numbers, politics, news events, and topic details that would not work in a generic live-chat situation. "
+            "Do not preserve concrete seed nouns like shows, houses, jobs, schools, places, products, teams, or events; generalize them with pronouns such as it, that, this, they, or you. "
+            "The final sentence should still make sense when heard without knowing the original dataset topic. "
+            "Use only generic reaction words such as: oh, wow, whoa, yeah, no, okay, really, seriously, that, this, it, you, they, something, thing, stuff, way, idea, feel, think, know, mean, wild, funny, nice, good, great, sure, maybe, wait, tell me more. "
+            "Do not use concrete topic words such as template, class, peppermint, comic, souvenir, show, game, job, school, house, crime, company, or platform words like upvote. "
+            "Do not add catchphrases, meme words, names, character-lore terms, or topic details unless they are present in the seeds and still generic. "
+            "Remove dataset transcript markers such as standalone C, D, F, M, slashes, broken hesitation labels, filler words like uh/um, repeated transcript words, and unfinished fragments. "
+            "Every sentence must end naturally with a period, question mark, or exclamation mark. Never end with dangling words like if, so, but, can, try, say, uh, or um. "
+            "Each reaction must be 3 to 10 words, self-contained, audience-safe, reusable across ordinary chat contexts, and not a dataset quote. "
             "Avoid repeated wording."
         ),
         "json_schema": {"reactions": ["sentence 1", "sentence 2"]},
@@ -412,6 +635,9 @@ def _validate_tts_cues(cues: list[str]) -> None:
 
 def synthesis_text_for_item(item: dict[str, Any]) -> str:
     """Add compact Fish Speech prosody cue chains only for synthesis."""
+    if item.get("disable_tts_cues"):
+        return str(item.get("tts_text") or item.get("reaction") or "").strip()
+
     emotion = str(item.get("emotion") or "Neutral")
     style_tag = str(item.get("style_tag") or "").strip()
     cues: list[str] = []
@@ -450,8 +676,9 @@ def compact_manifest_item(
         "id": item_id,
         "cell_id": cell.id,
         "reaction": reaction_text,
-        "audio_path": item.get("audio_path"),
     }
+    if item.get("audio_path"):
+        compact["audio_path"] = item.get("audio_path")
     tts_text = clean_reaction_text(item.get("tts_text") or "")
     if tts_text and tts_text != reaction_text:
         compact["tts_text"] = tts_text
@@ -487,6 +714,68 @@ def validate_manifest_items(items: list[dict[str, Any]]) -> None:
 def cells_by_id(cell_payloads: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return {str(cell.get("cell_id")): cell for cell in cell_payloads if isinstance(cell, dict)}
 
+
+def make_manifest(
+    args: argparse.Namespace,
+    bundle_cells: list[dict[str, Any]],
+    manifest_items: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "version": "credo-persona-reaction-bundle-v2",
+        "created_at_unix": time.time(),
+        "personality_id": args.personality_id,
+        "personality": args.personality,
+        "dimensions": {
+            "emotions": list(EMOTIONS),
+            "user_intents": list(USER_INTENTS),
+            "response_acts": list(RESPONSE_ACTS),
+            "style_tags": list(STYLE_TAGS),
+            "variants_per_cell": args.variants_per_cell,
+        },
+        "style_tag_details": STYLE_TAGS,
+        "style_tts_cue_chains": STYLE_TTS_CUE_CHAINS,
+        "tts_cue_policy": "Fish Speech inline cues control only pitch, energy, pace, tension, and attitude. Nonverbal events such as laugh, giggle, sigh, sob, or gasp are excluded and should be handled by separate motion/audio events.",
+        "labeled_dataset_sources": {
+            "emotion_data": str(args.emotion_data),
+            "intent_data": str(args.intent_data),
+            "candidate_pool_size": args.candidate_pool_size,
+            "seed_pair_count_per_cell": args.candidate_pool_size,
+            "seed_max_words": args.seed_max_words,
+            "seed_max_chars": args.seed_max_chars,
+            "generic_context_filter": not args.allow_specific_content,
+            "generic_context_filter_policy": "Reject names, brands, places, dates, numeric/event-specific content, politics/news terms, URLs, handles, concrete topic nouns, and reusable-chat-unfriendly seed/reaction text before and after LLM filtering.",
+        },
+        "llm_filter": {
+            "model": args.model,
+            "base_url": args.base_url,
+            "temperature": args.temperature,
+            "max_tokens": args.max_tokens,
+            "llm_attempts": args.llm_attempts,
+            "role": "filter_and_rewrite_labeled_dataset_seeds",
+        },
+        "tts_reference": {
+            "engine": "fish_speech",
+            "reference_id": config.FISH_SPEECH_REFERENCE_ID,
+            "source_dir": str(PROJECT_ROOT / "vendor" / "fish-speech" / "references" / str(config.FISH_SPEECH_REFERENCE_ID)),
+            "use_memory_cache": "off",
+        },
+        "cells": bundle_cells,
+        "items": manifest_items,
+    }
+
+
+def write_manifest_checkpoint(
+    args: argparse.Namespace,
+    manifest_path: Path,
+    bundle_cells: list[dict[str, Any]],
+    manifest_items: list[dict[str, Any]],
+) -> dict[str, Any]:
+    manifest = make_manifest(args, bundle_cells, manifest_items)
+    validate_manifest_items(manifest_items)
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    return manifest
+
+
 def build_text_bundle(args: argparse.Namespace, manifest_path: Path) -> dict[str, Any]:
     existing: dict[str, Any] = {}
     if args.skip_existing and manifest_path.exists():
@@ -520,22 +809,24 @@ def build_text_bundle(args: argparse.Namespace, manifest_path: Path) -> dict[str
                 manifest_items.append(item)
         else:
             accepted_reactions: list[str] = []
+            accepted_keys: set[str] = set()
             last_count = 0
-            for attempt in range(1, 6):
+            seed_pairs: list[dict[str, str]] = []
+            for attempt in range(1, args.llm_attempts + 1):
                 emotion_seeds = sample_seed_pool(
                     emotion_buckets.get(cell.emotion.upper(), []),
                     seed_key=f"{cell.id}:emotion:{attempt}",
                     size=args.candidate_pool_size,
                 )
                 intent_seeds = sample_seed_pool(
-                    intent_buckets.get(cell.intent.upper(), []),
-                    seed_key=f"{cell.id}:intent:{attempt}",
+                    intent_buckets.get(cell.response_act.upper(), []),
+                    seed_key=f"{cell.id}:response_act:{attempt}",
                     size=args.candidate_pool_size,
                 )
                 if not emotion_seeds:
                     raise RuntimeError(f"No emotion-labeled seeds for {cell.emotion} from {args.emotion_data}")
                 if not intent_seeds:
-                    raise RuntimeError(f"No intent-labeled seeds for {cell.intent} from {args.intent_data}")
+                    raise RuntimeError(f"No response-act-labeled seeds for {cell.response_act} from {args.intent_data}")
                 seed_pairs = build_seed_pairs(
                     emotion_seeds,
                     intent_seeds,
@@ -546,28 +837,32 @@ def build_text_bundle(args: argparse.Namespace, manifest_path: Path) -> dict[str
                 try:
                     reactions = parse_reactions(raw, args.variants_per_cell)
                 except RuntimeError:
-                    last_count = 0
+                    last_count = len(accepted_reactions)
                     continue
-                tentative: list[str] = []
-                tentative_keys: set[str] = set()
                 for reaction in reactions:
-                    key = normalize_reaction_key(reaction)
-                    if key in tentative_keys:
+                    if not args.allow_specific_content and not is_generic_reaction_text(reaction):
                         continue
-                    tentative_keys.add(key)
-                    tentative.append(reaction)
-                last_count = len(tentative)
-                if len(tentative) == args.variants_per_cell:
-                    accepted_reactions = tentative
+                    if not is_response_act_compatible(reaction, cell.response_act):
+                        continue
+                    key = normalize_reaction_key(reaction)
+                    if key in accepted_keys:
+                        continue
+                    accepted_keys.add(key)
+                    accepted_reactions.append(reaction)
+                    if len(accepted_reactions) >= args.variants_per_cell:
+                        break
+                last_count = len(accepted_reactions)
+                if len(accepted_reactions) >= args.variants_per_cell:
+                    accepted_reactions = accepted_reactions[: args.variants_per_cell]
                     break
             if len(accepted_reactions) != args.variants_per_cell:
                 raise RuntimeError(
-                    f"Cell {cell.id} produced duplicate reactions inside the cell after 5 attempts: "
+                    f"Cell {cell.id} produced too few generic reactions after {args.llm_attempts} attempts: "
                     f"expected {args.variants_per_cell}, got {last_count}"
                 )
             for index, reaction in enumerate(accepted_reactions, start=1):
                 item = compact_manifest_item(
-                    {"id": f"{cell.id}_{index:02d}", "audio_path": None},
+                    {"id": f"{cell.id}_{index:02d}"},
                     cell,
                     args,
                     reaction=reaction,
@@ -579,54 +874,15 @@ def build_text_bundle(args: argparse.Namespace, manifest_path: Path) -> dict[str
             {
                 "cell_id": cell.id,
                 "emotion": cell.emotion,
-                "intent": cell.intent,
+                "response_act": cell.response_act,
                 "style_tag": cell.style_tag,
                 "item_ids": [item["id"] for item in cell_items],
             }
         )
         print(f"text cell {cell.id}: {len(cell_items)} reactions")
+        write_manifest_checkpoint(args, manifest_path, bundle_cells, manifest_items)
 
-    manifest = {
-        "version": "credo-persona-reaction-bundle-v2",
-        "created_at_unix": time.time(),
-        "personality_id": args.personality_id,
-        "personality": args.personality,
-        "dimensions": {
-            "emotions": list(EMOTIONS),
-            "intents": list(INTENTS),
-            "style_tags": list(STYLE_TAGS),
-            "variants_per_cell": args.variants_per_cell,
-        },
-        "style_tag_details": STYLE_TAGS,
-        "style_tts_cue_chains": STYLE_TTS_CUE_CHAINS,
-        "tts_cue_policy": "Fish Speech inline cues control only pitch, energy, pace, tension, and attitude. Nonverbal events such as laugh, giggle, sigh, sob, or gasp are excluded and should be handled by separate motion/audio events.",
-        "labeled_dataset_sources": {
-            "emotion_data": str(args.emotion_data),
-            "intent_data": str(args.intent_data),
-            "candidate_pool_size": args.candidate_pool_size,
-            "seed_pair_count_per_cell": args.candidate_pool_size,
-            "seed_max_words": args.seed_max_words,
-            "seed_max_chars": args.seed_max_chars,
-        },
-        "llm_filter": {
-            "model": args.model,
-            "base_url": args.base_url,
-            "temperature": args.temperature,
-            "max_tokens": args.max_tokens,
-            "role": "filter_and_rewrite_labeled_dataset_seeds",
-        },
-        "tts_reference": {
-            "engine": "fish_speech",
-            "reference_id": config.FISH_SPEECH_REFERENCE_ID,
-            "source_dir": str(PROJECT_ROOT / "vendor" / "fish-speech" / "references" / str(config.FISH_SPEECH_REFERENCE_ID)),
-            "use_memory_cache": "off",
-        },
-        "cells": bundle_cells,
-        "items": manifest_items,
-    }
-    validate_manifest_items(manifest_items)
-    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-    return manifest
+    return write_manifest_checkpoint(args, manifest_path, bundle_cells, manifest_items)
 
 
 def synthesize_missing_audio(args: argparse.Namespace, manifest: dict[str, Any], manifest_path: Path) -> None:
@@ -650,11 +906,23 @@ def synthesize_missing_audio(args: argparse.Namespace, manifest: dict[str, Any],
 
         cell = cell_meta.get(str(item.get("cell_id")), {})
         emotion = str(cell.get("emotion") or item.get("emotion") or "Neutral")
-        intent = str(cell.get("intent") or item.get("intent") or "ACKNOWLEDGE")
+        response_act = str(
+            cell.get("response_act")
+            or cell.get("intent")
+            or item.get("response_act")
+            or item.get("intent")
+            or "ACKNOWLEDGE"
+        )
         style_tag = str(cell.get("style_tag") or item.get("style_tag") or "")
-        synth_item = {**item, "emotion": emotion, "intent": intent, "style_tag": style_tag}
+        synth_item = {
+            **item,
+            "emotion": emotion,
+            "response_act": response_act,
+            "style_tag": style_tag,
+            "disable_tts_cues": args.disable_tts_cues,
+        }
 
-        cell_audio_dir = audio_root / emotion / intent / style_tag
+        cell_audio_dir = audio_root / emotion / response_act / style_tag
         cell_audio_dir.mkdir(parents=True, exist_ok=True)
         original_output_dir = client.cfg.output_dir
         object.__setattr__(client.cfg, "output_dir", cell_audio_dir)
@@ -676,10 +944,14 @@ def synthesize_missing_audio(args: argparse.Namespace, manifest: dict[str, Any],
 def main() -> int:
     args = parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    manifest_path = args.output_dir / "manifest.json"
-    manifest = build_text_bundle(args, manifest_path)
-    if args.synthesize:
-        synthesize_missing_audio(args, manifest, manifest_path)
+    lock_file = acquire_output_lock(args.output_dir)
+    try:
+        manifest_path = args.output_dir / "manifest.json"
+        manifest = build_text_bundle(args, manifest_path)
+        if args.synthesize:
+            synthesize_missing_audio(args, manifest, manifest_path)
+    finally:
+        lock_file.close()
     print(f"Wrote persona reaction bundle: {manifest_path}")
     print(f"items={len(manifest['items'])}, cells={len(manifest['cells'])}")
     return 0

@@ -49,6 +49,23 @@ resolve_path() {
 }
 
 fast_tts_mode="${FAST_TRACK_TTS_MODE:-piper_tts}"
+open_llm_tts_status="$("$ROOT_DIR/AI_NPC_System/scripts/select_tts_engine.py" --status 2>/dev/null || true)"
+open_llm_tts_model="$(printf '%s\n' "${open_llm_tts_status}" | awk -F': ' '/Open-LLM-VTuber TTS/ {print $2; exit}')"
+open_llm_tts_model="${open_llm_tts_model:-${OPEN_LLM_VTUBER_TTS_MODEL:-unknown}}"
+
+if [[ "${open_llm_tts_model}" == "cosyvoice2_tts" ]]; then
+  cosy_health="${COSYVOICE2_HEALTH_URL:-http://127.0.0.1:50000/}"
+  if ! "$VENV_DIR/bin/python" -c 'import sys, urllib.request; urllib.request.urlopen(sys.argv[1], timeout=1.5).close()' "${cosy_health}" >/dev/null 2>&1; then
+    echo "Open-LLM-VTuber TTS is set to CosyVoice2, but its server is not ready." >&2
+    echo "Start it first:" >&2
+    echo "  AI_NPC_System/scripts/start_cosyvoice2_server.sh" >&2
+    echo "Or switch to a serverless default:" >&2
+    echo "  AI_NPC_System/scripts/select_tts_engine.py edge --check" >&2
+    echo "Health URL checked: ${cosy_health}" >&2
+    exit 2
+  fi
+fi
+
 if [[ "${fast_track_enabled}" == "1" && "${allow_open_llm_fast_tts}" != "1" && "${fast_tts_mode}" == "piper_tts" ]]; then
   piper_health="${PIPER_TTS_HEALTH_URL:-http://127.0.0.1:5001/health}"
   if ! "$VENV_DIR/bin/python" -c 'import sys, urllib.request; urllib.request.urlopen(sys.argv[1], timeout=1.5).close()' "${piper_health}" >/dev/null 2>&1; then
@@ -89,6 +106,7 @@ echo "Starting Open-LLM-VTuber with CREDO latency-cover agent."
 echo "Open: http://localhost:12393"
 echo "CREDO config: ${CONFIG_FILE}"
 echo "SlowTrack LLM: ${LOCAL_LLM_MODEL} (${LOCAL_LLM_BASE_URL})"
+echo "Open-LLM-VTuber TTS: ${open_llm_tts_model}"
 if [[ "${fast_track_enabled}" == "1" ]]; then
   echo "FastTrack: enabled (${FAST_TRACK_TTS_MODE:-piper_tts})"
 else

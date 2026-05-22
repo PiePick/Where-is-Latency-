@@ -23,6 +23,27 @@ ENV_NAME="${LOCAL_LLM_CONDA_ENV:-agentscope}"
 CONDA_ROOT="${LOCAL_LLM_CONDA_ROOT:-/home/ysree/miniconda3}"
 CUDA_RUNTIME_LIB="${CONDA_ROOT}/envs/${ENV_NAME}/lib/python3.12/site-packages/nvidia/cuda_runtime/lib"
 
+if python3 - "${HOST}" "${PORT}" <<'PY'
+import socket
+import sys
+
+host, port = sys.argv[1], int(sys.argv[2])
+sock = socket.socket()
+sock.settimeout(1.0)
+try:
+    sock.connect((host, port))
+except OSError:
+    raise SystemExit(1)
+else:
+    raise SystemExit(0)
+finally:
+    sock.close()
+PY
+then
+  echo "Local LLM server already appears to be running on http://${HOST}:${PORT}; not starting a duplicate."
+  exit 0
+fi
+
 source "${CONDA_ROOT}/etc/profile.d/conda.sh"
 conda activate "${ENV_NAME}"
 

@@ -17,6 +17,29 @@ case "${PIPER_DIR}" in
   *) PIPER_DIR="${ROOT_DIR}/${PIPER_DIR}" ;;
 esac
 PIPER_PYTHON="${PIPER_TTS_PYTHON:-${PIPER_DIR}/.venv/bin/python}"
+PIPER_HOST="${PIPER_TTS_HOST:-127.0.0.1}"
+PIPER_PORT="${PIPER_TTS_PORT:-5001}"
+
+if python3 - "${PIPER_HOST}" "${PIPER_PORT}" <<'PY'
+import socket
+import sys
+
+host, port = sys.argv[1], int(sys.argv[2])
+sock = socket.socket()
+sock.settimeout(1.0)
+try:
+    sock.connect((host, port))
+except OSError:
+    raise SystemExit(1)
+else:
+    raise SystemExit(0)
+finally:
+    sock.close()
+PY
+then
+  echo "Piper FastTrack TTS server already appears to be running on http://${PIPER_HOST}:${PIPER_PORT}; not starting a duplicate."
+  exit 0
+fi
 
 if [[ ! -x "${PIPER_PYTHON}" ]]; then
   echo "Piper runtime is missing. Run:" >&2

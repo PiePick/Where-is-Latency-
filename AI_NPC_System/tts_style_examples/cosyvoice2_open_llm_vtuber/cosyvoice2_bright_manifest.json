@@ -1,0 +1,15 @@
+{
+  "engine": "cosyvoice2_direct",
+  "mode": "bright_speed112",
+  "model_dir": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/CosyVoice/pretrained_models/CosyVoice2-0.5B",
+  "prompt_wav": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/VoiceSample/cosyvoice_refs/second_try_16k.wav",
+  "prompt_text": "I’m just like any other mom. My kids are a handful, my husband works shifts, and I have no time to myself. I wonder, Could time grow on trees?",
+  "tts_text": "Hey, that sounds awesome! Let’s jump right in and make this way more fun. I’m ready when you are!",
+  "speed": 1.12,
+  "model_load_seconds": 11.526,
+  "synthesis_seconds_after_load": 27.721,
+  "sample_rate": 24000,
+  "raw_audio_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_style_examples/cosyvoice2_open_llm_vtuber/cosyvoice2_bright_speed112_raw.wav",
+  "pitchup_audio_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_style_examples/cosyvoice2_open_llm_vtuber/cosyvoice2_bright_speed112_pitchup.wav",
+  "postprocess": "ffmpeg asetrate=24000*1.09,aresample=24000,atempo=1.03"
+}

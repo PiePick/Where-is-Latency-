@@ -13,6 +13,60 @@ from pathlib import Path
 from typing import Any
 
 
+USER_INTENT_TO_RESPONSE_ACT_WEIGHTS: dict[str, tuple[tuple[str, float], ...]] = {
+    # Incoming user intent is not the response intent. Runtime samples a response
+    # act from these distributions, then picks a prebuilt audio candidate.
+    "QUESTION": (
+        ("INFORM", 0.38),
+        ("ACKNOWLEDGE", 0.22),
+        ("QUESTION", 0.20),
+        ("EXPRESSIVE", 0.12),
+        ("DIRECTIVE", 0.06),
+        ("REJECT", 0.02),
+    ),
+    "INFORM": (
+        ("ACKNOWLEDGE", 0.34),
+        ("EXPRESSIVE", 0.24),
+        ("QUESTION", 0.22),
+        ("INFORM", 0.12),
+        ("DIRECTIVE", 0.06),
+        ("REJECT", 0.02),
+    ),
+    "ACKNOWLEDGE": (
+        ("ACKNOWLEDGE", 0.42),
+        ("EXPRESSIVE", 0.22),
+        ("QUESTION", 0.16),
+        ("INFORM", 0.12),
+        ("DIRECTIVE", 0.06),
+        ("REJECT", 0.02),
+    ),
+    "DIRECTIVE": (
+        ("ACKNOWLEDGE", 0.30),
+        ("DIRECTIVE", 0.24),
+        ("INFORM", 0.18),
+        ("QUESTION", 0.14),
+        ("EXPRESSIVE", 0.10),
+        ("REJECT", 0.04),
+    ),
+    "EXPRESSIVE": (
+        ("EXPRESSIVE", 0.38),
+        ("ACKNOWLEDGE", 0.26),
+        ("QUESTION", 0.18),
+        ("INFORM", 0.10),
+        ("DIRECTIVE", 0.06),
+        ("REJECT", 0.02),
+    ),
+    "REJECT": (
+        ("ACKNOWLEDGE", 0.28),
+        ("REJECT", 0.24),
+        ("QUESTION", 0.18),
+        ("INFORM", 0.14),
+        ("EXPRESSIVE", 0.10),
+        ("DIRECTIVE", 0.06),
+    ),
+}
+
+
 @dataclass(frozen=True)
 class CachedCover:
     """One pre-generated latency cover utterance."""
@@ -135,7 +189,7 @@ class PersonaReactionBundle:
         self.personality_id = personality_id
         self.metadata: dict[str, Any] = {}
         self._by_cell: dict[tuple[str, str, str], list[CachedCover]] = {}
-        self._by_emotion_intent: dict[tuple[str, str], list[CachedCover]] = {}
+        self._by_emotion_response_act: dict[tuple[str, str], list[CachedCover]] = {}
         self._by_emotion: dict[str, list[CachedCover]] = {}
         if enabled:
             self._load()
@@ -146,15 +200,16 @@ class PersonaReactionBundle:
         return bool(self._by_emotion)
 
     def choose(self, emotion: str, intent: str, style_tag: str) -> CachedCover | None:
-        """Choose by emotion + response intent + style, then degrade cleanly."""
+        """Choose by emotion plus a sampled response act for the incoming user intent."""
         if not self.enabled or not self.available:
             return None
         emotion_key = str(emotion or "Neutral").lower()
-        intent_key = str(intent or "ACKNOWLEDGE").upper()
+        user_intent = str(intent or "ACKNOWLEDGE").upper()
+        response_act = self._sample_response_act(user_intent)
         style_key = str(style_tag or "bright").lower()
-        candidates = self._by_cell.get((emotion_key, intent_key, style_key), [])
+        candidates = self._by_cell.get((emotion_key, response_act, style_key), [])
         if not candidates:
-            candidates = self._by_emotion_intent.get((emotion_key, intent_key), [])
+            candidates = self._by_emotion_response_act.get((emotion_key, response_act), [])
         if not candidates:
             candidates = self._by_emotion.get(emotion_key, [])
         if not candidates:
@@ -162,6 +217,20 @@ class PersonaReactionBundle:
         if not candidates:
             return None
         return self.rng.choice(candidates)
+
+    def _sample_response_act(self, user_intent: str) -> str:
+        """Sample how CREDO should respond to the detected incoming intent."""
+        weights = USER_INTENT_TO_RESPONSE_ACT_WEIGHTS.get(
+            str(user_intent or "ACKNOWLEDGE").upper(),
+            USER_INTENT_TO_RESPONSE_ACT_WEIGHTS["ACKNOWLEDGE"],
+        )
+        threshold = self.rng.random() * sum(weight for _act, weight in weights)
+        cumulative = 0.0
+        for act, weight in weights:
+            cumulative += weight
+            if threshold <= cumulative:
+                return act
+        return weights[-1][0]
 
     def _load(self) -> None:
         if not self.manifest_path.exists():
@@ -196,7 +265,13 @@ class PersonaReactionBundle:
 
             cell_meta = cell_meta_by_id.get(str(item.get("cell_id")), {})
             emotion = str(item.get("emotion") or cell_meta.get("emotion") or item.get("category") or "Neutral")
-            intent = str(item.get("intent") or cell_meta.get("intent") or "ACKNOWLEDGE").upper()
+            response_act = str(
+                item.get("response_act")
+                or cell_meta.get("response_act")
+                or item.get("intent")
+                or cell_meta.get("intent")
+                or "ACKNOWLEDGE"
+            ).upper()
             style_tag = str(item.get("style_tag") or cell_meta.get("style_tag") or "bright").lower()
             reaction = str(item.get("reaction") or item.get("plain_tts_text") or "")
             plain_tts_text = str(item.get("plain_tts_text") or reaction)
@@ -214,7 +289,6 @@ class PersonaReactionBundle:
             if not cover.plain_tts_text:
                 continue
             emotion_key = emotion.lower()
-            self._by_cell.setdefault((emotion_key, intent, style_tag), []).append(cover)
-            self._by_emotion_intent.setdefault((emotion_key, intent), []).append(cover)
+            self._by_cell.setdefault((emotion_key, response_act, style_tag), []).append(cover)
+            self._by_emotion_response_act.setdefault((emotion_key, response_act), []).append(cover)
             self._by_emotion.setdefault(emotion_key, []).append(cover)
-

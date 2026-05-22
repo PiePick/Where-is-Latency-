@@ -1,0 +1,36 @@
+{
+  "created_at_unix": 1779249121,
+  "source": "Open-LLM-VTuber default Edge TTS dependency (edge-tts)",
+  "text": "Oh yeah, that sounds awesome!",
+  "current_open_llm_vtuber_config": {
+    "tts_model": "edge_tts",
+    "voice": "en-US-JennyNeural"
+  },
+  "reference_voice_support": "No arbitrary local reference audio sampling; choose built-in Microsoft Neural voices, or use a separate voice cloning TTS.",
+  "results": [
+    {
+      "voice": "en-US-JennyNeural",
+      "latency_ms": 943,
+      "audio_duration_seconds": 2.856,
+      "audio_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_style_examples/edge_tts_open_llm_vtuber/en-US-JennyNeural.mp3"
+    },
+    {
+      "voice": "en-US-AnaNeural",
+      "latency_ms": 1557,
+      "audio_duration_seconds": 3.072,
+      "audio_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_style_examples/edge_tts_open_llm_vtuber/en-US-AnaNeural.mp3"
+    },
+    {
+      "voice": "en-US-AvaMultilingualNeural",
+      "latency_ms": 1772,
+      "audio_duration_seconds": 2.592,
+      "audio_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_style_examples/edge_tts_open_llm_vtuber/en-US-AvaMultilingualNeural.mp3"
+    },
+    {
+      "voice": "en-US-EmmaMultilingualNeural",
+      "latency_ms": 1522,
+      "audio_duration_seconds": 1.896,
+      "audio_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_style_examples/edge_tts_open_llm_vtuber/en-US-EmmaMultilingualNeural.mp3"
+    }
+  ]
+}
