@@ -114,8 +114,8 @@
   },
   "tts_reference": {
     "engine": "fish_speech",
-    "reference_id": "credo_gf_english_v2",
-    "source_dir": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/fish-speech/references/credo_gf_english_v2",
+    "reference_id": "credo_eunice_english_v2",
+    "source_dir": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/fish-speech/references/credo_eunice_english_v2",
     "use_memory_cache": "off"
   },
   "cells": [

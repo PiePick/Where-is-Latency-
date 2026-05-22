@@ -30,6 +30,24 @@ DEFAULT_EXPRESSION_TAGS = {
     "neutral": ["neutral", "idle", "neutral_01"],
 }
 
+STYLE_MOTION_PROFILE_BY_STYLE = {
+    "bright": "bright",
+    "high-pitched": "bright",
+    "high_pitched": "bright",
+    "playful": "playful",
+    "energetic": "energetic",
+    "excited": "energetic",
+    "smug": "smug",
+    "cute": "cute",
+}
+
+MOTION_PROFILE_BY_EMOTION = {
+    "positive": "bright",
+    "negative": "low",
+    "ambiguous": "alert",
+    "neutral": "steady",
+}
+
 
 PROACTIVE_IDLE_CATEGORIES = ("Positive", "Neutral")
 FISH_STYLE_TAG_RE = re.compile(r"\s*\[[^\]]+\]\s*")
@@ -653,6 +671,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             style_motion = self._normalize_style_tag(style_tag)
             if style_motion:
                 expressions.insert(0, f"credo_style_motion:{style_motion}")
+            expressions.insert(0, f"credo_motion_profile:{self._motion_profile(normalized, style_motion)}")
             expressions.extend(self._speech_event_tags(text))
         return Actions(expressions=expressions or None)
 
@@ -675,6 +694,12 @@ class CredoLatencyCoverAgent(AgentInterface):
             "cute": "cute",
         }
         return mapping.get(style)
+
+    def _motion_profile(self, emotion: str, style_motion: str | None = None) -> str:
+        """Choose the frontend motion-intensity profile for this utterance."""
+        if style_motion and style_motion in STYLE_MOTION_PROFILE_BY_STYLE:
+            return STYLE_MOTION_PROFILE_BY_STYLE[style_motion]
+        return MOTION_PROFILE_BY_EMOTION.get(self._normalize_emotion(emotion), "steady")
 
     def _speech_event_tags(self, text: str | None) -> list[str]:
         """Detect short spoken events that should trigger brief timed motions."""

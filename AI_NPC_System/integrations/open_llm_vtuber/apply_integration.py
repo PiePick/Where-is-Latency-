@@ -15,34 +15,59 @@ INTEGRATION_DIR = Path(__file__).resolve().parent
 CREDO_ROOT = INTEGRATION_DIR.parents[2]
 DEFAULT_VENDOR = CREDO_ROOT / "vendor" / "open-llm-vtuber"
 AVATAR_MOTION_SRC = CREDO_ROOT / "reaction_sources" / "AvatarMotion"
+FRONTEND_OVERLAY_SRC = INTEGRATION_DIR / "frontend" / "credo-vtuber-mode.js"
 
 
 MOUTH_PARAMETER_IDS = {"ParamMouthOpenY", "ParamMouthForm"}
 TALK_SAFE_MOTION_FILES = {
-    "neutral.motion3.json": "neutral_talk.motion3.json",
-    "smile.motion3.json": "smile_talk.motion3.json",
-    "surprised_intro.motion3.json": "surprised_intro_talk.motion3.json",
-    "sad_sigh_intro.motion3.json": "sad_sigh_intro_talk.motion3.json",
-    "angry.motion3.json": "angry_talk.motion3.json",
+    "positive_1.motion3.json": "positive_1_talk.motion3.json",
+    "positive_2.motion3.json": "positive_2_talk.motion3.json",
+    "ambiguous_1.motion3.json": "ambiguous_1_talk.motion3.json",
+    "ambiguous_2.motion3.json": "ambiguous_2_talk.motion3.json",
+    "negative_1(sigh).motion3.json": "negative_1_sigh_talk.motion3.json",
+    "negative_2.motion3.json": "negative_2_talk.motion3.json",
+    "negative_3.motion3.json": "negative_3_talk.motion3.json",
+    "netural_2.motion3.json": "netural_2_talk.motion3.json",
+    "neutral_1.motion3.json": "neutral_1_talk.motion3.json",
 }
 
 CREDO_MOTION_GROUPS = {
-    "Idle": [{"File": "motions/neutral.motion3.json"}],
-    "Talk": [{"File": "motions/neutral_talk.motion3.json"}],
-    "Positive": [{"File": "motions/smile.motion3.json"}],
+    "Idle": [{"File": "motions/neutral_1.motion3.json"}],
+    "Talk": [{"File": "motions/neutral_1_talk.motion3.json"}],
+    "Positive": [
+        {"File": "motions/positive_1.motion3.json"},
+        {"File": "motions/positive_2.motion3.json"},
+    ],
     "Negative": [
-        {"File": "motions/sad_sigh_intro.motion3.json"},
-        {"File": "motions/angry.motion3.json"},
+        {"File": "motions/negative_1(sigh).motion3.json"},
+        {"File": "motions/negative_2.motion3.json"},
+        {"File": "motions/negative_3.motion3.json"},
     ],
-    "Ambiguous": [{"File": "motions/surprised_intro.motion3.json"}],
-    "Neutral": [{"File": "motions/neutral.motion3.json"}],
-    "PositiveTalk": [{"File": "motions/smile_talk.motion3.json"}],
+    "Ambiguous": [
+        {"File": "motions/ambiguous_1.motion3.json"},
+        {"File": "motions/ambiguous_2.motion3.json"},
+    ],
+    "Neutral": [
+        {"File": "motions/neutral_1.motion3.json"},
+        {"File": "motions/netural_2.motion3.json"},
+    ],
+    "PositiveTalk": [
+        {"File": "motions/positive_1_talk.motion3.json"},
+        {"File": "motions/positive_2_talk.motion3.json"},
+    ],
     "NegativeTalk": [
-        {"File": "motions/sad_sigh_intro_talk.motion3.json"},
-        {"File": "motions/angry_talk.motion3.json"},
+        {"File": "motions/negative_1_sigh_talk.motion3.json"},
+        {"File": "motions/negative_2_talk.motion3.json"},
+        {"File": "motions/negative_3_talk.motion3.json"},
     ],
-    "AmbiguousTalk": [{"File": "motions/surprised_intro_talk.motion3.json"}],
-    "NeutralTalk": [{"File": "motions/neutral_talk.motion3.json"}],
+    "AmbiguousTalk": [
+        {"File": "motions/ambiguous_1_talk.motion3.json"},
+        {"File": "motions/ambiguous_2_talk.motion3.json"},
+    ],
+    "NeutralTalk": [
+        {"File": "motions/neutral_1_talk.motion3.json"},
+        {"File": "motions/netural_2_talk.motion3.json"},
+    ],
 }
 
 
@@ -111,8 +136,7 @@ def write_talk_safe_motion(source: Path, destination: Path) -> None:
     meta["TotalSegmentCount"] = segment_count
     meta["TotalPointCount"] = point_count
     destination.write_text(
-        json.dumps(motion, ensure_ascii=False, indent="	") + "
-",
+        json.dumps(motion, ensure_ascii=False, indent="\t") + "\n",
         encoding="utf-8",
     )
 
@@ -439,6 +463,28 @@ def copy_files(vendor: Path) -> None:
     shutil.copy2(live2d_src / cfg.OPEN_LLM_VTUBER_AVATAR, avatars_dst / cfg.OPEN_LLM_VTUBER_AVATAR)
 
 
+def install_frontend_overlay(vendor: Path) -> None:
+    """Install the CREDO frontend hook used for VTuber controls and motion intensity."""
+    if not FRONTEND_OVERLAY_SRC.exists():
+        return
+    frontend_dir = vendor / "frontend"
+    frontend_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(FRONTEND_OVERLAY_SRC, frontend_dir / FRONTEND_OVERLAY_SRC.name)
+
+    index_path = frontend_dir / "index.html"
+    if not index_path.exists():
+        return
+    text = index_path.read_text(encoding="utf-8")
+    script = '    <script src="./credo-vtuber-mode.js"></script>\n'
+    if "credo-vtuber-mode.js" in text:
+        return
+    if "  </body>" in text:
+        text = text.replace("  </body>", f"{script}  </body>", 1)
+    else:
+        text += "\n" + script
+    index_path.write_text(text, encoding="utf-8")
+
+
 def patch_model_dict(vendor: Path) -> None:
     """Register the CREDO Live2D model in Open-LLM-VTuber's model dictionary."""
     cfg = load_credo_config()
@@ -602,6 +648,7 @@ def apply(vendor: Path, *, activate: bool = False) -> None:
     """Apply all integration files and idempotent source patches."""
     ensure_vendor(vendor)
     copy_files(vendor)
+    install_frontend_overlay(vendor)
     patch_model_dict(vendor)
     patch_agent_factory(vendor)
     patch_agent_config(vendor)

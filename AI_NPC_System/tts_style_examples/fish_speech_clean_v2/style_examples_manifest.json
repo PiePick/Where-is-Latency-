@@ -9,7 +9,7 @@
     "smug",
     "cute"
   ],
-  "reference_id": "credo_gf_english_v2",
+  "reference_id": "credo_eunice_english_v2",
   "max_new_tokens": 1024,
   "chunk_length": 200,
   "timeout": 300,

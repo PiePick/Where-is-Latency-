@@ -5,7 +5,7 @@
     "llm_model": "qwen2.5:7b",
     "llm_base_url": "http://127.0.0.1:8001/v1",
     "tts_url": "http://127.0.0.1:8080/v1/tts",
-    "tts_reference_id": "credo_gf_english_v2",
+    "tts_reference_id": "credo_eunice_english_v2",
     "reaction_db": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/hybrid_reactions.json",
     "audio_cache": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fast_track_audio_cache/manifest.json"
   },

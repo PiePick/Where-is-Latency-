@@ -79,5 +79,17 @@ during spoken output. The frontend maps those tags to the mouth-stripped
 `PositiveTalk`, `NegativeTalk`, `AmbiguousTalk`, and `NeutralTalk` motion groups
 so lip-sync can continue controlling the mouth.
 
+The agent also sends a `credo_motion_profile:*` tag for each spoken output.
+The frontend overlay maps that profile to motion intensity:
+
+- `energetic` and `playful`: faster talk-motion repeats, stronger body/head
+  parameter pulses, and a small lip-sync mouth-open boost.
+- `bright` and `alert`: moderate body movement for positive or surprised turns.
+- `smug`, `cute`, `low`, and `steady`: restrained mouth/body movement for calmer
+  or negative turns.
+
+This keeps expression selection, speech timing, and movement intensity coupled to
+the same audio payload instead of firing unrelated idle motions.
+
 Prebuilt nonverbal cover audio still uses `credo_fast_motion:*`, mapped to the
 stronger non-talk motion groups.

@@ -10,44 +10,82 @@
 		"Motions": {
 			"Idle": [
 				{
-					"File": "motions/neutral.motion3.json"
+					"File": "motions/neutral_1.motion3.json"
 				}
 			],
 			"Talk": [
 				{
-					"File": "motions/neutral.motion3.json"
-				},
-				{
-					"File": "motions/smile.motion3.json"
-				},
-				{
-					"File": "motions/surprised_intro.motion3.json"
-				},
-				{
-					"File": "motions/sad_sigh_intro.motion3.json"
+					"File": "motions/neutral_1_talk.motion3.json"
 				}
 			],
 			"Positive": [
 				{
-					"File": "motions/smile.motion3.json"
+					"File": "motions/positive_1.motion3.json"
+				},
+				{
+					"File": "motions/positive_2.motion3.json"
 				}
 			],
 			"Negative": [
 				{
-					"File": "motions/sad_sigh_intro.motion3.json"
+					"File": "motions/negative_1(sigh).motion3.json"
 				},
 				{
-					"File": "motions/angry.motion3.json"
+					"File": "motions/negative_2.motion3.json"
+				},
+				{
+					"File": "motions/negative_3.motion3.json"
 				}
 			],
 			"Ambiguous": [
 				{
-					"File": "motions/surprised_intro.motion3.json"
+					"File": "motions/ambiguous_1.motion3.json"
+				},
+				{
+					"File": "motions/ambiguous_2.motion3.json"
 				}
 			],
 			"Neutral": [
 				{
-					"File": "motions/neutral.motion3.json"
+					"File": "motions/neutral_1.motion3.json"
+				},
+				{
+					"File": "motions/netural_2.motion3.json"
+				}
+			],
+			"PositiveTalk": [
+				{
+					"File": "motions/positive_1_talk.motion3.json"
+				},
+				{
+					"File": "motions/positive_2_talk.motion3.json"
+				}
+			],
+			"NegativeTalk": [
+				{
+					"File": "motions/negative_1_sigh_talk.motion3.json"
+				},
+				{
+					"File": "motions/negative_2_talk.motion3.json"
+				},
+				{
+					"File": "motions/negative_3_talk.motion3.json"
+				}
+			],
+			"AmbiguousTalk": [
+				{
+					"File": "motions/ambiguous_1_talk.motion3.json"
+				},
+				{
+					"File": "motions/ambiguous_2_talk.motion3.json"
+				}
+			],
+			"NeutralTalk": [
+				{
+					"File": "motions/neutral_1_talk.motion3.json"
+				},
+				{
+					"File": "motions/netural_2_talk.motion3.json"
 				}
 			]
 		}
