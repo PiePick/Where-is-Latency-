@@ -229,6 +229,13 @@
     window.__credoMotionSocketPatched = true;
     window.WebSocket = function (...args) {
       const socket = new NativeWebSocket(...args);
+      const url = String(args[0] || "");
+      if (url.includes("/client-ws")) {
+        window.__credoClientSocket = socket;
+        socket.addEventListener("close", () => {
+          if (window.__credoClientSocket === socket) window.__credoClientSocket = null;
+        });
+      }
       socket.addEventListener("message", (event) => handleCredoAudioPayload(event.data));
       return socket;
     };
@@ -427,6 +434,29 @@
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
     return response.json();
   };
+  const sendTextInputOverSocket = (text, metadata = {}) => {
+    const socket = window.__credoClientSocket;
+    if (!socket || socket.readyState !== NativeWebSocket.OPEN) return false;
+    socket.send(JSON.stringify({ type: "text-input", text, metadata }));
+    return true;
+  };
+  const sendVirtualChat = async (author, message) => {
+    const payload = { author, message };
+    try {
+      return await post("/credo/vtuber-mode/virtual-chat", payload);
+    } catch (error) {
+      if (!String(error.message || "").startsWith("404") && !String(error.message || "").startsWith("405")) {
+        throw error;
+      }
+      const text = `Viewer ${author || "viewer"} says: ${message}`;
+      const queued = sendTextInputOverSocket(text, {
+        virtual_broadcast_chat: true,
+        source: "virtual_broadcast_chat",
+      });
+      if (!queued) throw error;
+      return { queued, fallback: "client-ws" };
+    }
+  };
 
   root.addEventListener("click", async (event) => {
     const action = event.target?.dataset?.action;
@@ -454,7 +484,7 @@
           status("Type a virtual chat message first.");
           return;
         }
-        await post("/credo/vtuber-mode/virtual-chat", { author, message });
+        await sendVirtualChat(author, message);
         appendChat(author, message);
         const input = root.querySelector('[data-key="virtualMessage"]');
         if (input) input.value = "";
