@@ -728,6 +728,79 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '        cmd.extend(["--max-batch", str(payload.get("max_batch") or os.getenv("YOUTUBE_CHAT_MAX_BATCH", "8"))])\n',
             1,
         )
+    if "def _build_chat_batch_prompt(" not in text:
+        text = text.replace(
+            '        vtuber_mode["last_prompt"] = instruction\n'
+            '        return prompt, metadata\n'
+            '\n'
+            '    async def _idle_loop() -> None:\n',
+            '        vtuber_mode["last_prompt"] = instruction\n'
+            '        return prompt, metadata\n'
+            '\n'
+            '    def _build_chat_batch_prompt(topic: str, chat_context: str) -> tuple[str, dict]:\n'
+            '        """Build a VTuber turn from buffered live chat instead of one-by-one replies."""\n'
+            '        topic = _clean_prompt_piece(topic, 180) or "the current stream"\n'
+            '        chat_context = _clean_prompt_piece(chat_context, 1200)\n'
+            '        instruction = (\n'
+            '            "VTuber live chat batch segment. Recent chat has been buffered while the stream was speaking. "\n'
+            '            "Respond to the overall mood and one or two representative points, not every line. "\n'
+            '            "Keep continuity with the current topic, stay in natural English, and end with a light hook for chat. "\n'
+            '            "Aim for 14 to 28 spoken words so Fish Speech does not block the stream."\n'
+            '        )\n'
+            '        prompt = "Live chat is reacting right now."\n'
+            '        metadata = {\n'
+            '            "vtuber_mode": True,\n'
+            '            "vtuber_event": "live_chat_batch",\n'
+            '            "vtuber_instruction": instruction,\n'
+            '            "skip_last_text_input": True,\n'
+            '            "skip_history": True,\n'
+            '            "skip_memory": True,\n'
+            '            "topic": topic,\n'
+            '            "last_chat": chat_context,\n'
+            '            "style_tag": "energetic",\n'
+            '            "emotion": "positive",\n'
+            '        }\n'
+            '        vtuber_mode["last_prompt"] = instruction\n'
+            '        return prompt, metadata\n'
+            '\n'
+            '    async def _idle_loop() -> None:\n',
+            1,
+        )
+    if "consume_vtuber_chat_context" not in text:
+        text = text.replace(
+            '            if active_task and not active_task.done():\n'
+            '                logger.info("CREDO VTuber idle monologue skipped because a conversation is still running.")\n'
+            '                await asyncio.sleep(2.0)\n'
+            '                continue\n'
+            '            silence_seconds = ws_handler.seconds_since_last_activity()\n',
+            '            if active_task and not active_task.done():\n'
+            '                logger.info("CREDO VTuber idle monologue skipped because a conversation is still running.")\n'
+            '                await asyncio.sleep(2.0)\n'
+            '                continue\n'
+            '            chat_context = ws_handler.consume_vtuber_chat_context(\n'
+            '                max_items=int(os.getenv("CREDO_VTUBER_CHAT_BATCH_MAX_ITEMS", "8"))\n'
+            '            )\n'
+            '            if chat_context:\n'
+            '                prompt, metadata = _build_chat_batch_prompt(topic, chat_context)\n'
+            '                queued = await ws_handler.trigger_text_input(prompt, metadata=metadata)\n'
+            '                if queued:\n'
+            '                    vtuber_mode["last_idle_at"] = time.monotonic()\n'
+            '                await asyncio.sleep(1.0)\n'
+            '                continue\n'
+            '            silence_seconds = ws_handler.seconds_since_last_activity()\n',
+            1,
+        )
+    if 'ws_handler.enqueue_vtuber_chat_context(text)' not in text:
+        text = text.replace(
+            '        text = f"Viewer {author} says: {message}"\n'
+            '        ok = await ws_handler.trigger_text_input(\n',
+            '        text = f"Viewer {author} says: {message}"\n'
+            '        if vtuber_mode["active"]:\n'
+            '            ws_handler.enqueue_vtuber_chat_context(text)\n'
+            '            return {"queued": True, "buffered": True}\n'
+            '        ok = await ws_handler.trigger_text_input(\n',
+            1,
+        )
     text = text.replace(
         '            await ws_handler.trigger_text_input(prompt)\n            await asyncio.sleep(float(vtuber_mode["interval"]))\n',
         '            target_uid = ws_handler.first_client_uid()\n            active_task = ws_handler.current_conversation_tasks.get(target_uid) if target_uid else None\n            if active_task and not active_task.done():\n                logger.info("CREDO VTuber idle monologue skipped because a conversation is still running.")\n            else:\n                await ws_handler.trigger_text_input(prompt)\n            await asyncio.sleep(float(vtuber_mode["interval"]))\n',
@@ -754,6 +827,56 @@ def patch_websocket_handler(vendor: Path) -> None:
     )
     if new not in text:
         text = text.replace(old, new, 1)
+    if "self._vtuber_chat_buffer" not in text:
+        text = text.replace(
+            '        self._last_text_input = ""\n',
+            '        self._last_text_input = ""\n'
+            '        self._vtuber_chat_buffer: List[str] = []\n',
+            1,
+        )
+    if "def enqueue_vtuber_chat_context(" not in text:
+        text = text.replace(
+            '    def last_text_input(self) -> str:\n'
+            '        """Return the latest text input observed by this handler."""\n'
+            '        return self._last_text_input\n'
+            '\n',
+            '    def last_text_input(self) -> str:\n'
+            '        """Return the latest text input observed by this handler."""\n'
+            '        return self._last_text_input\n'
+            '\n'
+            '    def enqueue_vtuber_chat_context(self, text: str, *, max_items: int = 40) -> None:\n'
+            '        """Buffer live/virtual chat while VTuber mode is speaking."""\n'
+            '        cleaned = " ".join(str(text or "").split())[:1200]\n'
+            '        if not cleaned:\n'
+            '            return\n'
+            '        self._vtuber_chat_buffer.append(cleaned)\n'
+            '        if len(self._vtuber_chat_buffer) > max_items:\n'
+            '            self._vtuber_chat_buffer = self._vtuber_chat_buffer[-max_items:]\n'
+            '\n'
+            '    def consume_vtuber_chat_context(self, *, max_items: int = 8) -> str:\n'
+            '        """Return and clear a compact batch of buffered VTuber chat context."""\n'
+            '        if not self._vtuber_chat_buffer:\n'
+            '            return ""\n'
+            '        selected = self._vtuber_chat_buffer[-max(1, max_items):]\n'
+            '        self._vtuber_chat_buffer.clear()\n'
+            '        return "\\n".join(selected)\n'
+            '\n',
+            1,
+        )
+    if 'metadata.get("vtuber_live_chat_batch")' not in text:
+        text = text.replace(
+            '        if data.get("type") == "text-input" and data.get("text") and not metadata.get("skip_last_text_input"):\n'
+            '            self._last_text_input = str(data.get("text") or "")[:500]\n'
+            '        await handle_conversation_trigger(\n',
+            '        if data.get("type") == "text-input" and data.get("text") and not metadata.get("skip_last_text_input"):\n'
+            '            self._last_text_input = str(data.get("text") or "")[:500]\n'
+            '        if data.get("type") == "text-input" and metadata.get("vtuber_live_chat_batch"):\n'
+            '            self.enqueue_vtuber_chat_context(str(data.get("text") or ""))\n'
+            '            logger.info("CREDO buffered VTuber live chat batch instead of starting an immediate turn.")\n'
+            '            return\n'
+            '        await handle_conversation_trigger(\n',
+            1,
+        )
     path.write_text(text, encoding="utf-8")
 
 

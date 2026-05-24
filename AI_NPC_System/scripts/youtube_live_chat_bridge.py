@@ -171,10 +171,13 @@ def format_for_vtuber(
     )
 
 
-async def send_to_proxy(proxy_url: str, text: str) -> None:
+async def send_to_proxy(proxy_url: str, text: str, *, metadata: dict[str, Any] | None = None) -> None:
     """Send one text-input event to Open-LLM-VTuber's proxy websocket."""
     async with websockets.connect(proxy_url, ping_interval=20, ping_timeout=10) as ws:
-        await ws.send(json.dumps({"type": "text-input", "text": text}))
+        payload = {"type": "text-input", "text": text}
+        if metadata:
+            payload["metadata"] = metadata
+        await ws.send(json.dumps(payload))
 
 
 def format_batch_for_vtuber(
@@ -226,7 +229,15 @@ async def flush_chat_batch(
         max_items=max_batch,
     )
     print(f"[{time.strftime('%H:%M:%S')}] forwarding {len(pending[-max_batch:])} chat messages as one batch")
-    await send_to_proxy(proxy_url, text)
+    await send_to_proxy(
+        proxy_url,
+        text,
+        metadata={
+            "vtuber_mode": True,
+            "vtuber_live_chat_batch": True,
+            "source": "youtube_live_chat",
+        },
+    )
     pending.clear()
 
 

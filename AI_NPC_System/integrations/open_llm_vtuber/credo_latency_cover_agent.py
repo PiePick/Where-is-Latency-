@@ -82,6 +82,7 @@ class CredoLatencyCoverAgent(AgentInterface):
         self.expression_map = self.settings.get("expression_map") or DEFAULT_EXPRESSION_TAGS
         self.rng = random.Random(self.settings.get("seed"))
         self._proactive_count = 0
+        self._vtuber_slow_prefetch_task: asyncio.Task | None = None
 
         self.ai_npc_path = self._resolve_ai_npc_path()
         self._load_credo_modules()
@@ -266,8 +267,9 @@ class CredoLatencyCoverAgent(AgentInterface):
         memory_context = self.memory.build_prompt_context() if self.memory else None
         slow_started = time.perf_counter()
         slow_task: asyncio.Task | None = None
+        prefetched_slow = self._take_ready_vtuber_slow_prefetch(metadata)
         cover_plan: dict[str, Any] = {}
-        if self.slow_enabled:
+        if self.slow_enabled and prefetched_slow is None:
             slow_input = self._build_vtuber_prompt(user_text, metadata) if metadata.get("vtuber_mode") else user_text
             slow_strategy = fast_result.get("strategy")
             slow_mode = None
@@ -349,7 +351,84 @@ class CredoLatencyCoverAgent(AgentInterface):
                 "Skipping FastTrack Open-LLM TTS fallback because dedicated FastTrack audio is unavailable."
             )
 
-        if not self.slow_enabled or slow_task is None:
+        if not self.slow_enabled:
+            return
+
+        if prefetched_slow is not None:
+            slow_text = str(prefetched_slow.get("text") or "").strip() or "I hear you."
+            slow_audio_raw = prefetched_slow.get("audio_path")
+            slow_audio = Path(str(slow_audio_raw)) if slow_audio_raw else None
+            if slow_audio and not slow_audio.exists():
+                slow_audio = None
+            self._log_latency(
+                "vtuber_slow_prefetch_hit",
+                turn_started,
+                text=slow_text,
+                engine="prefetched_fish_speech",
+                metadata={
+                    "audio_path": str(slow_audio) if slow_audio else None,
+                    "emotion": emotion,
+                    "intent": intent,
+                    "turn_id": turn_id,
+                    "vtuber_mode": bool(metadata.get("vtuber_mode")),
+                    "vtuber_event": metadata.get("vtuber_event"),
+                    "prefetch_age_ms": int((time.perf_counter() - float(prefetched_slow.get("created_at", turn_started))) * 1000),
+                },
+            )
+            self._start_vtuber_slow_prefetch(
+                user_text=user_text,
+                metadata=metadata,
+                fast_reaction=fast_tts_text,
+                strategy=f"prefetch_after:{fast_result.get('strategy') or 'persona_bundle'}",
+                memory_context=memory_context,
+                emotion=emotion,
+                turn_id=turn_id,
+            )
+            if slow_audio:
+                yield AudioOutput(
+                    audio_path=str(slow_audio),
+                    display_text=self._display(slow_text),
+                    transcript=slow_text,
+                    actions=speech_actions,
+                )
+            elif getattr(self._credo_config, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", False):
+                yield SentenceOutput(
+                    display_text=self._display(slow_text),
+                    tts_text=slow_text,
+                    actions=speech_actions,
+                )
+            else:
+                yield SentenceOutput(
+                    display_text=self._display(slow_text),
+                    tts_text="",
+                    actions=speech_actions,
+                )
+
+            if self.memory and not metadata.get("skip_memory"):
+                self.memory.record_turn(
+                    user_text=user_text,
+                    assistant_text=slow_text,
+                    fast_reaction=fast_plain_text,
+                    emotion=emotion,
+                    keywords=[str(metadata.get("topic") or ""), str(metadata.get("vtuber_event") or "")],
+                )
+            self._log_latency(
+                "turn_total",
+                turn_started,
+                text=f"{fast_display_text} {slow_text}",
+                engine="open_llm_vtuber_credo",
+                metadata={
+                    "emotion": emotion,
+                    "intent": intent,
+                    "turn_id": turn_id,
+                    "vtuber_mode": bool(metadata.get("vtuber_mode")),
+                    "vtuber_event": metadata.get("vtuber_event"),
+                    "used_slow_prefetch": True,
+                },
+            )
+            return
+
+        if slow_task is None:
             return
 
         async for cover_output in self._yield_waiting_cover_audio(slow_task, emotion, turn_id, reason="slow_llm"):
@@ -392,6 +471,15 @@ class CredoLatencyCoverAgent(AgentInterface):
         )
 
         if slow_audio:
+            self._start_vtuber_slow_prefetch(
+                user_text=user_text,
+                metadata=metadata,
+                fast_reaction=fast_tts_text,
+                strategy=f"prefetch_after:{fast_result.get('strategy') or 'persona_bundle'}",
+                memory_context=memory_context,
+                emotion=emotion,
+                turn_id=turn_id,
+            )
             yield AudioOutput(
                 audio_path=str(slow_audio),
                 display_text=self._display(slow_text),
@@ -439,6 +527,148 @@ class CredoLatencyCoverAgent(AgentInterface):
                 "vtuber_event": metadata.get("vtuber_event"),
             },
         )
+
+    def _vtuber_slow_prefetch_enabled(self, metadata: dict[str, Any]) -> bool:
+        """Return whether this VTuber turn can use the next-SlowTrack prefetch slot."""
+        if not metadata.get("vtuber_mode"):
+            return False
+        if not getattr(self._credo_config, "CREDO_VTUBER_SLOW_PREFETCH_ENABLED", True):
+            return False
+        event = str(metadata.get("vtuber_event") or "idle")
+        # Live chat and donations must be generated from the newest batch; using an old
+        # prepared monologue there would feel like ignoring chat.
+        return event not in {"live_chat_batch", "donation"}
+
+    def _take_ready_vtuber_slow_prefetch(self, metadata: dict[str, Any]) -> dict[str, Any] | None:
+        """Consume a prepared SlowTrack audio bundle if it is fresh enough."""
+        if not self._vtuber_slow_prefetch_enabled(metadata):
+            return None
+        task = self._vtuber_slow_prefetch_task
+        if task is None or not task.done():
+            return None
+        self._vtuber_slow_prefetch_task = None
+        try:
+            result = task.result()
+        except Exception as exc:
+            logger.warning(f"CREDO VTuber SlowTrack prefetch failed before use: {exc}")
+            return None
+        created_at = float(result.get("created_at") or 0.0)
+        max_age = float(getattr(self._credo_config, "CREDO_VTUBER_SLOW_PREFETCH_MAX_AGE_SECONDS", 120.0))
+        if created_at and time.perf_counter() - created_at > max_age:
+            logger.info("CREDO VTuber SlowTrack prefetch expired; generating a fresh SlowTrack turn.")
+            return None
+        return result
+
+    def _start_vtuber_slow_prefetch(
+        self,
+        *,
+        user_text: str,
+        metadata: dict[str, Any],
+        fast_reaction: str | None,
+        strategy: str | None,
+        memory_context: str | None,
+        emotion: str,
+        turn_id: str,
+    ) -> None:
+        """Prepare the next idle SlowTrack response while the current audio is playing."""
+        if not self._vtuber_slow_prefetch_enabled(metadata):
+            return
+        task = self._vtuber_slow_prefetch_task
+        if task is not None and not task.done():
+            return
+        next_metadata = dict(metadata)
+        next_metadata["vtuber_event"] = "idle_prefetch"
+        next_metadata["skip_memory"] = True
+        next_metadata["skip_history"] = True
+        topic = str(next_metadata.get("topic") or "").strip()
+        last_chat = str(next_metadata.get("last_chat") or user_text or "").strip()
+        next_metadata["vtuber_instruction"] = (
+            "Prepare the next short VTuber stream continuation in case chat is quiet after the current speech. "
+            "Keep one coherent thread, do not answer a specific new message unless recent chat is provided, "
+            "and end with a light hook for chat. Aim for 12 to 22 spoken words."
+        )
+        if topic:
+            next_metadata["topic"] = topic
+        if last_chat:
+            next_metadata["last_chat"] = last_chat
+        self._vtuber_slow_prefetch_task = asyncio.create_task(
+            self._prefetch_vtuber_slow_audio(
+                seed_text="Keep the stream moving for one more beat.",
+                metadata=next_metadata,
+                fast_reaction=fast_reaction,
+                strategy=strategy,
+                memory_context=memory_context,
+                emotion=emotion,
+                parent_turn_id=turn_id,
+            )
+        )
+        self._vtuber_slow_prefetch_task.add_done_callback(self._observe_vtuber_prefetch_result)
+
+    def _observe_vtuber_prefetch_result(self, task: asyncio.Task) -> None:
+        """Log background prefetch failures promptly instead of leaving silent task errors."""
+        if task.cancelled():
+            return
+        try:
+            task.result()
+        except Exception as exc:
+            logger.warning(f"CREDO VTuber SlowTrack prefetch task failed: {exc}")
+
+    async def _prefetch_vtuber_slow_audio(
+        self,
+        *,
+        seed_text: str,
+        metadata: dict[str, Any],
+        fast_reaction: str | None,
+        strategy: str | None,
+        memory_context: str | None,
+        emotion: str,
+        parent_turn_id: str,
+    ) -> dict[str, Any]:
+        """Generate and synthesize one future VTuber SlowTrack segment."""
+        started = time.perf_counter()
+        prompt = self._build_vtuber_prompt(seed_text, metadata)
+        slow_text = await self._slow_track.generate_response(
+            prompt,
+            fast_reaction=fast_reaction,
+            strategy=strategy,
+            memory_context=memory_context,
+            mode="vtuber_monologue",
+            max_tokens=getattr(self._credo_config, "CREDO_VTUBER_LLM_MAX_TOKENS", 180),
+        )
+        slow_text = self._clean_spoken_text(slow_text) or "So, chat, where should we take this next?"
+        self._log_latency(
+            "vtuber_slow_prefetch_llm",
+            started,
+            text=prompt,
+            engine=self._credo_config.LOCAL_LLM_MODEL,
+            metadata={
+                "emotion": emotion,
+                "parent_turn_id": parent_turn_id,
+                "vtuber_event": metadata.get("vtuber_event"),
+            },
+        )
+
+        tts_started = time.perf_counter()
+        slow_audio = await self._try_synthesize_slow_audio(slow_text)
+        self._log_latency(
+            "vtuber_slow_prefetch_tts",
+            tts_started,
+            text=slow_text,
+            engine="fish_speech" if slow_audio else "open_llm_tts_fallback",
+            metadata={
+                "audio_path": str(slow_audio) if slow_audio else None,
+                "emotion": emotion,
+                "parent_turn_id": parent_turn_id,
+                "vtuber_event": metadata.get("vtuber_event"),
+            },
+        )
+        return {
+            "text": slow_text,
+            "audio_path": str(slow_audio) if slow_audio else "",
+            "created_at": time.perf_counter(),
+            "emotion": emotion,
+            "metadata": metadata,
+        }
 
     async def _chat_vtuber_mode(
         self,
