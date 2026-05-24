@@ -245,7 +245,7 @@
     <style>
       #credo-vtuber-mode {
         position: fixed;
-        right: 18px;
+        left: 18px;
         bottom: 18px;
         z-index: 9999;
         width: 330px;

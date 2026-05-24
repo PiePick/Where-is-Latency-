@@ -184,11 +184,6 @@ class CredoLatencyCoverAgent(AgentInterface):
         if not user_text:
             return
 
-        if metadata.get("vtuber_mode"):
-            async for output in self._chat_vtuber_mode(user_text, metadata, turn_started):
-                yield output
-            return
-
         if not self.fast_track_enabled:
             logger.info("CREDO FastTrack disabled; running SlowTrack-only turn.")
             async for output in self._chat_slow_only(user_text, turn_started, turn_id):
@@ -233,8 +228,13 @@ class CredoLatencyCoverAgent(AgentInterface):
         fast_tts_text = self._prepare_fast_tts_text(fast_raw_tts_text, fast_plain_text)
         fast_display_text = self._with_response_gap(fast_plain_text)
         emotion = str(fast_result.get("emotion_label", "neutral")).lower()
+        if metadata.get("vtuber_mode") and metadata.get("emotion"):
+            emotion = self._normalize_emotion(str(metadata.get("emotion")))
+            fast_result["emotion_label"] = emotion
         intent = self._classify_intent(user_text)
         style_tag = self._style_tag_for_emotion(emotion)
+        if metadata.get("vtuber_mode") and metadata.get("style_tag"):
+            style_tag = str(metadata.get("style_tag")).strip().lower() or style_tag
         persona_cover = self.persona_reaction_bundle.choose(emotion, intent, style_tag)
         if persona_cover:
             fast_plain_text = self._clean_spoken_text(persona_cover.plain_tts_text)
@@ -281,12 +281,23 @@ class CredoLatencyCoverAgent(AgentInterface):
         slow_task: asyncio.Task | None = None
         cover_plan: dict[str, Any] = {}
         if self.slow_enabled:
+            slow_input = self._build_vtuber_prompt(user_text, metadata) if metadata.get("vtuber_mode") else user_text
+            slow_strategy = fast_result.get("strategy")
+            slow_mode = None
+            slow_max_tokens = None
+            if metadata.get("vtuber_mode"):
+                event = str(metadata.get("vtuber_event") or "idle")
+                slow_strategy = f"vtuber_mode:{event}; fasttrack:{slow_strategy or 'persona_bundle'}"
+                slow_mode = "vtuber_monologue"
+                slow_max_tokens = getattr(self._credo_config, "CREDO_VTUBER_LLM_MAX_TOKENS", 180)
             slow_task = asyncio.create_task(
                 self._slow_track.generate_response(
-                    user_text,
+                    slow_input,
                     fast_tts_text,
-                    fast_result.get("strategy"),
+                    slow_strategy,
                     memory_context,
+                    mode=slow_mode,
+                    max_tokens=slow_max_tokens,
                 )
             )
             cover_plan = await asyncio.to_thread(
@@ -389,7 +400,11 @@ class CredoLatencyCoverAgent(AgentInterface):
                 assistant_text=slow_text,
                 fast_reaction=fast_plain_text,
                 emotion=emotion,
-                keywords=fast_result.get("keywords") or [],
+                keywords=(
+                    [str(metadata.get("topic") or ""), str(metadata.get("vtuber_event") or "")]
+                    if metadata.get("vtuber_mode")
+                    else fast_result.get("keywords") or []
+                ),
             )
 
         self._log_latency(
@@ -397,7 +412,13 @@ class CredoLatencyCoverAgent(AgentInterface):
             turn_started,
             text=f"{fast_display_text} {slow_text}",
             engine="open_llm_vtuber_credo",
-            metadata={"emotion": emotion, "intent": intent, "turn_id": turn_id},
+            metadata={
+                "emotion": emotion,
+                "intent": intent,
+                "turn_id": turn_id,
+                "vtuber_mode": bool(metadata.get("vtuber_mode")),
+                "vtuber_event": metadata.get("vtuber_event"),
+            },
         )
 
     async def _chat_vtuber_mode(
