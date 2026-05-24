@@ -696,6 +696,30 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '                "vtuber_event": "donation",\n                "vtuber_instruction": instruction,\n',
             1,
         )
+    if '"/credo/vtuber-mode/virtual-chat"' not in text:
+        text = text.replace(
+            '    @router.post("/credo/vtuber-mode/start")\n',
+            '    @router.post("/credo/vtuber-mode/virtual-chat")\n'
+            '    async def credo_vtuber_mode_virtual_chat(request: Request):\n'
+            '        """Send one virtual broadcast chat message through the normal CREDO pipeline."""\n'
+            '        payload = await request.json()\n'
+            '        author = _clean_prompt_piece(payload.get("author") or "viewer", 48)\n'
+            '        message = _clean_prompt_piece(payload.get("message") or "", 360)\n'
+            '        if not message:\n'
+            '            return JSONResponse({"queued": False, "error": "empty message"}, status_code=400)\n'
+            '        text = f"Viewer {author} says: {message}"\n'
+            '        ok = await ws_handler.trigger_text_input(\n'
+            '            text,\n'
+            '            metadata={\n'
+            '                "virtual_broadcast_chat": True,\n'
+            '                "source": "virtual_broadcast_chat",\n'
+            '            },\n'
+            '        )\n'
+            '        return {"queued": ok}\n'
+            '\n'
+            '    @router.post("/credo/vtuber-mode/start")\n',
+            1,
+        )
     text = text.replace(
         '            await ws_handler.trigger_text_input(prompt)\n            await asyncio.sleep(float(vtuber_mode["interval"]))\n',
         '            target_uid = ws_handler.first_client_uid()\n            active_task = ws_handler.current_conversation_tasks.get(target_uid) if target_uid else None\n            if active_task and not active_task.done():\n                logger.info("CREDO VTuber idle monologue skipped because a conversation is still running.")\n            else:\n                await ws_handler.trigger_text_input(prompt)\n            await asyncio.sleep(float(vtuber_mode["interval"]))\n',

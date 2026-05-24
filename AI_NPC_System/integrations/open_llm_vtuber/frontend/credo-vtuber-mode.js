@@ -264,6 +264,28 @@
       }
       #credo-vtuber-mode .row { display: flex; gap: 6px; margin-top: 8px; }
       #credo-vtuber-mode .grid { display: grid; grid-template-columns: 1fr 96px; gap: 6px; margin-top: 8px; }
+      #credo-vtuber-mode .section { margin-top: 10px; }
+      #credo-vtuber-mode .section-title { color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 700; }
+      #credo-vtuber-mode .chat-list {
+        height: 132px;
+        overflow: auto;
+        margin-top: 7px;
+        padding: 8px;
+        box-sizing: border-box;
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 6px;
+        background: rgba(0,0,0,0.18);
+      }
+      #credo-vtuber-mode .chat-message {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 6px;
+        margin-bottom: 6px;
+        color: rgba(255,255,255,0.9);
+        overflow-wrap: anywhere;
+      }
+      #credo-vtuber-mode .chat-message .author { color: #95b8ff; font-weight: 700; }
+      #credo-vtuber-mode .mode-panel[hidden] { display: none; }
       #credo-vtuber-mode input {
         width: 100%;
         min-width: 0;
@@ -308,20 +330,37 @@
       </span>
     </div>
     <div class="panel-body">
-      <div class="grid">
-        <input data-key="topic" placeholder="Stream topic" value="games, daily life, funny chat moments">
-        <input data-key="interval" placeholder="Idle sec" value="35">
+      <div class="mode-panel" data-role="virtual-panel">
+        <div class="section-title">Virtual broadcast chat</div>
+        <div class="chat-list" data-role="chat-list">
+          <div class="chat-message"><span class="author">viewer</span><span>Say something to test FastTrack.</span></div>
+        </div>
+        <div class="grid">
+          <input data-key="virtualName" placeholder="Viewer" value="viewer">
+          <button data-action="send-virtual">Send</button>
+        </div>
+        <div class="row"><input data-key="virtualMessage" placeholder="Virtual live chat message"></div>
+        <div class="row">
+          <button data-action="start">Switch to VTuber Mode</button>
+        </div>
       </div>
-      <div class="row"><input data-key="videoId" placeholder="YouTube video ID"></div>
-      <div class="row"><input data-key="liveChatId" placeholder="YouTube live chat ID"></div>
-      <div class="row"><input data-key="apiKey" placeholder="YouTube API key"></div>
-      <div class="row">
-        <button data-action="start">VTuber Mode</button>
-        <button class="warn" data-action="stop">Stop</button>
-      </div>
-      <div class="row">
-        <button class="secondary" data-action="monologue">Monologue</button>
-        <button class="secondary" data-action="donation">Donation</button>
+      <div class="mode-panel" data-role="youtube-panel" hidden>
+        <div class="section-title">YouTube live chat</div>
+        <div class="grid">
+          <input data-key="topic" placeholder="Stream topic" value="games, daily life, funny chat moments">
+          <input data-key="interval" placeholder="Idle sec" value="35">
+        </div>
+        <div class="row"><input data-key="videoId" placeholder="YouTube video ID"></div>
+        <div class="row"><input data-key="liveChatId" placeholder="YouTube live chat ID"></div>
+        <div class="row"><input data-key="apiKey" placeholder="YouTube API key"></div>
+        <div class="row">
+          <button data-action="start">Connect YouTube</button>
+          <button class="warn" data-action="stop">Back to Virtual</button>
+        </div>
+        <div class="row">
+          <button class="secondary" data-action="monologue">Monologue</button>
+          <button class="secondary" data-action="donation">Donation</button>
+        </div>
       </div>
       <div class="meta" data-role="meta">Connect the browser first, then start.</div>
       <div class="status" data-role="status">Ready.</div>
@@ -329,6 +368,21 @@
   `;
 
   const value = (key) => root.querySelector(`[data-key="${key}"]`)?.value.trim() || "";
+  const appendChat = (author, message) => {
+    const list = root.querySelector('[data-role="chat-list"]');
+    if (!list) return;
+    const item = document.createElement("div");
+    item.className = "chat-message";
+    const authorEl = document.createElement("span");
+    authorEl.className = "author";
+    authorEl.textContent = author || "viewer";
+    const textEl = document.createElement("span");
+    textEl.textContent = message || "";
+    item.append(authorEl, textEl);
+    list.appendChild(item);
+    while (list.children.length > 24) list.removeChild(list.firstElementChild);
+    list.scrollTop = list.scrollHeight;
+  };
   const status = (text) => {
     root.querySelector('[data-role="status"]').textContent = text;
   };
@@ -342,11 +396,18 @@
   const setMeta = (data) => {
     const pill = root.querySelector('[data-role="pill"]');
     const meta = root.querySelector('[data-role="meta"]');
+    const virtualPanel = root.querySelector('[data-role="virtual-panel"]');
+    const youtubePanel = root.querySelector('[data-role="youtube-panel"]');
+    if (virtualPanel && youtubePanel) {
+      virtualPanel.hidden = Boolean(data.active);
+      youtubePanel.hidden = !data.active;
+    }
     pill.textContent = data.active ? "live" : "off";
     pill.style.background = data.active ? "rgba(63,125,246,0.55)" : "rgba(255,255,255,0.12)";
     const client = data.connected_client ? "client connected" : "no browser client";
     const bridge = data.youtube_bridge_running ? "YouTube bridge on" : "YouTube bridge off";
-    meta.textContent = `${client} / ${bridge} / idle ${data.seconds_since_last_activity ?? "-"}s / turns ${data.idle_turn ?? 0}`;
+    const mode = data.active ? "YouTube live mode" : "virtual chat mode";
+    meta.textContent = `${mode} / ${client} / ${bridge} / idle ${data.seconds_since_last_activity ?? "-"}s / turns ${data.idle_turn ?? 0}`;
   };
   const refresh = async () => {
     try {
@@ -386,9 +447,21 @@
         });
         status(data.active ? "VTuber mode running." : "Start requested.");
         setMeta(data);
+      } else if (action === "send-virtual") {
+        const message = value("virtualMessage");
+        const author = value("virtualName") || "viewer";
+        if (!message) {
+          status("Type a virtual chat message first.");
+          return;
+        }
+        await post("/credo/vtuber-mode/virtual-chat", { author, message });
+        appendChat(author, message);
+        const input = root.querySelector('[data-key="virtualMessage"]');
+        if (input) input.value = "";
+        status("Virtual chat sent.");
       } else if (action === "stop") {
         const data = await post("/credo/vtuber-mode/stop");
-        status("Stopped.");
+        status("Virtual broadcast chat mode.");
         setMeta(data);
       } else if (action === "monologue") {
         await post("/credo/vtuber-mode/monologue", { topic: value("topic") });
@@ -409,6 +482,11 @@
   root.addEventListener("input", (event) => {
     const key = event.target?.dataset?.key;
     if (key) localStorage.setItem(`credo-vtuber-mode:${key}`, event.target.value);
+  });
+  root.addEventListener("keydown", async (event) => {
+    if (event.key !== "Enter" || event.target?.dataset?.key !== "virtualMessage") return;
+    event.preventDefault();
+    root.querySelector('[data-action="send-virtual"]')?.click();
   });
   for (const input of root.querySelectorAll("input[data-key]")) {
     const saved = localStorage.getItem(`credo-vtuber-mode:${input.dataset.key}`);
