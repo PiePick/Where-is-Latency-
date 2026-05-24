@@ -183,6 +183,11 @@ class CredoLatencyCoverAgent(AgentInterface):
         user_text, is_proactive = self._extract_input(input_data)
         if not user_text:
             return
+        if metadata.get("vtuber_mode"):
+            logger.info(
+                "CREDO VTuber turn entering FastTrack-first path: "
+                f"event={metadata.get('vtuber_event')}, surface={user_text[:80]!r}"
+            )
 
         if not self.fast_track_enabled:
             logger.info("CREDO FastTrack disabled; running SlowTrack-only turn.")
@@ -213,6 +218,8 @@ class CredoLatencyCoverAgent(AgentInterface):
                 "emotion": fast_result.get("emotion_label"),
                 "keywords": fast_result.get("keywords") or [],
                 "turn_id": turn_id,
+                "vtuber_mode": bool(metadata.get("vtuber_mode")),
+                "vtuber_event": metadata.get("vtuber_event"),
             },
         )
 
@@ -273,6 +280,8 @@ class CredoLatencyCoverAgent(AgentInterface):
                 "persona_response_act": fast_result.get("persona_response_act"),
                 "fast_audio_cache_hit": bool(fast_audio_path and Path(str(fast_audio_path)).exists()),
                 "turn_id": turn_id,
+                "vtuber_mode": bool(metadata.get("vtuber_mode")),
+                "vtuber_event": metadata.get("vtuber_event"),
             },
         )
 
@@ -350,7 +359,13 @@ class CredoLatencyCoverAgent(AgentInterface):
             slow_started,
             text=user_text,
             engine=self._credo_config.LOCAL_LLM_MODEL,
-            metadata={"emotion": emotion, "intent": intent, "turn_id": turn_id},
+            metadata={
+                "emotion": emotion,
+                "intent": intent,
+                "turn_id": turn_id,
+                "vtuber_mode": bool(metadata.get("vtuber_mode")),
+                "vtuber_event": metadata.get("vtuber_event"),
+            },
         )
         slow_text = self._clean_spoken_text(slow_text) or "I hear you."
 
@@ -369,6 +384,8 @@ class CredoLatencyCoverAgent(AgentInterface):
                 "emotion": emotion,
                 "intent": intent,
                 "turn_id": turn_id,
+                "vtuber_mode": bool(metadata.get("vtuber_mode")),
+                "vtuber_event": metadata.get("vtuber_event"),
             },
         )
 
@@ -514,10 +531,11 @@ class CredoLatencyCoverAgent(AgentInterface):
         silence = metadata.get("silence_seconds")
         last_chat = str(metadata.get("last_chat") or "").strip()
         event = str(metadata.get("vtuber_event") or "idle")
-        parts = [str(text or "").strip()]
+        instruction = str(metadata.get("vtuber_instruction") or "").strip()
+        parts = [instruction or str(text or "").strip()]
         if topic:
             parts.append(f"Current stream topic anchor: {topic}.")
-        if last_chat:
+        if last_chat and last_chat != text:
             parts.append(f"Most recent viewer/chat context: {last_chat}")
         if silence is not None:
             parts.append(f"The chat has been quiet for about {int(float(silence))} seconds.")

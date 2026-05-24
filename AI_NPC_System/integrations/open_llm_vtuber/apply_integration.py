@@ -569,6 +569,55 @@ def patch_vtuber_routes(vendor: Path) -> None:
 
     replacements = [
         (
+            '        prompt = (\n'
+            '            "VTuber stream idle segment. "\n'
+            '            f"{beat} "\n'
+            '            "Speak in natural English as CREDO. "\n'
+            '            "Do not say you are waiting for input unless it sounds like a streamer joking with chat. "\n'
+            '            "Do not mention systems, prompts, tests, models, or implementation. "\n'
+            '            "Aim for 12 to 24 spoken words so live TTS does not block chat."\n'
+            '        )\n',
+            '        instruction = (\n'
+            '            "VTuber stream idle segment. "\n'
+            '            f"{beat} "\n'
+            '            "Speak in natural English as CREDO. "\n'
+            '            "Do not say you are waiting for input unless it sounds like a streamer joking with chat. "\n'
+            '            "Do not mention systems, prompts, tests, models, or implementation. "\n'
+            '            "Aim for 12 to 24 spoken words so live TTS does not block chat."\n'
+            '        )\n'
+            '        prompt = "Chat got quiet for a moment."\n',
+        ),
+        (
+            '        vtuber_mode["last_prompt"] = prompt\n',
+            '        vtuber_mode["last_prompt"] = instruction\n',
+        ),
+        (
+            '        text = (\n'
+            '            "VTuber mode manual monologue. Speak naturally to the audience in English only. "\n'
+            '            "Make one cohesive streamer-style segment with a beginning, a small point, and a chat hook. "\n'
+            '            "Do not write bracketed style tags or switch languages."\n'
+            '        )\n',
+            '        instruction = (\n'
+            '            "VTuber mode manual monologue. Speak naturally to the audience in English only. "\n'
+            '            "Make one cohesive streamer-style segment with a beginning, a small point, and a chat hook. "\n'
+            '            "Do not write bracketed style tags or switch languages."\n'
+            '        )\n'
+            '        text = "Let\'s do a quick stream monologue."\n',
+        ),
+        (
+            '        text = (\n'
+            '            f"Donation event from {name} {amount}: {message}. "\n'
+            '            "React warmly in English only, then naturally fold back into the stream. "\n'
+            '            "Do not write bracketed style tags or switch languages."\n'
+            '        )\n',
+            '        instruction = (\n'
+            '            f"Donation event from {name} {amount}: {message}. "\n'
+            '            "React warmly in English only, then naturally fold back into the stream. "\n'
+            '            "Do not write bracketed style tags or switch languages."\n'
+            '        )\n'
+            '        text = _clean_prompt_piece(f"{name} sent support. {message}", 220)\n',
+        ),
+        (
             '            "Aim for 45 to 80 spoken words."\n',
             '            "Aim for 12 to 24 spoken words so live TTS does not block chat."\n',
         ),
@@ -617,10 +666,62 @@ def patch_vtuber_routes(vendor: Path) -> None:
     ]
     for old, new in replacements:
         text = text.replace(old, new)
+    if '            "vtuber_event": "idle",\n            "vtuber_instruction": instruction,\n' not in text:
+        text = text.replace(
+            '            "vtuber_event": "idle",\n',
+            '            "vtuber_event": "idle",\n            "vtuber_instruction": instruction,\n',
+            1,
+        )
+    if '            "vtuber_instruction": instruction,\n            "skip_last_text_input": True,\n' not in text:
+        text = text.replace(
+            '            "vtuber_instruction": instruction,\n',
+            '            "vtuber_instruction": instruction,\n            "skip_last_text_input": True,\n',
+            1,
+        )
+    if '                "vtuber_event": "manual_monologue",\n                "vtuber_instruction": instruction,\n' not in text:
+        text = text.replace(
+            '                "vtuber_event": "manual_monologue",\n',
+            '                "vtuber_event": "manual_monologue",\n                "vtuber_instruction": instruction,\n',
+            1,
+        )
+    if '                "vtuber_instruction": instruction,\n                "skip_last_text_input": True,\n' not in text:
+        text = text.replace(
+            '                "vtuber_instruction": instruction,\n',
+            '                "vtuber_instruction": instruction,\n                "skip_last_text_input": True,\n',
+            2,
+        )
+    if '                "vtuber_event": "donation",\n                "vtuber_instruction": instruction,\n' not in text:
+        text = text.replace(
+            '                "vtuber_event": "donation",\n',
+            '                "vtuber_event": "donation",\n                "vtuber_instruction": instruction,\n',
+            1,
+        )
     text = text.replace(
         '            await ws_handler.trigger_text_input(prompt)\n            await asyncio.sleep(float(vtuber_mode["interval"]))\n',
         '            target_uid = ws_handler.first_client_uid()\n            active_task = ws_handler.current_conversation_tasks.get(target_uid) if target_uid else None\n            if active_task and not active_task.done():\n                logger.info("CREDO VTuber idle monologue skipped because a conversation is still running.")\n            else:\n                await ws_handler.trigger_text_input(prompt)\n            await asyncio.sleep(float(vtuber_mode["interval"]))\n',
     )
+    path.write_text(text, encoding="utf-8")
+
+
+def patch_websocket_handler(vendor: Path) -> None:
+    """Avoid treating server-injected VTuber prompts as the latest viewer chat."""
+    path = vendor / "src" / "open_llm_vtuber" / "websocket_handler.py"
+    if not path.exists():
+        return
+    text = path.read_text(encoding="utf-8")
+    old = (
+        '        self._last_activity_at = time.monotonic()\n'
+        '        if data.get("type") == "text-input" and data.get("text"):\n'
+        '            self._last_text_input = str(data.get("text") or "")[:500]\n'
+    )
+    new = (
+        '        self._last_activity_at = time.monotonic()\n'
+        '        metadata = data.get("metadata") or {}\n'
+        '        if data.get("type") == "text-input" and data.get("text") and not metadata.get("skip_last_text_input"):\n'
+        '            self._last_text_input = str(data.get("text") or "")[:500]\n'
+    )
+    if new not in text:
+        text = text.replace(old, new, 1)
     path.write_text(text, encoding="utf-8")
 
 
@@ -676,6 +777,7 @@ def apply(vendor: Path, *, activate: bool = False) -> None:
     patch_service_context(vendor)
     patch_audio_pipeline(vendor)
     patch_vtuber_routes(vendor)
+    patch_websocket_handler(vendor)
     write_full_config(vendor, activate=activate)
 
 
