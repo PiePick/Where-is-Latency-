@@ -177,6 +177,59 @@ async def send_to_proxy(proxy_url: str, text: str) -> None:
         await ws.send(json.dumps({"type": "text-input", "text": text}))
 
 
+def format_batch_for_vtuber(
+    messages: list[ChatMessage],
+    *,
+    author_mode: str,
+    source_label: str,
+    max_items: int,
+) -> str:
+    """Format several live chat messages as one VTuber reading segment."""
+    selected = messages[-max(1, max_items):]
+    lines = []
+    for index, message in enumerate(selected, start=1):
+        text = message.text.strip()
+        if not text:
+            continue
+        if author_mode == "display":
+            speaker = f'{message.author}'
+        elif author_mode == "anonymous":
+            speaker = "anonymous viewer"
+        else:
+            speaker = f"viewer {index}"
+        lines.append(f"- {speaker}: {text}")
+
+    joined = "\n".join(lines)
+    return (
+        f"[Live chat batch: {source_label}]\n"
+        f"Recent chat messages:\n{joined}\n"
+        "Respond as CREDO to the overall stream context, not line-by-line. "
+        "Pick one or two representative points, acknowledge the room naturally, and keep the stream moving."
+    )
+
+
+async def flush_chat_batch(
+    *,
+    pending: list[ChatMessage],
+    proxy_url: str,
+    author_mode: str,
+    source_label: str,
+    max_batch: int,
+) -> None:
+    """Send the current chat batch if it has any messages."""
+    if not pending:
+        return
+    text = format_batch_for_vtuber(
+        pending,
+        author_mode=author_mode,
+        source_label=source_label,
+        max_items=max_batch,
+    )
+    print(f"[{time.strftime('%H:%M:%S')}] forwarding {len(pending[-max_batch:])} chat messages as one batch")
+    await send_to_proxy(proxy_url, text)
+    pending.clear()
+
+
 async def run_bridge(args: argparse.Namespace) -> None:
     """Main polling loop."""
     api_key = args.api_key or os.getenv("YOUTUBE_API_KEY")
@@ -211,6 +264,8 @@ async def run_bridge(args: argparse.Namespace) -> None:
     next_page_token: str | None = None
     poll_interval = args.min_interval
     first_page = True
+    pending_batch: list[ChatMessage] = []
+    last_batch_sent_at = time.monotonic()
 
     while not stop.is_set():
         try:
@@ -237,15 +292,43 @@ async def run_bridge(args: argparse.Namespace) -> None:
                     continue
 
                 author_mode = "display" if args.include_author else args.author_mode
-                text = format_for_vtuber(
-                    message,
+                print(f"[{time.strftime('%H:%M:%S')}] {message.author}: {message.text}")
+                if args.batch_window <= 0 or args.legacy_raw_text:
+                    text = format_for_vtuber(
+                        message,
+                        author_mode=author_mode,
+                        source_label=args.source_label,
+                        role_context=not args.legacy_raw_text,
+                    )
+                    await send_to_proxy(args.proxy_url, text)
+                    await asyncio.sleep(args.send_gap)
+                    continue
+
+                pending_batch.append(message)
+                if len(pending_batch) >= args.max_batch:
+                    await flush_chat_batch(
+                        pending=pending_batch,
+                        proxy_url=args.proxy_url,
+                        author_mode=author_mode,
+                        source_label=args.source_label,
+                        max_batch=args.max_batch,
+                    )
+                    last_batch_sent_at = time.monotonic()
+
+            if (
+                args.batch_window > 0
+                and pending_batch
+                and time.monotonic() - last_batch_sent_at >= args.batch_window
+            ):
+                author_mode = "display" if args.include_author else args.author_mode
+                await flush_chat_batch(
+                    pending=pending_batch,
+                    proxy_url=args.proxy_url,
                     author_mode=author_mode,
                     source_label=args.source_label,
-                    role_context=not args.legacy_raw_text,
+                    max_batch=args.max_batch,
                 )
-                print(f"[{time.strftime('%H:%M:%S')}] {message.author}: {message.text}")
-                await send_to_proxy(args.proxy_url, text)
-                await asyncio.sleep(args.send_gap)
+                last_batch_sent_at = time.monotonic()
 
         except Exception as exc:
             print(f"Bridge warning: {exc}", file=sys.stderr)
@@ -267,6 +350,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-interval", type=float, default=float(os.getenv("YOUTUBE_CHAT_MIN_INTERVAL", "2.0")), help="Minimum polling interval.")
     parser.add_argument("--error-interval", type=float, default=float(os.getenv("YOUTUBE_CHAT_ERROR_INTERVAL", "10.0")), help="Polling interval after an error.")
     parser.add_argument("--send-gap", type=float, default=float(os.getenv("YOUTUBE_CHAT_SEND_GAP", "1.0")), help="Delay between forwarded messages.")
+    parser.add_argument("--batch-window", type=float, default=float(os.getenv("YOUTUBE_CHAT_BATCH_WINDOW", "8.0")), help="Seconds to collect live chat before forwarding one batch. Set 0 for one-by-one forwarding.")
+    parser.add_argument("--max-batch", type=int, default=int(os.getenv("YOUTUBE_CHAT_MAX_BATCH", "8")), help="Maximum chat messages per forwarded batch.")
     parser.add_argument("--min-chars", type=int, default=int(os.getenv("YOUTUBE_CHAT_MIN_CHARS", "2")), help="Ignore messages shorter than this.")
     parser.add_argument("--max-seen", type=int, default=2000, help="Deduplication window size.")
     parser.add_argument(

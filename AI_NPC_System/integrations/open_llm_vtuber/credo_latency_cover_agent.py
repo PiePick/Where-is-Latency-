@@ -263,6 +263,9 @@ class CredoLatencyCoverAgent(AgentInterface):
             f"cache={fast_result.get('fast_audio_cache_hit')}"
         )
 
+        for interjection in self._build_initial_interjection_outputs(emotion, turn_id):
+            yield interjection
+
         fast_audio_started = time.perf_counter()
         fast_audio_path = await self._resolve_fast_audio(fast_result, fast_tts_text, emotion=emotion)
         self._log_latency(
@@ -325,9 +328,6 @@ class CredoLatencyCoverAgent(AgentInterface):
                     metadata={**cover_plan, "turn_id": turn_id, "emotion": emotion, "intent": intent},
                 )
             )
-
-        for interjection in self._build_initial_interjection_outputs(emotion, turn_id):
-            yield interjection
 
         if self.use_fast_audio and fast_audio_path and Path(str(fast_audio_path)).exists():
             yield AudioOutput(

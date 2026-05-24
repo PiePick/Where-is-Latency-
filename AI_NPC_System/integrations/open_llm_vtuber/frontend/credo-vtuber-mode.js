@@ -357,6 +357,10 @@
           <input data-key="topic" placeholder="Stream topic" value="games, daily life, funny chat moments">
           <input data-key="interval" placeholder="Idle sec" value="35">
         </div>
+        <div class="grid">
+          <input data-key="batchWindow" placeholder="Chat batch sec" value="8">
+          <input data-key="maxBatch" placeholder="Max chat" value="8">
+        </div>
         <div class="row"><input data-key="videoId" placeholder="YouTube video ID"></div>
         <div class="row"><input data-key="liveChatId" placeholder="YouTube live chat ID"></div>
         <div class="row"><input data-key="apiKey" placeholder="YouTube API key"></div>
@@ -474,6 +478,8 @@
           live_chat_id: value("liveChatId"),
           api_key: value("apiKey"),
           include_author: true,
+          batch_window: Number(value("batchWindow") || 8),
+          max_batch: Number(value("maxBatch") || 8),
         });
         status(data.active ? "VTuber mode running." : "Start requested.");
         setMeta(data);

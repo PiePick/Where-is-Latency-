@@ -720,6 +720,14 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '    @router.post("/credo/vtuber-mode/start")\n',
             1,
         )
+    if '"--batch-window", str(payload.get("batch_window")' not in text:
+        text = text.replace(
+            '        cmd.extend(["--proxy-url", os.getenv("YOUTUBE_CHAT_PROXY_URL", "ws://localhost:12393/proxy-ws")])\n',
+            '        cmd.extend(["--proxy-url", os.getenv("YOUTUBE_CHAT_PROXY_URL", "ws://localhost:12393/proxy-ws")])\n'
+            '        cmd.extend(["--batch-window", str(payload.get("batch_window") or os.getenv("YOUTUBE_CHAT_BATCH_WINDOW", "8.0"))])\n'
+            '        cmd.extend(["--max-batch", str(payload.get("max_batch") or os.getenv("YOUTUBE_CHAT_MAX_BATCH", "8"))])\n',
+            1,
+        )
     text = text.replace(
         '            await ws_handler.trigger_text_input(prompt)\n            await asyncio.sleep(float(vtuber_mode["interval"]))\n',
         '            target_uid = ws_handler.first_client_uid()\n            active_task = ws_handler.current_conversation_tasks.get(target_uid) if target_uid else None\n            if active_task and not active_task.done():\n                logger.info("CREDO VTuber idle monologue skipped because a conversation is still running.")\n            else:\n                await ws_handler.trigger_text_input(prompt)\n            await asyncio.sleep(float(vtuber_mode["interval"]))\n',
