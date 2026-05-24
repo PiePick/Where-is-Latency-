@@ -263,6 +263,31 @@ class CredoLatencyCoverAgent(AgentInterface):
             f"cache={fast_result.get('fast_audio_cache_hit')}"
         )
 
+        memory_context = self.memory.build_prompt_context() if self.memory else None
+        slow_started = time.perf_counter()
+        slow_task: asyncio.Task | None = None
+        cover_plan: dict[str, Any] = {}
+        if self.slow_enabled:
+            slow_input = self._build_vtuber_prompt(user_text, metadata) if metadata.get("vtuber_mode") else user_text
+            slow_strategy = fast_result.get("strategy")
+            slow_mode = None
+            slow_max_tokens = None
+            if metadata.get("vtuber_mode"):
+                event = str(metadata.get("vtuber_event") or "idle")
+                slow_strategy = f"vtuber_mode:{event}; fasttrack:{slow_strategy or 'persona_bundle'}"
+                slow_mode = "vtuber_monologue"
+                slow_max_tokens = getattr(self._credo_config, "CREDO_VTUBER_LLM_MAX_TOKENS", 180)
+            slow_task = asyncio.create_task(
+                self._slow_track.generate_response(
+                    slow_input,
+                    fast_tts_text,
+                    slow_strategy,
+                    memory_context,
+                    mode=slow_mode,
+                    max_tokens=slow_max_tokens,
+                )
+            )
+
         for interjection in self._build_initial_interjection_outputs(emotion, turn_id):
             yield interjection
 
@@ -288,30 +313,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             },
         )
 
-        memory_context = self.memory.build_prompt_context() if self.memory else None
-        slow_started = time.perf_counter()
-        slow_task: asyncio.Task | None = None
-        cover_plan: dict[str, Any] = {}
         if self.slow_enabled:
-            slow_input = self._build_vtuber_prompt(user_text, metadata) if metadata.get("vtuber_mode") else user_text
-            slow_strategy = fast_result.get("strategy")
-            slow_mode = None
-            slow_max_tokens = None
-            if metadata.get("vtuber_mode"):
-                event = str(metadata.get("vtuber_event") or "idle")
-                slow_strategy = f"vtuber_mode:{event}; fasttrack:{slow_strategy or 'persona_bundle'}"
-                slow_mode = "vtuber_monologue"
-                slow_max_tokens = getattr(self._credo_config, "CREDO_VTUBER_LLM_MAX_TOKENS", 180)
-            slow_task = asyncio.create_task(
-                self._slow_track.generate_response(
-                    slow_input,
-                    fast_tts_text,
-                    slow_strategy,
-                    memory_context,
-                    mode=slow_mode,
-                    max_tokens=slow_max_tokens,
-                )
-            )
             cover_plan = await asyncio.to_thread(
                 self.cover_composer.compose,
                 user_text=user_text,
@@ -1083,10 +1085,16 @@ class CredoLatencyCoverAgent(AgentInterface):
         *,
         emotion: str = "neutral",
     ) -> Path | None:
-        """Prefer CREDO's own cached FastTrack audio, then the configured fast TTS engine."""
+        """Return only prebuilt FastTrack audio unless legacy fallback is explicitly enabled."""
         cached_path = fast_result.get("fast_audio_path")
         if cached_path and Path(str(cached_path)).exists():
             return Path(str(cached_path))
+
+        if getattr(self._credo_config, "FAST_TRACK_PREBUILT_ONLY", True):
+            logger.warning(
+                "CREDO FastTrack prebuilt audio missing; realtime FastTrack TTS is disabled by FAST_TRACK_PREBUILT_ONLY."
+            )
+            return None
 
         if self._credo_config.FAST_TRACK_TTS_MODE == "fish_speech":
             audio = await self._try_synthesize_fast_fish_audio(text)
