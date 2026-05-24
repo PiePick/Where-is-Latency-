@@ -58,6 +58,7 @@
   let idleReturnTimer = null;
   let parameterPulseFrame = null;
   let parameterPulseUntil = 0;
+  let subtitleTimer = null;
 
   const availableGroup = (group) => {
     if (!group) return "";
@@ -202,6 +203,103 @@
     });
   };
 
+  const spokenTextFromPayload = (data) => {
+    const displayText = data?.display_text;
+    if (typeof displayText === "string") return displayText.trim();
+    if (displayText && typeof displayText.text === "string") return displayText.text.trim();
+    return "";
+  };
+
+  const ensureSubtitleRoot = () => {
+    let subtitle = document.getElementById("credo-character-subtitle");
+    if (subtitle) return subtitle;
+    subtitle = document.createElement("div");
+    subtitle.id = "credo-character-subtitle";
+    subtitle.setAttribute("aria-live", "polite");
+    subtitle.innerHTML = `
+      <style>
+        #credo-character-subtitle {
+          position: fixed;
+          left: 50%;
+          bottom: 34px;
+          transform: translateX(-50%) translateY(10px);
+          z-index: 9998;
+          width: min(760px, calc(100vw - 48px));
+          min-height: 0;
+          padding: 12px 18px;
+          box-sizing: border-box;
+          border-radius: 8px;
+          background: rgba(8, 10, 14, 0.76);
+          color: #fff;
+          font: 600 20px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          text-align: center;
+          text-shadow: 0 1px 3px rgba(0,0,0,0.65);
+          box-shadow: 0 10px 36px rgba(0,0,0,0.22);
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 140ms ease, transform 140ms ease;
+          white-space: pre-wrap;
+          overflow-wrap: anywhere;
+        }
+        #credo-character-subtitle.visible {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      </style>
+      <span data-role="subtitle-text"></span>
+    `;
+    document.body.appendChild(subtitle);
+    return subtitle;
+  };
+
+  const showSubtitle = (text, durationMs = 0) => {
+    text = String(text || "").trim();
+    const subtitle = ensureSubtitleRoot();
+    const label = subtitle.querySelector('[data-role="subtitle-text"]');
+    if (!text || /^thinking\.{0,3}$/i.test(text)) {
+      subtitle.classList.remove("visible");
+      if (label) label.textContent = "";
+      return;
+    }
+    if (label) label.textContent = text;
+    subtitle.classList.add("visible");
+    if (subtitleTimer) window.clearTimeout(subtitleTimer);
+    const hideAfter = Math.max(1800, Number(durationMs || 0) + 900);
+    subtitleTimer = window.setTimeout(() => subtitle.classList.remove("visible"), hideAfter);
+  };
+
+  const hideThinkingText = (rootNode = document.body) => {
+    const walker = document.createTreeWalker(rootNode, NodeFilter.SHOW_ELEMENT);
+    const candidates = [];
+    if (rootNode instanceof Element) candidates.push(rootNode);
+    while (walker.nextNode()) candidates.push(walker.currentNode);
+    for (const node of candidates) {
+      if (!(node instanceof HTMLElement)) continue;
+      if (node.id === "credo-character-subtitle" || node.closest("#credo-character-subtitle")) continue;
+      const text = String(node.textContent || "").trim();
+      if (/^Thinking\.{0,3}$/i.test(text)) {
+        node.style.display = "none";
+        node.setAttribute("aria-hidden", "true");
+      }
+    }
+  };
+
+  const startThinkingTextObserver = () => {
+    hideThinkingText();
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        for (const node of record.addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) hideThinkingText(node);
+        }
+        if (record.type === "characterData") {
+          const parent = record.target.parentElement;
+          if (parent) hideThinkingText(parent);
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, characterData: true, subtree: true });
+  };
+
   const handleCredoAudioPayload = (raw) => {
     try {
       const data = JSON.parse(raw);
@@ -218,6 +316,7 @@
       if (expressions.some((item) => isProfileTag(item) || isStyleTag(item) || isSpeechTag(item))) {
         startSpeechParameterPulse(data, profile);
       }
+      showSubtitle(spokenTextFromPayload(data), durationMs);
       scheduleEventMotions(expressions, durationMs, profile);
     } catch {
       // Ignore non-JSON websocket traffic.
@@ -532,6 +631,8 @@
 
   window.addEventListener("load", () => {
     document.body.appendChild(root);
+    ensureSubtitleRoot();
+    startThinkingTextObserver();
     refresh();
     window.setInterval(refresh, 4000);
   });
