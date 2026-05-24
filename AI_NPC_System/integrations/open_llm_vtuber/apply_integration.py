@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -342,17 +343,33 @@ def patch_audio_pipeline(vendor: Path) -> None:
 
     single_path = vendor / "src" / "open_llm_vtuber" / "conversations" / "single_conversation.py"
     text = single_path.read_text(encoding="utf-8")
-    text = text.replace(
+    text = replace_once(
+        text,
         '            await websocket_send(\n                json.dumps(\n                    {\n                        "type": "error",\n                        "message": f"Error processing agent response: {str(e)}",\n                    }\n                )\n            )\n',
         '            try:\n                await websocket_send(\n                    json.dumps(\n                        {\n                            "type": "error",\n                            "message": f"Error processing agent response: {str(e)}",\n                        }\n                    )\n                )\n            except RuntimeError as send_exc:\n                logger.warning(f"Skipping agent error send because websocket is closed: {send_exc}")\n',
+        "single conversation agent error websocket guard",
     )
-    text = text.replace(
-        '            await websocket_send(json.dumps({"type": "backend-synth-complete"}))\n',
-        '            try:\n                await websocket_send(json.dumps({"type": "backend-synth-complete"}))\n            except RuntimeError as send_exc:\n                logger.warning(f"Skipping synth-complete send because websocket is closed: {send_exc}")\n',
+    text = re.sub(
+        r"            try:\n(?:                try:\n)+(?=                await websocket_send\(json.dumps\(\{\"type\": \"backend-synth-complete\"\}\)\)\n)",
+        "            try:\n",
+        text,
     )
-    text = text.replace(
+    text = re.sub(
+        r"(            except RuntimeError as send_exc:\n                logger\.warning\(f\"Skipping synth-complete send because websocket is closed: \{send_exc\}\"\)\n)+",
+        '            except RuntimeError as send_exc:\n                logger.warning(f"Skipping synth-complete send because websocket is closed: {send_exc}")\n',
+        text,
+    )
+    text = replace_once(
+        text,
+        '        if tts_manager.task_list:\n            await asyncio.gather(*tts_manager.task_list)\n            await websocket_send(json.dumps({"type": "backend-synth-complete"}))\n',
+        '        if tts_manager.task_list:\n            await asyncio.gather(*tts_manager.task_list)\n            try:\n                await websocket_send(json.dumps({"type": "backend-synth-complete"}))\n            except RuntimeError as send_exc:\n                logger.warning(f"Skipping synth-complete send because websocket is closed: {send_exc}")\n',
+        "single conversation synth complete websocket guard",
+    )
+    text = replace_once(
+        text,
         '        await websocket_send(\n            json.dumps({"type": "error", "message": f"Conversation error: {str(e)}"})\n        )\n',
         '        try:\n            await websocket_send(\n                json.dumps({"type": "error", "message": f"Conversation error: {str(e)}"})\n            )\n        except RuntimeError as send_exc:\n            logger.warning(f"Skipping conversation error send because websocket is closed: {send_exc}")\n',
+        "single conversation top-level error websocket guard",
     )
     single_path.write_text(text, encoding="utf-8")
 
@@ -551,6 +568,10 @@ def patch_vtuber_routes(vendor: Path) -> None:
         return
 
     replacements = [
+        (
+            '            "Aim for 45 to 80 spoken words."\n',
+            '            "Aim for 12 to 24 spoken words so live TTS does not block chat."\n',
+        ),
         (
             '                "Keep it under 35 words, include one approved Fish Speech tag, "\n'
             '                "and end with a light hook that invites chat."\n',

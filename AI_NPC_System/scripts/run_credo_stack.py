@@ -79,7 +79,8 @@ SERVICES: dict[str, StackService] = {
 }
 
 PROFILES = {
-    "live": ("fish", "llm", "piper", "open-llm"),
+    "live": ("fish", "llm", "open-llm"),
+    "live-piper": ("fish", "llm", "piper", "open-llm"),
     "live-no-piper": ("fish", "llm", "open-llm"),
     "cache": ("fish",),
     "llm-only": ("llm",),

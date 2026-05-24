@@ -1,0 +1,989 @@
+{
+  "created_at": "2026-05-24T09:06:26.957845+00:00",
+  "generator": "AI_NPC_System/scripts/build_interjection_audio_bundle.py",
+  "kind": "pure_interjection_audio_bundle",
+  "tts_reference": {
+    "reference_id": "credo_eunice_english_v2",
+    "reference_source": "AI_NPC_System/VoiceSample/first try.m4a;AI_NPC_System/VoiceSample/second try.m4a;AI_NPC_System/VoiceSample/third try.m4a"
+  },
+  "policy": {
+    "spoken_content": "pure interjection or nonverbal filler only",
+    "no_dialogue_carriers": true,
+    "pause_cue_policy": "Each synthesized text starts and ends with exactly one [short pause] cue."
+  },
+  "style_tts_cue_chains": {
+    "high-pitched": [
+      "[high-pitched]",
+      "[bright]",
+      "[youthful]"
+    ],
+    "playful": [
+      "[playful]",
+      "[teasing]",
+      "[bouncy]",
+      "[lively]"
+    ],
+    "energetic": [
+      "[excited]",
+      "[energetic]",
+      "[loud]",
+      "[hype]"
+    ],
+    "smug": [
+      "[smug]",
+      "[playful]",
+      "[cheeky]",
+      "[confident]"
+    ],
+    "cute": [
+      "[cute]",
+      "[soft]",
+      "[bright]",
+      "[high-pitched]"
+    ]
+  },
+  "cells": [
+    {
+      "cell_id": "positive_high-pitched",
+      "emotion": "positive",
+      "style_tag": "high-pitched",
+      "event": "laugh",
+      "carriers": [
+        "ha-ha!",
+        "hee-hee!",
+        "ahaha!",
+        "haha!",
+        "oh!",
+        "aw!"
+      ]
+    },
+    {
+      "cell_id": "positive_playful",
+      "emotion": "positive",
+      "style_tag": "playful",
+      "event": "laugh",
+      "carriers": [
+        "ha-ha!",
+        "hee-hee!",
+        "ahaha!",
+        "haha!",
+        "oh!",
+        "aw!"
+      ]
+    },
+    {
+      "cell_id": "positive_energetic",
+      "emotion": "positive",
+      "style_tag": "energetic",
+      "event": "laugh",
+      "carriers": [
+        "ha-ha!",
+        "hee-hee!",
+        "ahaha!",
+        "haha!",
+        "oh!",
+        "aw!"
+      ]
+    },
+    {
+      "cell_id": "positive_smug",
+      "emotion": "positive",
+      "style_tag": "smug",
+      "event": "laugh",
+      "carriers": [
+        "ha-ha!",
+        "hee-hee!",
+        "ahaha!",
+        "haha!",
+        "oh!",
+        "aw!"
+      ]
+    },
+    {
+      "cell_id": "positive_cute",
+      "emotion": "positive",
+      "style_tag": "cute",
+      "event": "laugh",
+      "carriers": [
+        "ha-ha!",
+        "hee-hee!",
+        "ahaha!",
+        "haha!",
+        "oh!",
+        "aw!"
+      ]
+    },
+    {
+      "cell_id": "negative_high-pitched",
+      "emotion": "negative",
+      "style_tag": "high-pitched",
+      "event": "sigh",
+      "carriers": [
+        "ugh.",
+        "hm.",
+        "mm."
+      ]
+    },
+    {
+      "cell_id": "negative_playful",
+      "emotion": "negative",
+      "style_tag": "playful",
+      "event": "sigh",
+      "carriers": [
+        "ugh.",
+        "hm.",
+        "mm."
+      ]
+    },
+    {
+      "cell_id": "negative_energetic",
+      "emotion": "negative",
+      "style_tag": "energetic",
+      "event": "sigh",
+      "carriers": [
+        "ugh.",
+        "hm.",
+        "mm."
+      ]
+    },
+    {
+      "cell_id": "negative_smug",
+      "emotion": "negative",
+      "style_tag": "smug",
+      "event": "sigh",
+      "carriers": [
+        "ugh.",
+        "hm.",
+        "mm."
+      ]
+    },
+    {
+      "cell_id": "negative_cute",
+      "emotion": "negative",
+      "style_tag": "cute",
+      "event": "sigh",
+      "carriers": [
+        "ugh.",
+        "hm.",
+        "mm."
+      ]
+    },
+    {
+      "cell_id": "ambiguous_high-pitched",
+      "emotion": "ambiguous",
+      "style_tag": "high-pitched",
+      "event": "surprise",
+      "carriers": [
+        "huh?",
+        "oh?"
+      ]
+    },
+    {
+      "cell_id": "ambiguous_playful",
+      "emotion": "ambiguous",
+      "style_tag": "playful",
+      "event": "surprise",
+      "carriers": [
+        "huh?",
+        "oh?"
+      ]
+    },
+    {
+      "cell_id": "ambiguous_energetic",
+      "emotion": "ambiguous",
+      "style_tag": "energetic",
+      "event": "surprise",
+      "carriers": [
+        "huh?",
+        "oh?"
+      ]
+    },
+    {
+      "cell_id": "ambiguous_smug",
+      "emotion": "ambiguous",
+      "style_tag": "smug",
+      "event": "surprise",
+      "carriers": [
+        "huh?",
+        "oh?"
+      ]
+    },
+    {
+      "cell_id": "ambiguous_cute",
+      "emotion": "ambiguous",
+      "style_tag": "cute",
+      "event": "surprise",
+      "carriers": [
+        "huh?",
+        "oh?"
+      ]
+    },
+    {
+      "cell_id": "neutral_high-pitched",
+      "emotion": "neutral",
+      "style_tag": "high-pitched",
+      "event": "thinking",
+      "carriers": [
+        "hm.",
+        "mm."
+      ]
+    },
+    {
+      "cell_id": "neutral_playful",
+      "emotion": "neutral",
+      "style_tag": "playful",
+      "event": "thinking",
+      "carriers": [
+        "hm.",
+        "mm."
+      ]
+    },
+    {
+      "cell_id": "neutral_energetic",
+      "emotion": "neutral",
+      "style_tag": "energetic",
+      "event": "thinking",
+      "carriers": [
+        "hm.",
+        "mm."
+      ]
+    },
+    {
+      "cell_id": "neutral_smug",
+      "emotion": "neutral",
+      "style_tag": "smug",
+      "event": "thinking",
+      "carriers": [
+        "hm.",
+        "mm."
+      ]
+    },
+    {
+      "cell_id": "neutral_cute",
+      "emotion": "neutral",
+      "style_tag": "cute",
+      "event": "thinking",
+      "carriers": [
+        "hm.",
+        "mm."
+      ]
+    }
+  ],
+  "items": [
+    {
+      "id": "positive_high-pitched_01",
+      "cell_id": "positive_high-pitched",
+      "emotion": "positive",
+      "style_tag": "high-pitched",
+      "event": "laugh",
+      "carrier": "ha-ha!",
+      "plain_tts_text": "ha-ha!",
+      "tts_text": "[short pause] [happy] [chuckle] [high-pitched] [bright] [youthful] ha-ha! [short pause]",
+      "audio_path": "audio/positive/high-pitched/positive_high-pitched_01.wav"
+    },
+    {
+      "id": "positive_high-pitched_02",
+      "cell_id": "positive_high-pitched",
+      "emotion": "positive",
+      "style_tag": "high-pitched",
+      "event": "laugh",
+      "carrier": "hee-hee!",
+      "plain_tts_text": "hee-hee!",
+      "tts_text": "[short pause] [happy] [chuckle] [high-pitched] [bright] [youthful] hee-hee! [short pause]",
+      "audio_path": "audio/positive/high-pitched/positive_high-pitched_02.wav"
+    },
+    {
+      "id": "positive_high-pitched_03",
+      "cell_id": "positive_high-pitched",
+      "emotion": "positive",
+      "style_tag": "high-pitched",
+      "event": "laugh",
+      "carrier": "ahaha!",
+      "plain_tts_text": "ahaha!",
+      "tts_text": "[short pause] [happy] [chuckle] [high-pitched] [bright] [youthful] ahaha! [short pause]",
+      "audio_path": "audio/positive/high-pitched/positive_high-pitched_03.wav"
+    },
+    {
+      "id": "positive_high-pitched_04",
+      "cell_id": "positive_high-pitched",
+      "emotion": "positive",
+      "style_tag": "high-pitched",
+      "event": "laugh",
+      "carrier": "haha!",
+      "plain_tts_text": "haha!",
+      "tts_text": "[short pause] [happy] [chuckle] [high-pitched] [bright] [youthful] haha! [short pause]",
+      "audio_path": "audio/positive/high-pitched/positive_high-pitched_04.wav"
+    },
+    {
+      "id": "positive_high-pitched_05",
+      "cell_id": "positive_high-pitched",
+      "emotion": "positive",
+      "style_tag": "high-pitched",
+      "event": "laugh",
+      "carrier": "oh!",
+      "plain_tts_text": "oh!",
+      "tts_text": "[short pause] [happy] [chuckle] [high-pitched] [bright] [youthful] oh! [short pause]",
+      "audio_path": "audio/positive/high-pitched/positive_high-pitched_05.wav"
+    },
+    {
+      "id": "positive_high-pitched_06",
+      "cell_id": "positive_high-pitched",
+      "emotion": "positive",
+      "style_tag": "high-pitched",
+      "event": "laugh",
+      "carrier": "aw!",
+      "plain_tts_text": "aw!",
+      "tts_text": "[short pause] [happy] [chuckle] [high-pitched] [bright] [youthful] aw! [short pause]",
+      "audio_path": "audio/positive/high-pitched/positive_high-pitched_06.wav"
+    },
+    {
+      "id": "positive_playful_01",
+      "cell_id": "positive_playful",
+      "emotion": "positive",
+      "style_tag": "playful",
+      "event": "laugh",
+      "carrier": "ha-ha!",
+      "plain_tts_text": "ha-ha!",
+      "tts_text": "[short pause] [happy] [chuckle] [playful] [teasing] [bouncy] [lively] ha-ha! [short pause]",
+      "audio_path": "audio/positive/playful/positive_playful_01.wav"
+    },
+    {
+      "id": "positive_playful_02",
+      "cell_id": "positive_playful",
+      "emotion": "positive",
+      "style_tag": "playful",
+      "event": "laugh",
+      "carrier": "hee-hee!",
+      "plain_tts_text": "hee-hee!",
+      "tts_text": "[short pause] [happy] [chuckle] [playful] [teasing] [bouncy] [lively] hee-hee! [short pause]",
+      "audio_path": "audio/positive/playful/positive_playful_02.wav"
+    },
+    {
+      "id": "positive_playful_03",
+      "cell_id": "positive_playful",
+      "emotion": "positive",
+      "style_tag": "playful",
+      "event": "laugh",
+      "carrier": "ahaha!",
+      "plain_tts_text": "ahaha!",
+      "tts_text": "[short pause] [happy] [chuckle] [playful] [teasing] [bouncy] [lively] ahaha! [short pause]",
+      "audio_path": "audio/positive/playful/positive_playful_03.wav"
+    },
+    {
+      "id": "positive_playful_04",
+      "cell_id": "positive_playful",
+      "emotion": "positive",
+      "style_tag": "playful",
+      "event": "laugh",
+      "carrier": "haha!",
+      "plain_tts_text": "haha!",
+      "tts_text": "[short pause] [happy] [chuckle] [playful] [teasing] [bouncy] [lively] haha! [short pause]",
+      "audio_path": "audio/positive/playful/positive_playful_04.wav"
+    },
+    {
+      "id": "positive_playful_05",
+      "cell_id": "positive_playful",
+      "emotion": "positive",
+      "style_tag": "playful",
+      "event": "laugh",
+      "carrier": "oh!",
+      "plain_tts_text": "oh!",
+      "tts_text": "[short pause] [happy] [chuckle] [playful] [teasing] [bouncy] [lively] oh! [short pause]",
+      "audio_path": "audio/positive/playful/positive_playful_05.wav"
+    },
+    {
+      "id": "positive_playful_06",
+      "cell_id": "positive_playful",
+      "emotion": "positive",
+      "style_tag": "playful",
+      "event": "laugh",
+      "carrier": "aw!",
+      "plain_tts_text": "aw!",
+      "tts_text": "[short pause] [happy] [chuckle] [playful] [teasing] [bouncy] [lively] aw! [short pause]",
+      "audio_path": "audio/positive/playful/positive_playful_06.wav"
+    },
+    {
+      "id": "positive_energetic_01",
+      "cell_id": "positive_energetic",
+      "emotion": "positive",
+      "style_tag": "energetic",
+      "event": "laugh",
+      "carrier": "ha-ha!",
+      "plain_tts_text": "ha-ha!",
+      "tts_text": "[short pause] [happy] [chuckle] [excited] [energetic] [loud] [hype] ha-ha! [short pause]",
+      "audio_path": "audio/positive/energetic/positive_energetic_01.wav"
+    },
+    {
+      "id": "positive_energetic_02",
+      "cell_id": "positive_energetic",
+      "emotion": "positive",
+      "style_tag": "energetic",
+      "event": "laugh",
+      "carrier": "hee-hee!",
+      "plain_tts_text": "hee-hee!",
+      "tts_text": "[short pause] [happy] [chuckle] [excited] [energetic] [loud] [hype] hee-hee! [short pause]",
+      "audio_path": "audio/positive/energetic/positive_energetic_02.wav"
+    },
+    {
+      "id": "positive_energetic_03",
+      "cell_id": "positive_energetic",
+      "emotion": "positive",
+      "style_tag": "energetic",
+      "event": "laugh",
+      "carrier": "ahaha!",
+      "plain_tts_text": "ahaha!",
+      "tts_text": "[short pause] [happy] [chuckle] [excited] [energetic] [loud] [hype] ahaha! [short pause]",
+      "audio_path": "audio/positive/energetic/positive_energetic_03.wav"
+    },
+    {
+      "id": "positive_energetic_04",
+      "cell_id": "positive_energetic",
+      "emotion": "positive",
+      "style_tag": "energetic",
+      "event": "laugh",
+      "carrier": "haha!",
+      "plain_tts_text": "haha!",
+      "tts_text": "[short pause] [happy] [chuckle] [excited] [energetic] [loud] [hype] haha! [short pause]",
+      "audio_path": "audio/positive/energetic/positive_energetic_04.wav"
+    },
+    {
+      "id": "positive_energetic_05",
+      "cell_id": "positive_energetic",
+      "emotion": "positive",
+      "style_tag": "energetic",
+      "event": "laugh",
+      "carrier": "oh!",
+      "plain_tts_text": "oh!",
+      "tts_text": "[short pause] [happy] [chuckle] [excited] [energetic] [loud] [hype] oh! [short pause]",
+      "audio_path": "audio/positive/energetic/positive_energetic_05.wav"
+    },
+    {
+      "id": "positive_energetic_06",
+      "cell_id": "positive_energetic",
+      "emotion": "positive",
+      "style_tag": "energetic",
+      "event": "laugh",
+      "carrier": "aw!",
+      "plain_tts_text": "aw!",
+      "tts_text": "[short pause] [happy] [chuckle] [excited] [energetic] [loud] [hype] aw! [short pause]",
+      "audio_path": "audio/positive/energetic/positive_energetic_06.wav"
+    },
+    {
+      "id": "positive_smug_01",
+      "cell_id": "positive_smug",
+      "emotion": "positive",
+      "style_tag": "smug",
+      "event": "laugh",
+      "carrier": "ha-ha!",
+      "plain_tts_text": "ha-ha!",
+      "tts_text": "[short pause] [happy] [chuckle] [smug] [playful] [cheeky] [confident] ha-ha! [short pause]",
+      "audio_path": "audio/positive/smug/positive_smug_01.wav"
+    },
+    {
+      "id": "positive_smug_02",
+      "cell_id": "positive_smug",
+      "emotion": "positive",
+      "style_tag": "smug",
+      "event": "laugh",
+      "carrier": "hee-hee!",
+      "plain_tts_text": "hee-hee!",
+      "tts_text": "[short pause] [happy] [chuckle] [smug] [playful] [cheeky] [confident] hee-hee! [short pause]",
+      "audio_path": "audio/positive/smug/positive_smug_02.wav"
+    },
+    {
+      "id": "positive_smug_03",
+      "cell_id": "positive_smug",
+      "emotion": "positive",
+      "style_tag": "smug",
+      "event": "laugh",
+      "carrier": "ahaha!",
+      "plain_tts_text": "ahaha!",
+      "tts_text": "[short pause] [happy] [chuckle] [smug] [playful] [cheeky] [confident] ahaha! [short pause]",
+      "audio_path": "audio/positive/smug/positive_smug_03.wav"
+    },
+    {
+      "id": "positive_smug_04",
+      "cell_id": "positive_smug",
+      "emotion": "positive",
+      "style_tag": "smug",
+      "event": "laugh",
+      "carrier": "haha!",
+      "plain_tts_text": "haha!",
+      "tts_text": "[short pause] [happy] [chuckle] [smug] [playful] [cheeky] [confident] haha! [short pause]",
+      "audio_path": "audio/positive/smug/positive_smug_04.wav"
+    },
+    {
+      "id": "positive_smug_05",
+      "cell_id": "positive_smug",
+      "emotion": "positive",
+      "style_tag": "smug",
+      "event": "laugh",
+      "carrier": "oh!",
+      "plain_tts_text": "oh!",
+      "tts_text": "[short pause] [happy] [chuckle] [smug] [playful] [cheeky] [confident] oh! [short pause]",
+      "audio_path": "audio/positive/smug/positive_smug_05.wav"
+    },
+    {
+      "id": "positive_smug_06",
+      "cell_id": "positive_smug",
+      "emotion": "positive",
+      "style_tag": "smug",
+      "event": "laugh",
+      "carrier": "aw!",
+      "plain_tts_text": "aw!",
+      "tts_text": "[short pause] [happy] [chuckle] [smug] [playful] [cheeky] [confident] aw! [short pause]",
+      "audio_path": "audio/positive/smug/positive_smug_06.wav"
+    },
+    {
+      "id": "positive_cute_01",
+      "cell_id": "positive_cute",
+      "emotion": "positive",
+      "style_tag": "cute",
+      "event": "laugh",
+      "carrier": "ha-ha!",
+      "plain_tts_text": "ha-ha!",
+      "tts_text": "[short pause] [happy] [chuckle] [cute] [soft] [bright] [high-pitched] ha-ha! [short pause]",
+      "audio_path": "audio/positive/cute/positive_cute_01.wav"
+    },
+    {
+      "id": "positive_cute_02",
+      "cell_id": "positive_cute",
+      "emotion": "positive",
+      "style_tag": "cute",
+      "event": "laugh",
+      "carrier": "hee-hee!",
+      "plain_tts_text": "hee-hee!",
+      "tts_text": "[short pause] [happy] [chuckle] [cute] [soft] [bright] [high-pitched] hee-hee! [short pause]",
+      "audio_path": "audio/positive/cute/positive_cute_02.wav"
+    },
+    {
+      "id": "positive_cute_03",
+      "cell_id": "positive_cute",
+      "emotion": "positive",
+      "style_tag": "cute",
+      "event": "laugh",
+      "carrier": "ahaha!",
+      "plain_tts_text": "ahaha!",
+      "tts_text": "[short pause] [happy] [chuckle] [cute] [soft] [bright] [high-pitched] ahaha! [short pause]",
+      "audio_path": "audio/positive/cute/positive_cute_03.wav"
+    },
+    {
+      "id": "positive_cute_04",
+      "cell_id": "positive_cute",
+      "emotion": "positive",
+      "style_tag": "cute",
+      "event": "laugh",
+      "carrier": "haha!",
+      "plain_tts_text": "haha!",
+      "tts_text": "[short pause] [happy] [chuckle] [cute] [soft] [bright] [high-pitched] haha! [short pause]",
+      "audio_path": "audio/positive/cute/positive_cute_04.wav"
+    },
+    {
+      "id": "positive_cute_05",
+      "cell_id": "positive_cute",
+      "emotion": "positive",
+      "style_tag": "cute",
+      "event": "laugh",
+      "carrier": "oh!",
+      "plain_tts_text": "oh!",
+      "tts_text": "[short pause] [happy] [chuckle] [cute] [soft] [bright] [high-pitched] oh! [short pause]",
+      "audio_path": "audio/positive/cute/positive_cute_05.wav"
+    },
+    {
+      "id": "positive_cute_06",
+      "cell_id": "positive_cute",
+      "emotion": "positive",
+      "style_tag": "cute",
+      "event": "laugh",
+      "carrier": "aw!",
+      "plain_tts_text": "aw!",
+      "tts_text": "[short pause] [happy] [chuckle] [cute] [soft] [bright] [high-pitched] aw! [short pause]",
+      "audio_path": "audio/positive/cute/positive_cute_06.wav"
+    },
+    {
+      "id": "negative_high-pitched_01",
+      "cell_id": "negative_high-pitched",
+      "emotion": "negative",
+      "style_tag": "high-pitched",
+      "event": "sigh",
+      "carrier": "ugh.",
+      "plain_tts_text": "ugh.",
+      "tts_text": "[short pause] [sad] [sigh] [high-pitched] [bright] [youthful] ugh. [short pause]",
+      "audio_path": "audio/negative/high-pitched/negative_high-pitched_01.wav"
+    },
+    {
+      "id": "negative_high-pitched_02",
+      "cell_id": "negative_high-pitched",
+      "emotion": "negative",
+      "style_tag": "high-pitched",
+      "event": "sigh",
+      "carrier": "hm.",
+      "plain_tts_text": "hm.",
+      "tts_text": "[short pause] [sad] [sigh] [high-pitched] [bright] [youthful] hm. [short pause]",
+      "audio_path": "audio/negative/high-pitched/negative_high-pitched_02.wav"
+    },
+    {
+      "id": "negative_high-pitched_03",
+      "cell_id": "negative_high-pitched",
+      "emotion": "negative",
+      "style_tag": "high-pitched",
+      "event": "sigh",
+      "carrier": "mm.",
+      "plain_tts_text": "mm.",
+      "tts_text": "[short pause] [sad] [sigh] [high-pitched] [bright] [youthful] mm. [short pause]",
+      "audio_path": "audio/negative/high-pitched/negative_high-pitched_03.wav"
+    },
+    {
+      "id": "negative_playful_01",
+      "cell_id": "negative_playful",
+      "emotion": "negative",
+      "style_tag": "playful",
+      "event": "sigh",
+      "carrier": "ugh.",
+      "plain_tts_text": "ugh.",
+      "tts_text": "[short pause] [sad] [sigh] [playful] [teasing] [bouncy] [lively] ugh. [short pause]",
+      "audio_path": "audio/negative/playful/negative_playful_01.wav"
+    },
+    {
+      "id": "negative_playful_02",
+      "cell_id": "negative_playful",
+      "emotion": "negative",
+      "style_tag": "playful",
+      "event": "sigh",
+      "carrier": "hm.",
+      "plain_tts_text": "hm.",
+      "tts_text": "[short pause] [sad] [sigh] [playful] [teasing] [bouncy] [lively] hm. [short pause]",
+      "audio_path": "audio/negative/playful/negative_playful_02.wav"
+    },
+    {
+      "id": "negative_playful_03",
+      "cell_id": "negative_playful",
+      "emotion": "negative",
+      "style_tag": "playful",
+      "event": "sigh",
+      "carrier": "mm.",
+      "plain_tts_text": "mm.",
+      "tts_text": "[short pause] [sad] [sigh] [playful] [teasing] [bouncy] [lively] mm. [short pause]",
+      "audio_path": "audio/negative/playful/negative_playful_03.wav"
+    },
+    {
+      "id": "negative_energetic_01",
+      "cell_id": "negative_energetic",
+      "emotion": "negative",
+      "style_tag": "energetic",
+      "event": "sigh",
+      "carrier": "ugh.",
+      "plain_tts_text": "ugh.",
+      "tts_text": "[short pause] [sad] [sigh] [excited] [energetic] [loud] [hype] ugh. [short pause]",
+      "audio_path": "audio/negative/energetic/negative_energetic_01.wav"
+    },
+    {
+      "id": "negative_energetic_02",
+      "cell_id": "negative_energetic",
+      "emotion": "negative",
+      "style_tag": "energetic",
+      "event": "sigh",
+      "carrier": "hm.",
+      "plain_tts_text": "hm.",
+      "tts_text": "[short pause] [sad] [sigh] [excited] [energetic] [loud] [hype] hm. [short pause]",
+      "audio_path": "audio/negative/energetic/negative_energetic_02.wav"
+    },
+    {
+      "id": "negative_energetic_03",
+      "cell_id": "negative_energetic",
+      "emotion": "negative",
+      "style_tag": "energetic",
+      "event": "sigh",
+      "carrier": "mm.",
+      "plain_tts_text": "mm.",
+      "tts_text": "[short pause] [sad] [sigh] [excited] [energetic] [loud] [hype] mm. [short pause]",
+      "audio_path": "audio/negative/energetic/negative_energetic_03.wav"
+    },
+    {
+      "id": "negative_smug_01",
+      "cell_id": "negative_smug",
+      "emotion": "negative",
+      "style_tag": "smug",
+      "event": "sigh",
+      "carrier": "ugh.",
+      "plain_tts_text": "ugh.",
+      "tts_text": "[short pause] [sad] [sigh] [smug] [playful] [cheeky] [confident] ugh. [short pause]",
+      "audio_path": "audio/negative/smug/negative_smug_01.wav"
+    },
+    {
+      "id": "negative_smug_02",
+      "cell_id": "negative_smug",
+      "emotion": "negative",
+      "style_tag": "smug",
+      "event": "sigh",
+      "carrier": "hm.",
+      "plain_tts_text": "hm.",
+      "tts_text": "[short pause] [sad] [sigh] [smug] [playful] [cheeky] [confident] hm. [short pause]",
+      "audio_path": "audio/negative/smug/negative_smug_02.wav"
+    },
+    {
+      "id": "negative_smug_03",
+      "cell_id": "negative_smug",
+      "emotion": "negative",
+      "style_tag": "smug",
+      "event": "sigh",
+      "carrier": "mm.",
+      "plain_tts_text": "mm.",
+      "tts_text": "[short pause] [sad] [sigh] [smug] [playful] [cheeky] [confident] mm. [short pause]",
+      "audio_path": "audio/negative/smug/negative_smug_03.wav"
+    },
+    {
+      "id": "negative_cute_01",
+      "cell_id": "negative_cute",
+      "emotion": "negative",
+      "style_tag": "cute",
+      "event": "sigh",
+      "carrier": "ugh.",
+      "plain_tts_text": "ugh.",
+      "tts_text": "[short pause] [sad] [sigh] [cute] [soft] [bright] [high-pitched] ugh. [short pause]",
+      "audio_path": "audio/negative/cute/negative_cute_01.wav"
+    },
+    {
+      "id": "negative_cute_02",
+      "cell_id": "negative_cute",
+      "emotion": "negative",
+      "style_tag": "cute",
+      "event": "sigh",
+      "carrier": "hm.",
+      "plain_tts_text": "hm.",
+      "tts_text": "[short pause] [sad] [sigh] [cute] [soft] [bright] [high-pitched] hm. [short pause]",
+      "audio_path": "audio/negative/cute/negative_cute_02.wav"
+    },
+    {
+      "id": "negative_cute_03",
+      "cell_id": "negative_cute",
+      "emotion": "negative",
+      "style_tag": "cute",
+      "event": "sigh",
+      "carrier": "mm.",
+      "plain_tts_text": "mm.",
+      "tts_text": "[short pause] [sad] [sigh] [cute] [soft] [bright] [high-pitched] mm. [short pause]",
+      "audio_path": "audio/negative/cute/negative_cute_03.wav"
+    },
+    {
+      "id": "ambiguous_high-pitched_01",
+      "cell_id": "ambiguous_high-pitched",
+      "emotion": "ambiguous",
+      "style_tag": "high-pitched",
+      "event": "surprise",
+      "carrier": "huh?",
+      "plain_tts_text": "huh?",
+      "tts_text": "[short pause] [surprised] [inhale] [high-pitched] [bright] [youthful] huh? [short pause]",
+      "audio_path": "audio/ambiguous/high-pitched/ambiguous_high-pitched_01.wav"
+    },
+    {
+      "id": "ambiguous_high-pitched_02",
+      "cell_id": "ambiguous_high-pitched",
+      "emotion": "ambiguous",
+      "style_tag": "high-pitched",
+      "event": "surprise",
+      "carrier": "oh?",
+      "plain_tts_text": "oh?",
+      "tts_text": "[short pause] [surprised] [inhale] [high-pitched] [bright] [youthful] oh? [short pause]",
+      "audio_path": "audio/ambiguous/high-pitched/ambiguous_high-pitched_02.wav"
+    },
+    {
+      "id": "ambiguous_playful_01",
+      "cell_id": "ambiguous_playful",
+      "emotion": "ambiguous",
+      "style_tag": "playful",
+      "event": "surprise",
+      "carrier": "huh?",
+      "plain_tts_text": "huh?",
+      "tts_text": "[short pause] [surprised] [inhale] [playful] [teasing] [bouncy] [lively] huh? [short pause]",
+      "audio_path": "audio/ambiguous/playful/ambiguous_playful_01.wav"
+    },
+    {
+      "id": "ambiguous_playful_02",
+      "cell_id": "ambiguous_playful",
+      "emotion": "ambiguous",
+      "style_tag": "playful",
+      "event": "surprise",
+      "carrier": "oh?",
+      "plain_tts_text": "oh?",
+      "tts_text": "[short pause] [surprised] [inhale] [playful] [teasing] [bouncy] [lively] oh? [short pause]",
+      "audio_path": "audio/ambiguous/playful/ambiguous_playful_02.wav"
+    },
+    {
+      "id": "ambiguous_energetic_01",
+      "cell_id": "ambiguous_energetic",
+      "emotion": "ambiguous",
+      "style_tag": "energetic",
+      "event": "surprise",
+      "carrier": "huh?",
+      "plain_tts_text": "huh?",
+      "tts_text": "[short pause] [surprised] [inhale] [excited] [energetic] [loud] [hype] huh? [short pause]",
+      "audio_path": "audio/ambiguous/energetic/ambiguous_energetic_01.wav"
+    },
+    {
+      "id": "ambiguous_energetic_02",
+      "cell_id": "ambiguous_energetic",
+      "emotion": "ambiguous",
+      "style_tag": "energetic",
+      "event": "surprise",
+      "carrier": "oh?",
+      "plain_tts_text": "oh?",
+      "tts_text": "[short pause] [surprised] [inhale] [excited] [energetic] [loud] [hype] oh? [short pause]",
+      "audio_path": "audio/ambiguous/energetic/ambiguous_energetic_02.wav"
+    },
+    {
+      "id": "ambiguous_smug_01",
+      "cell_id": "ambiguous_smug",
+      "emotion": "ambiguous",
+      "style_tag": "smug",
+      "event": "surprise",
+      "carrier": "huh?",
+      "plain_tts_text": "huh?",
+      "tts_text": "[short pause] [surprised] [inhale] [smug] [playful] [cheeky] [confident] huh? [short pause]",
+      "audio_path": "audio/ambiguous/smug/ambiguous_smug_01.wav"
+    },
+    {
+      "id": "ambiguous_smug_02",
+      "cell_id": "ambiguous_smug",
+      "emotion": "ambiguous",
+      "style_tag": "smug",
+      "event": "surprise",
+      "carrier": "oh?",
+      "plain_tts_text": "oh?",
+      "tts_text": "[short pause] [surprised] [inhale] [smug] [playful] [cheeky] [confident] oh? [short pause]",
+      "audio_path": "audio/ambiguous/smug/ambiguous_smug_02.wav"
+    },
+    {
+      "id": "ambiguous_cute_01",
+      "cell_id": "ambiguous_cute",
+      "emotion": "ambiguous",
+      "style_tag": "cute",
+      "event": "surprise",
+      "carrier": "huh?",
+      "plain_tts_text": "huh?",
+      "tts_text": "[short pause] [surprised] [inhale] [cute] [soft] [bright] [high-pitched] huh? [short pause]",
+      "audio_path": "audio/ambiguous/cute/ambiguous_cute_01.wav"
+    },
+    {
+      "id": "ambiguous_cute_02",
+      "cell_id": "ambiguous_cute",
+      "emotion": "ambiguous",
+      "style_tag": "cute",
+      "event": "surprise",
+      "carrier": "oh?",
+      "plain_tts_text": "oh?",
+      "tts_text": "[short pause] [surprised] [inhale] [cute] [soft] [bright] [high-pitched] oh? [short pause]",
+      "audio_path": "audio/ambiguous/cute/ambiguous_cute_02.wav"
+    },
+    {
+      "id": "neutral_high-pitched_01",
+      "cell_id": "neutral_high-pitched",
+      "emotion": "neutral",
+      "style_tag": "high-pitched",
+      "event": "thinking",
+      "carrier": "hm.",
+      "plain_tts_text": "hm.",
+      "tts_text": "[short pause] [calm] [soft sigh] [high-pitched] [bright] [youthful] hm. [short pause]",
+      "audio_path": "audio/neutral/high-pitched/neutral_high-pitched_01.wav"
+    },
+    {
+      "id": "neutral_high-pitched_02",
+      "cell_id": "neutral_high-pitched",
+      "emotion": "neutral",
+      "style_tag": "high-pitched",
+      "event": "thinking",
+      "carrier": "mm.",
+      "plain_tts_text": "mm.",
+      "tts_text": "[short pause] [calm] [soft sigh] [high-pitched] [bright] [youthful] mm. [short pause]",
+      "audio_path": "audio/neutral/high-pitched/neutral_high-pitched_02.wav"
+    },
+    {
+      "id": "neutral_playful_01",
+      "cell_id": "neutral_playful",
+      "emotion": "neutral",
+      "style_tag": "playful",
+      "event": "thinking",
+      "carrier": "hm.",
+      "plain_tts_text": "hm.",
+      "tts_text": "[short pause] [calm] [soft sigh] [playful] [teasing] [bouncy] [lively] hm. [short pause]",
+      "audio_path": "audio/neutral/playful/neutral_playful_01.wav"
+    },
+    {
+      "id": "neutral_playful_02",
+      "cell_id": "neutral_playful",
+      "emotion": "neutral",
+      "style_tag": "playful",
+      "event": "thinking",
+      "carrier": "mm.",
+      "plain_tts_text": "mm.",
+      "tts_text": "[short pause] [calm] [soft sigh] [playful] [teasing] [bouncy] [lively] mm. [short pause]",
+      "audio_path": "audio/neutral/playful/neutral_playful_02.wav"
+    },
+    {
+      "id": "neutral_energetic_01",
+      "cell_id": "neutral_energetic",
+      "emotion": "neutral",
+      "style_tag": "energetic",
+      "event": "thinking",
+      "carrier": "hm.",
+      "plain_tts_text": "hm.",
+      "tts_text": "[short pause] [calm] [soft sigh] [excited] [energetic] [loud] [hype] hm. [short pause]",
+      "audio_path": "audio/neutral/energetic/neutral_energetic_01.wav"
+    },
+    {
+      "id": "neutral_energetic_02",
+      "cell_id": "neutral_energetic",
+      "emotion": "neutral",
+      "style_tag": "energetic",
+      "event": "thinking",
+      "carrier": "mm.",
+      "plain_tts_text": "mm.",
+      "tts_text": "[short pause] [calm] [soft sigh] [excited] [energetic] [loud] [hype] mm. [short pause]",
+      "audio_path": "audio/neutral/energetic/neutral_energetic_02.wav"
+    },
+    {
+      "id": "neutral_smug_01",
+      "cell_id": "neutral_smug",
+      "emotion": "neutral",
+      "style_tag": "smug",
+      "event": "thinking",
+      "carrier": "hm.",
+      "plain_tts_text": "hm.",
+      "tts_text": "[short pause] [calm] [soft sigh] [smug] [playful] [cheeky] [confident] hm. [short pause]",
+      "audio_path": "audio/neutral/smug/neutral_smug_01.wav"
+    },
+    {
+      "id": "neutral_smug_02",
+      "cell_id": "neutral_smug",
+      "emotion": "neutral",
+      "style_tag": "smug",
+      "event": "thinking",
+      "carrier": "mm.",
+      "plain_tts_text": "mm.",
+      "tts_text": "[short pause] [calm] [soft sigh] [smug] [playful] [cheeky] [confident] mm. [short pause]",
+      "audio_path": "audio/neutral/smug/neutral_smug_02.wav"
+    },
+    {
+      "id": "neutral_cute_01",
+      "cell_id": "neutral_cute",
+      "emotion": "neutral",
+      "style_tag": "cute",
+      "event": "thinking",
+      "carrier": "hm.",
+      "plain_tts_text": "hm.",
+      "tts_text": "[short pause] [calm] [soft sigh] [cute] [soft] [bright] [high-pitched] hm. [short pause]",
+      "audio_path": "audio/neutral/cute/neutral_cute_01.wav"
+    },
+    {
+      "id": "neutral_cute_02",
+      "cell_id": "neutral_cute",
+      "emotion": "neutral",
+      "style_tag": "cute",
+      "event": "thinking",
+      "carrier": "mm.",
+      "plain_tts_text": "mm.",
+      "tts_text": "[short pause] [calm] [soft sigh] [cute] [soft] [bright] [high-pitched] mm. [short pause]",
+      "audio_path": "audio/neutral/cute/neutral_cute_02.wav"
+    }
+  ]
+}

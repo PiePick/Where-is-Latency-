@@ -1,0 +1,120 @@
+{
+  "status": "WARN",
+  "manifest": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/persona_reaction_bundle_response_act_v1/manifest.json",
+  "version": "credo-persona-reaction-bundle-v2",
+  "reference_id": "credo_eunice_english_v2",
+  "personality_id": "dataset_grounded_playful_vtuber",
+  "cells": 120,
+  "items": 600,
+  "audio_exists": 600,
+  "missing_audio": [],
+  "specific_text_item_ids": [],
+  "fragment_text_item_ids": [],
+  "duplicate_text_examples": [
+    [
+      "really? tell me more!",
+      11
+    ],
+    [
+      "oh wow, really? tell me more!",
+      2
+    ],
+    [
+      "wow, really? tell me more!",
+      2
+    ],
+    [
+      "really? that's wild!",
+      3
+    ],
+    [
+      "oh wow, that's awesome!",
+      4
+    ],
+    [
+      "oh, that sounds like fun!",
+      3
+    ],
+    [
+      "really? that's interesting!",
+      3
+    ],
+    [
+      "sure, that makes sense.",
+      6
+    ],
+    [
+      "wow, that sounds wild!",
+      2
+    ],
+    [
+      "sure, that makes sense!",
+      2
+    ],
+    [
+      "yeah, totally!",
+      4
+    ],
+    [
+      "sure, sounds good.",
+      2
+    ],
+    [
+      "okay, got it.",
+      4
+    ],
+    [
+      "sure, sounds fun!",
+      3
+    ],
+    [
+      "sure thing!",
+      2
+    ],
+    [
+      "sure, why not?",
+      13
+    ],
+    [
+      "oh, that's wild! tell me more.",
+      2
+    ],
+    [
+      "sure, why not give it a shot?",
+      7
+    ],
+    [
+      "well, why not give it a shot?",
+      2
+    ],
+    [
+      "really? tell me more about it!",
+      3
+    ]
+  ],
+  "emotion_counts": {
+    "Ambiguous": 150,
+    "Negative": 150,
+    "Neutral": 150,
+    "Positive": 150
+  },
+  "response_act_counts": {
+    "ACKNOWLEDGE": 100,
+    "DIRECTIVE": 100,
+    "EXPRESSIVE": 100,
+    "INFORM": 100,
+    "QUESTION": 100,
+    "REJECT": 100
+  },
+  "style_counts": {
+    "cute": 120,
+    "energetic": 120,
+    "high-pitched": 120,
+    "playful": 120,
+    "smug": 120
+  },
+  "failures": [],
+  "warnings": [
+    "duplicate reaction texts: 65"
+  ]
+}

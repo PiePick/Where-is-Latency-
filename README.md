@@ -20,8 +20,8 @@ Current decisions:
 - Normal speech should keep Idle/Talk/lip-sync. Emotion motions should be tied to pre-generated nonverbal audio blocks only.
 
 Generated bundle files:
-- `AI_NPC_System/persona_reaction_bundle/manifest.json` is the runtime bundle. It has 120 cells and 600 selected reactions.
-- `AI_NPC_System/persona_reaction_bundle/seed_provenance.json` stores the 30 GoEmotions/SWDA seed pairs per cell for reproducibility. This is not the runtime candidate list.
+- `AI_NPC_System/persona_reaction_bundle_response_act_v1/manifest.json` is the runtime bundle. It has 120 cells and 600 selected reactions/audio files.
+- `AI_NPC_System/reports/intent_transition_matrix_from_swda.*` stores the SWDA user-intent to response-act transition evidence used for probabilistic response selection.
 
 ## Current Architecture
 
@@ -71,10 +71,13 @@ AI_NPC_System/prepared_fasttrack_data/
   Preprocessed GoEmotions and SWDA coarse-label data.
 
 AI_NPC_System/latency_logs/
-  Local-only JSONL and Markdown latency records generated during experiments.
+  Local-only JSONL, CSV, and Markdown latency records generated during experiments.
 
-AI_NPC_System/expressive_audio_pool/
-  Local-only Fish Speech extreme nonverbal reaction clips and manifest.
+AI_NPC_System/expressive_interjection_bundle/
+  Current pre-generated Fish Speech interjection bundle used before FastTrack text audio.
+
+AI_NPC_System/archive/
+  Legacy manifests, old TTS style examples, and deprecated local-only audio pools.
 
 AI_NPC_System/VoiceSample/
   Project voice source used for CREDO voice reference preparation.
@@ -216,10 +219,10 @@ Measure end-to-end pipeline latency:
 vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/benchmark_pipeline_latency.py --runs 3
 ```
 
-Generate the temporary Fish Speech extreme nonverbal audio pool:
+Generate the current pure-interjection Fish Speech audio bundle:
 
 ```bash
-vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_extreme_nonverbal_reactions.py --force
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_interjection_audio_bundle.py --force
 ```
 
 Build or refresh the persona-conditioned reaction bundle. This generates 600 short text reactions from the 4 emotion x 6 intent x 5 style-tag grid. Each cell samples 30 labeled GoEmotions/SWDA seed pairs and the local LLM filters/re-writes 5 persona-matched reactions. The runtime file stores only the selected reactions; full seed pairs are kept separately in `seed_provenance.json`.
@@ -244,7 +247,7 @@ Latency records are appended to `AI_NPC_System/latency_logs/events.jsonl`.
 
 ## Current Limitation
 
-FastTrack realtime TTS was tested and then removed from the main path. The current unresolved research work is to finish the runtime selection/blending of pre-generated nonverbal audio, emotion motion, persona reaction bundle items, and residual filler clips. Piper and StyleBERT may remain as legacy scripts, but they are not required startup dependencies.
+FastTrack realtime TTS was tested and then removed from the main path. The default `live` stack starts Fish Speech, the local LLM, and Open-LLM-VTuber only. It uses the pre-generated Fish Speech persona bundle for FastTrack cover audio. Piper and StyleBERT remain as legacy scripts and can be tested with `AI_NPC_System/scripts/run_credo_stack.sh --profile live-piper`, but they are not required startup dependencies.
 
 SlowTrack uses Fish Speech. CREDO serializes SlowTrack Fish requests because the GPU-heavy server is most stable with one long request at a time. `FISH_SPEECH_TIMEOUT=300` and `LOCAL_LLM_MAX_TOKENS=96` are the current runtime defaults to reduce client-side disconnects. If Fish Speech is cancelled, times out, or disconnects, CREDO suppresses Open-LLM-VTuber fallback TTS by default so the response does not suddenly switch to the wrong voice. Keep `SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=0` for voice-consistency experiments. If a temporary fallback is intentionally enabled, the emergency Edge voice is `en-US-JennyNeural`, not the child-like `en-US-AnaNeural`.
 

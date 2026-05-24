@@ -53,7 +53,7 @@ For each user turn, the CREDO agent emits:
 
 1. A FastTrack latency-cover output.
    - Uses pre-generated Fish Speech audio when available.
-   - Falls back to Open-LLM-VTuber TTS if the cached wav is missing.
+   - Does not fall back to Open-LLM-VTuber TTS in the default profile; missing cached wav files are treated as a configuration problem to avoid wrong-voice output.
    - Sends Open-LLM-VTuber expression actions plus CREDO speech-safe motion tags.
    - Nonverbal cover audio uses stronger `credo_fast_motion:*` motion tags.
 2. A SlowTrack continuation.

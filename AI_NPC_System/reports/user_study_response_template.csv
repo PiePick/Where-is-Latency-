@@ -1,0 +1,2 @@
+participant_id,condition,trial_index,input_text,emotion_label,user_intent,sampled_response_act,style_tag,fast_audio_id,time_to_first_audio_ms,slow_track_llm_ms,slow_track_tts_ms,turn_total_ms,Q1_fast_start,Q2_not_frozen,Q3_affective_fit,Q4_turn_coherence,Q5_voice_motion_fit,Q6_vtuber_feel,Q7_latency_acceptable,best_moment,awkward_moment,fix_suggestion,exclude_reason
+P001,affective-cached-fish,1,,,,,,,,,,,,,,,,,,,,,

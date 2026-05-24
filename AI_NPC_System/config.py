@@ -241,6 +241,16 @@ EXPECTED_SLOW_LANE_MS = _env_int("EXPECTED_SLOW_LANE_MS", 3500)
 # latency logs to scale cover length while the SlowTrack TTS is still pending.
 CREDO_MAX_COVER_BLOCKS = _env_int("CREDO_MAX_COVER_BLOCKS", 3)
 CREDO_ENABLE_EXTRA_COVER_AUDIO = _env_bool("CREDO_ENABLE_EXTRA_COVER_AUDIO", True)
+CREDO_INTERJECTION_AUDIO_BUNDLE_FILE = os.getenv(
+    "CREDO_INTERJECTION_AUDIO_BUNDLE_FILE",
+    "expressive_interjection_bundle/manifest.json",
+)
+CREDO_INTERJECTION_AUDIO_BUNDLE_PATH = ROOT_DIR / CREDO_INTERJECTION_AUDIO_BUNDLE_FILE
+CREDO_ENABLE_INITIAL_INTERJECTION_AUDIO = _env_bool("CREDO_ENABLE_INITIAL_INTERJECTION_AUDIO", True)
+CREDO_INITIAL_INTERJECTION_MAX_BLOCKS = _env_int("CREDO_INITIAL_INTERJECTION_MAX_BLOCKS", 2)
+CREDO_ENABLE_WAITING_COVER_AUDIO = _env_bool("CREDO_ENABLE_WAITING_COVER_AUDIO", True)
+CREDO_WAITING_COVER_MAX_BLOCKS = _env_int("CREDO_WAITING_COVER_MAX_BLOCKS", 1)
+CREDO_WAITING_COVER_GAP_SECONDS = _env_float("CREDO_WAITING_COVER_GAP_SECONDS", 0.45)
 CREDO_SPEECH_EMOTION_MOTION_ENABLED = _env_bool("CREDO_SPEECH_EMOTION_MOTION_ENABLED", True)
 CREDO_VTUBER_IDLE_INTERVAL_SECONDS = _env_float("CREDO_VTUBER_IDLE_INTERVAL_SECONDS", 35.0)
 CREDO_VTUBER_DEFAULT_TOPIC = os.getenv(
@@ -258,7 +268,8 @@ CREDO_VTUBER_SYSTEM_PROMPT = _env_text(
         "If a viewer message is provided, respond to that viewer while still keeping the wider chat included. "
         "Use lively spoken English with natural rhythm, but do not write markdown, bullet points, stage directions, emoji, or bracketed style tags. "
         "Avoid mentioning prompts, systems, memory, latency, datasets, tests, or implementation details. "
-        "Write one cohesive spoken segment, usually 45 to 90 words. End with a light hook that gives chat something easy to answer."
+        "Write one cohesive spoken segment, usually 12 to 24 words for idle turns so live Fish Speech does not block chat. "
+        "End with a light hook that gives chat something easy to answer."
     ),
 )
 

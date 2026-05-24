@@ -2,7 +2,7 @@
 
 - readiness: PARTIAL
 - required_failed: 0
-- optional_failed: 1
+- optional_failed: 3
 - warnings: 0
 
 ## Checks
@@ -10,24 +10,25 @@
 | --- | --- | --- | --- |
 | OK | True | Open-LLM-VTuber runtime | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/open-llm-vtuber/.venv/bin/python |
 | OK | True | Fish Speech checkpoint | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/fish-speech/checkpoints/s2-pro |
-| OK | True | Fish Speech reference voice | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/fish-speech/references/credo_voice_sample (4 pairs) |
+| OK | True | Fish Speech reference voice | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/fish-speech/references/credo_eunice_english_v2 (3 pairs) |
 | OK | True | SetFit optimized intent model | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/models/setfit_swda_intent_minilm_optimized/model_head.pkl |
 | OK | True | Hybrid reaction list | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/hybrid_reactions.json |
-| OK | False | Expressive audio manifest | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/expressive_audio_pool/manifest.json |
+| OK | False | Interjection audio bundle | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/expressive_interjection_bundle/manifest.json |
+| OK | False | Legacy expressive audio manifest | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/archive/legacy_audio/expressive_audio_pool/manifest.json |
 | SKIP | False | FastTrack audio cache | disabled by FAST_TRACK_AUDIO_CACHE_ENABLED=0 |
+| OK | True | FastTrack persona bundle | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/persona_reaction_bundle_response_act_v1/manifest.json; reference=credo_eunice_english_v2; usable_items=600/600 |
 | OK | True | SWDA intent transition matrix | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/reports/intent_transition_matrix_from_swda.json; cross-speaker pairs=78439; QUESTION->INFORM=0.472856, QUESTION->ACKNOWLEDGE=0.471845 |
-| OK | True | Live2D motion groups | Ambiguous, Idle, Negative, Neutral, Positive, Talk |
+| OK | True | Live2D motion groups | Ambiguous, AmbiguousTalk, Idle, Negative, NegativeTalk, Neutral, NeutralTalk, Positive, PositiveTalk, Talk |
 | OK | True | python import: spacy | importable |
 | OK | True | python import: transformers | importable |
 | OK | False | python import: setfit | importable |
 | OK | False | python import: faiss | importable |
 | OK | False | python import: websockets | importable |
 | OK | False | YouTube bridge dependency | websockets 16.0 |
-| OK | False | Local LLM endpoint | http://127.0.0.1:8001/v1/models responded HTTP 200 in 14.0 ms |
-| OK | False | Fish Speech endpoint | http://127.0.0.1:8080/v1/health responded HTTP 200 in 1.4 ms |
-| FAIL | False | Open-LLM-VTuber web server | 127.0.0.1:12393 is closed or unreachable ([Errno 111] Connection refused) |
-| SKIP | False | FastTrack | disabled by FAST_TRACK_ENABLED=0 for SlowTrack-only experiment |
-| SKIP | False | FastTrack realtime TTS | not required when FastTrack is disabled |
+| FAIL | False | Local LLM endpoint | unreachable: http://127.0.0.1:8001/v1/models (<urlopen error [Errno 1] Operation not permitted>) |
+| FAIL | False | Fish Speech endpoint | unreachable: http://127.0.0.1:8080/v1/health (<urlopen error [Errno 1] Operation not permitted>) |
+| FAIL | False | Open-LLM-VTuber web server | 127.0.0.1:12393 is closed or unreachable ([Errno 1] Operation not permitted) |
+| SKIP | False | FastTrack realtime TTS | disabled by FAST_TRACK_TTS_MODE=cached_fish_bundle |
 
 ## Interpretation
 - READY: the full configured demo stack is reachable.

@@ -2,9 +2,9 @@
   "summary": {
     "readiness": "PARTIAL",
     "required_failed": 0,
-    "optional_failed": 1,
+    "optional_failed": 3,
     "warnings": 0,
-    "checked_at_unix": 1779100163.499627
+    "checked_at_unix": 1779613429.778581
   },
   "checks": [
     {
@@ -22,7 +22,7 @@
     {
       "name": "Fish Speech reference voice",
       "status": "OK",
-      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/fish-speech/references/credo_voice_sample (4 pairs)",
+      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/fish-speech/references/credo_eunice_english_v2 (3 pairs)",
       "required": true
     },
     {
@@ -38,9 +38,15 @@
       "required": true
     },
     {
-      "name": "Expressive audio manifest",
+      "name": "Interjection audio bundle",
       "status": "OK",
-      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/expressive_audio_pool/manifest.json",
+      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/expressive_interjection_bundle/manifest.json",
+      "required": false
+    },
+    {
+      "name": "Legacy expressive audio manifest",
+      "status": "OK",
+      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/archive/legacy_audio/expressive_audio_pool/manifest.json",
       "required": false
     },
     {
@@ -48,6 +54,12 @@
       "status": "SKIP",
       "detail": "disabled by FAST_TRACK_AUDIO_CACHE_ENABLED=0",
       "required": false
+    },
+    {
+      "name": "FastTrack persona bundle",
+      "status": "OK",
+      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/persona_reaction_bundle_response_act_v1/manifest.json; reference=credo_eunice_english_v2; usable_items=600/600",
+      "required": true
     },
     {
       "name": "SWDA intent transition matrix",
@@ -58,7 +70,7 @@
     {
       "name": "Live2D motion groups",
       "status": "OK",
-      "detail": "Ambiguous, Idle, Negative, Neutral, Positive, Talk",
+      "detail": "Ambiguous, AmbiguousTalk, Idle, Negative, NegativeTalk, Neutral, NeutralTalk, Positive, PositiveTalk, Talk",
       "required": true
     },
     {
@@ -99,32 +111,26 @@
     },
     {
       "name": "Local LLM endpoint",
-      "status": "OK",
-      "detail": "http://127.0.0.1:8001/v1/models responded HTTP 200 in 14.0 ms",
+      "status": "FAIL",
+      "detail": "unreachable: http://127.0.0.1:8001/v1/models (<urlopen error [Errno 1] Operation not permitted>)",
       "required": false
     },
     {
       "name": "Fish Speech endpoint",
-      "status": "OK",
-      "detail": "http://127.0.0.1:8080/v1/health responded HTTP 200 in 1.4 ms",
+      "status": "FAIL",
+      "detail": "unreachable: http://127.0.0.1:8080/v1/health (<urlopen error [Errno 1] Operation not permitted>)",
       "required": false
     },
     {
       "name": "Open-LLM-VTuber web server",
       "status": "FAIL",
-      "detail": "127.0.0.1:12393 is closed or unreachable ([Errno 111] Connection refused)",
-      "required": false
-    },
-    {
-      "name": "FastTrack",
-      "status": "SKIP",
-      "detail": "disabled by FAST_TRACK_ENABLED=0 for SlowTrack-only experiment",
+      "detail": "127.0.0.1:12393 is closed or unreachable ([Errno 1] Operation not permitted)",
       "required": false
     },
     {
       "name": "FastTrack realtime TTS",
       "status": "SKIP",
-      "detail": "not required when FastTrack is disabled",
+      "detail": "disabled by FAST_TRACK_TTS_MODE=cached_fish_bundle",
       "required": false
     }
   ]

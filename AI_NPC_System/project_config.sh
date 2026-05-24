@@ -8,7 +8,7 @@
 # these defaults.
 
 export CREDO_PROJECT_CONFIG_VERSION="credo-local-v01"
-export CREDO_EXPERIMENT_PROFILE="open-llm-vtuber-qwen7b-piper-fast-fish-slow"
+export CREDO_EXPERIMENT_PROFILE="open-llm-vtuber-qwen7b-fish-bundle-fish-slow"
 
 # FastTrack emotion and reaction assets.
 export EMOTION_MODEL_NAME="joeddav/distilbert-base-uncased-go-emotions-student"
@@ -25,11 +25,11 @@ export FAST_TRACK_DEVICE="cpu"
 export FAST_TRACK_EVERYDAY_WEIGHT="0.60"
 export FAST_TRACK_STREAM_WEIGHT="0.40"
 export FAST_TRACK_ENABLED="1"
-export FAST_TRACK_TTS_MODE="piper_tts"
+export FAST_TRACK_TTS_MODE="cached_fish_bundle"
 export FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
 export FAST_TRACK_AUDIO_CACHE_REFERENCE_ID="credo_eunice_english_v2"
-export FAST_TRACK_PERSONA_BUNDLE_ENABLED="0"
-export FAST_TRACK_PERSONA_BUNDLE_FILE="persona_reaction_bundle/manifest.json"
+export FAST_TRACK_PERSONA_BUNDLE_ENABLED="1"
+export FAST_TRACK_PERSONA_BUNDLE_FILE="persona_reaction_bundle_response_act_v1/manifest.json"
 export FAST_TRACK_PERSONA_ID="dataset_grounded_playful_vtuber"
 export FAST_TRACK_PERSONA_STYLE_TAGS="high-pitched,playful,energetic,smug,cute"
 export FAST_TRACK_STYLE_POSITIVE="playful"
@@ -37,9 +37,9 @@ export FAST_TRACK_STYLE_NEGATIVE="cute"
 export FAST_TRACK_STYLE_AMBIGUOUS="energetic"
 export FAST_TRACK_STYLE_NEUTRAL="smug"
 
-# FastTrack low-latency TTS. Piper is the default English realtime path.
-# It runs as a local CLI, not as a resident server, so Open-LLM invokes it per
-# short FastTrack utterance and fails fast when the binary or voice files are missing.
+# Legacy FastTrack low-latency TTS. The default live path now uses the
+# pre-generated Fish Speech persona bundle, so Piper is only for explicit
+# realtime-TTS experiments.
 export PIPER_TTS_DIR="vendor/piper-tts"
 export PIPER_TTS_VOICE="en_US-lessac-medium"
 export PIPER_TTS_HOST="127.0.0.1"
@@ -110,10 +110,16 @@ export FALLBACK_LOCAL_LLM_TIMEOUT="20"
 # expressive nonverbal clips only while the SlowTrack response is still pending.
 export CREDO_MAX_COVER_BLOCKS="3"
 export CREDO_ENABLE_EXTRA_COVER_AUDIO="1"
+export CREDO_INTERJECTION_AUDIO_BUNDLE_FILE="expressive_interjection_bundle/manifest.json"
+export CREDO_ENABLE_INITIAL_INTERJECTION_AUDIO="1"
+export CREDO_INITIAL_INTERJECTION_MAX_BLOCKS="2"
+export CREDO_ENABLE_WAITING_COVER_AUDIO="1"
+export CREDO_WAITING_COVER_MAX_BLOCKS="1"
+export CREDO_WAITING_COVER_GAP_SECONDS="0.45"
 export CREDO_SPEECH_EMOTION_MOTION_ENABLED="1"
-export CREDO_VTUBER_IDLE_INTERVAL_SECONDS="35"
+export CREDO_VTUBER_IDLE_INTERVAL_SECONDS="45"
 export CREDO_VTUBER_DEFAULT_TOPIC="chatting with viewers about games, daily life, and funny stream moments"
-export CREDO_VTUBER_LLM_MAX_TOKENS="180"
+export CREDO_VTUBER_LLM_MAX_TOKENS="72"
 export CREDO_OUTPUT_LANGUAGE="English"
 export CREDO_ENGLISH_ONLY_OUTPUT="1"
 export CREDO_LANGUAGE_POLICY="All audience-facing communication must be in English only. If the viewer writes or speaks Korean, Japanese, Chinese, or any other language, understand the intent but answer in natural English. Do not translate the viewer's message aloud, do not switch languages, and do not mention this language policy."

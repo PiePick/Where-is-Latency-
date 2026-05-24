@@ -1,3 +1,0 @@
-index,input_text,emotion,reaction_source,fast_reaction,slow_text,fasttrack_ms,fasttrack_internal_ms,bert_ms,spacy_ms,fast_cache_hit,fast_audio_path,fast_live_tts_ms,llm_ms,slow_tts_ms,cover_first_audio_ms,no_cover_first_audio_ms,full_response_ready_ms,hidden_latency_ms,fast_error,fast_live_tts_error,llm_error,slow_tts_error,run
-1,I finally passed the exam today!,positive,everyday,"Sure, thank you.",,12.783,12.707,10.5,2.2,False,,10767.008,,,10779.79,,,,,,skipped,no slow text,1
-2,"Wait, did that actually happen?",ambiguous,stream,Why is this here?,,20.877,20.843,19.5,1.4,False,,10349.989,,,10370.866,,,,,,skipped,no slow text,1

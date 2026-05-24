@@ -22,10 +22,10 @@ docs/persona_reaction_bundle.md Offline persona-conditioned FastTrack bundle pip
 ## Data and Models
 
 ```text
-hybrid_reactions.json              Final FastTrack reaction list.
+hybrid_reactions.json              Legacy/source FastTrack reaction list.
 fish_speech_nonverbal_cues.json    Fish Speech tag candidates.
 prepared_fasttrack_data/           Preprocessed GoEmotions and SWDA data.
-persona_reaction_bundle/           Generated persona-filtered FastTrack text/audio bundle.
+persona_reaction_bundle_response_act_v1/ Current generated persona-filtered FastTrack text/audio bundle.
 models/setfit_swda_intent_minilm_optimized/ Selected intent model.
 reports/setfit_intent_evaluation.xlsx       SetFit validation/test report.
 VoiceSample/                       Tracked CREDO voice reference source.
@@ -82,13 +82,19 @@ The offline persona bundle creates:
 The local LLM filters/re-writes labeled GoEmotions and SWDA seed pairs for the configured VTuber personality.
 
 Current files:
-- `persona_reaction_bundle/manifest.json`: runtime bundle, 120 cells and 600 selected reactions.
-- `persona_reaction_bundle/seed_provenance.json`: 30 labeled seed pairs per cell for reproducibility, not runtime candidates.
+- `persona_reaction_bundle_response_act_v1/manifest.json`: runtime bundle, 120 cells and 600 selected reactions/audio files.
+- `reports/intent_transition_matrix_from_swda.*`: SWDA user-intent to response-act transition evidence.
 
 Full details: `docs/persona_reaction_bundle.md`.
 
 ```bash
 vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_persona_reaction_bundle.py --skip-existing --seed-max-words 7 --seed-max-chars 70 --max-tokens 240
+```
+
+Validate the current runtime bundle:
+
+```bash
+vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/validate_persona_bundle.py --expected-reference-id credo_eunice_english_v2
 ```
 
 ## Evaluate

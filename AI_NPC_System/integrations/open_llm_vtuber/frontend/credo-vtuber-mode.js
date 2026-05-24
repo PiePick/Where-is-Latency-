@@ -16,6 +16,7 @@
     "credo_event_motion:laugh": "PositiveTalk",
     "credo_event_motion:surprise": "AmbiguousTalk",
     "credo_event_motion:thinking": "NeutralTalk",
+    "credo_event_motion:sigh": "NegativeTalk",
   };
 
   const MOTION_PROFILE_BY_TAG = {
@@ -36,6 +37,10 @@
     "credo_speech_motion:negative": "low",
     "credo_speech_motion:ambiguous": "alert",
     "credo_speech_motion:neutral": "steady",
+    "credo_event_motion:laugh": "playful",
+    "credo_event_motion:surprise": "alert",
+    "credo_event_motion:thinking": "steady",
+    "credo_event_motion:sigh": "low",
   };
 
   const MOTION_PROFILES = {
@@ -252,6 +257,10 @@
         font: 13px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         box-shadow: 0 8px 30px rgba(0,0,0,0.28);
         backdrop-filter: blur(10px);
+        transition: transform 180ms ease;
+      }
+      #credo-vtuber-mode.collapsed {
+        transform: translateY(calc(100% - 42px));
       }
       #credo-vtuber-mode .row { display: flex; gap: 6px; margin-top: 8px; }
       #credo-vtuber-mode .grid { display: grid; grid-template-columns: 1fr 96px; gap: 6px; margin-top: 8px; }
@@ -279,32 +288,56 @@
       #credo-vtuber-mode button.warn { background: #d64b4b; }
       #credo-vtuber-mode .status { margin-top: 8px; color: #b7c7ff; min-height: 18px; }
       #credo-vtuber-mode .title { font-weight: 700; letter-spacing: 0; display: flex; justify-content: space-between; align-items: center; }
+      #credo-vtuber-mode .title-actions { display: flex; align-items: center; gap: 6px; }
+      #credo-vtuber-mode .toggle {
+        flex: 0 0 auto;
+        width: 46px;
+        padding: 3px 6px;
+        border-radius: 5px;
+        font-size: 11px;
+        background: rgba(255,255,255,0.16);
+      }
       #credo-vtuber-mode .pill { font-size: 11px; color: #cfd8ff; background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 999px; }
       #credo-vtuber-mode .meta { margin-top: 7px; color: rgba(255,255,255,0.72); font-size: 12px; min-height: 16px; }
     </style>
-    <div class="title">CREDO VTuber Mode <span class="pill" data-role="pill">off</span></div>
-    <div class="grid">
-      <input data-key="topic" placeholder="Stream topic" value="games, daily life, funny chat moments">
-      <input data-key="interval" placeholder="Idle sec" value="35">
+    <div class="title">
+      <span>CREDO VTuber Mode</span>
+      <span class="title-actions">
+        <span class="pill" data-role="pill">off</span>
+        <button class="toggle" data-action="toggle-panel" type="button">Hide</button>
+      </span>
     </div>
-    <div class="row"><input data-key="videoId" placeholder="YouTube video ID"></div>
-    <div class="row"><input data-key="liveChatId" placeholder="YouTube live chat ID"></div>
-    <div class="row"><input data-key="apiKey" placeholder="YouTube API key"></div>
-    <div class="row">
-      <button data-action="start">VTuber Mode</button>
-      <button class="warn" data-action="stop">Stop</button>
+    <div class="panel-body">
+      <div class="grid">
+        <input data-key="topic" placeholder="Stream topic" value="games, daily life, funny chat moments">
+        <input data-key="interval" placeholder="Idle sec" value="35">
+      </div>
+      <div class="row"><input data-key="videoId" placeholder="YouTube video ID"></div>
+      <div class="row"><input data-key="liveChatId" placeholder="YouTube live chat ID"></div>
+      <div class="row"><input data-key="apiKey" placeholder="YouTube API key"></div>
+      <div class="row">
+        <button data-action="start">VTuber Mode</button>
+        <button class="warn" data-action="stop">Stop</button>
+      </div>
+      <div class="row">
+        <button class="secondary" data-action="monologue">Monologue</button>
+        <button class="secondary" data-action="donation">Donation</button>
+      </div>
+      <div class="meta" data-role="meta">Connect the browser first, then start.</div>
+      <div class="status" data-role="status">Ready.</div>
     </div>
-    <div class="row">
-      <button class="secondary" data-action="monologue">Monologue</button>
-      <button class="secondary" data-action="donation">Donation</button>
-    </div>
-    <div class="meta" data-role="meta">Connect the browser first, then start.</div>
-    <div class="status" data-role="status">Ready.</div>
   `;
 
   const value = (key) => root.querySelector(`[data-key="${key}"]`)?.value.trim() || "";
   const status = (text) => {
     root.querySelector('[data-role="status"]').textContent = text;
+  };
+  const setCollapsed = (collapsed) => {
+    root.classList.toggle("collapsed", collapsed);
+    const toggle = root.querySelector('[data-action="toggle-panel"]');
+    toggle.textContent = collapsed ? "Show" : "Hide";
+    toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    localStorage.setItem("credo-vtuber-mode:collapsed", collapsed ? "1" : "0");
   };
   const setMeta = (data) => {
     const pill = root.querySelector('[data-role="pill"]');
@@ -337,6 +370,10 @@
   root.addEventListener("click", async (event) => {
     const action = event.target?.dataset?.action;
     if (!action) return;
+    if (action === "toggle-panel") {
+      setCollapsed(!root.classList.contains("collapsed"));
+      return;
+    }
     try {
       if (action === "start") {
         const data = await post("/credo/vtuber-mode/start", {
@@ -377,6 +414,7 @@
     const saved = localStorage.getItem(`credo-vtuber-mode:${input.dataset.key}`);
     if (saved !== null) input.value = saved;
   }
+  setCollapsed(localStorage.getItem("credo-vtuber-mode:collapsed") === "1");
 
   window.addEventListener("load", () => {
     document.body.appendChild(root);

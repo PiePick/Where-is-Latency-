@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import csv
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -13,7 +14,42 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent
 DEFAULT_LOG_DIR = ROOT / "latency_logs"
 DEFAULT_JSONL = DEFAULT_LOG_DIR / "events.jsonl"
+DEFAULT_MODULE_CSV = DEFAULT_LOG_DIR / "module_events.csv"
 DEFAULT_MARKDOWN = DEFAULT_LOG_DIR / "latest_summary.md"
+
+
+MODULE_BY_STAGE = {
+    "fast_track_analysis": "fasttrack_analysis",
+    "fast_track_interjection": "fasttrack_interjection",
+    "fast_track_tts_or_cache": "fasttrack_audio",
+    "fast_track_waiting_audio": "fasttrack_waiting_audio",
+    "latency_cover_plan": "cover_plan",
+    "slow_track_llm": "slowtrack_llm",
+    "slow_track_tts": "slowtrack_tts",
+    "turn_total": "turn_total",
+    "proactive_cover": "proactive_cover",
+    "vtuber_mode_llm": "vtuber_llm",
+    "vtuber_mode_tts": "vtuber_tts",
+    "vtuber_mode_total": "vtuber_total",
+}
+
+MODULE_CSV_FIELDS = [
+    "ts_local",
+    "turn_id",
+    "module",
+    "stage",
+    "elapsed_ms",
+    "engine",
+    "emotion",
+    "intent",
+    "response_act",
+    "style_tag",
+    "cache_hit",
+    "audio_path",
+    "char_len",
+    "word_count",
+    "text_preview",
+]
 
 
 @dataclass
@@ -49,10 +85,12 @@ class LatencyLogger:
         self,
         *,
         jsonl_path: Path = DEFAULT_JSONL,
+        module_csv_path: Path = DEFAULT_MODULE_CSV,
         markdown_path: Path = DEFAULT_MARKDOWN,
         summary_limit: int = 80,
     ) -> None:
         self.jsonl_path = jsonl_path
+        self.module_csv_path = module_csv_path
         self.markdown_path = markdown_path
         self.summary_limit = summary_limit
         self.jsonl_path.parent.mkdir(parents=True, exist_ok=True)
@@ -62,8 +100,43 @@ class LatencyLogger:
         record = event.to_record()
         with self.jsonl_path.open("a", encoding="utf-8") as stream:
             stream.write(json.dumps(record, ensure_ascii=False) + "\n")
+        self.write_module_csv_row(record)
         self.write_summary()
         return record
+
+    def write_module_csv_row(self, record: dict[str, Any]) -> None:
+        """Append one compact module-level CSV row for live inspection."""
+        metadata = record.get("metadata") if isinstance(record.get("metadata"), dict) else {}
+        stage = str(record.get("stage", ""))
+        text = str(record.get("text", "") or "").replace("\r", " ").replace("\n", " ")
+        text_preview = " ".join(text.split())
+        if len(text_preview) > 120:
+            text_preview = text_preview[:117] + "..."
+
+        row = {
+            "ts_local": datetime.now().astimezone().isoformat(timespec="seconds"),
+            "turn_id": metadata.get("turn_id", ""),
+            "module": MODULE_BY_STAGE.get(stage, stage),
+            "stage": stage,
+            "elapsed_ms": record.get("elapsed_ms", 0.0),
+            "engine": record.get("engine", ""),
+            "emotion": metadata.get("emotion", ""),
+            "intent": metadata.get("intent", ""),
+            "response_act": metadata.get("response_act") or metadata.get("persona_response_act", ""),
+            "style_tag": metadata.get("style_tag") or metadata.get("persona_style_tag", ""),
+            "cache_hit": metadata.get("fast_audio_cache_hit", ""),
+            "audio_path": metadata.get("audio_path", ""),
+            "char_len": record.get("char_len", 0),
+            "word_count": record.get("word_count", 0),
+            "text_preview": text_preview,
+        }
+
+        write_header = not self.module_csv_path.exists() or self.module_csv_path.stat().st_size == 0
+        with self.module_csv_path.open("a", encoding="utf-8", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=MODULE_CSV_FIELDS)
+            if write_header:
+                writer.writeheader()
+            writer.writerow(row)
 
     def write_summary(self) -> None:
         """Write the most recent events as a compact Markdown table."""

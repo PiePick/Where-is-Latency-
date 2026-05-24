@@ -15,7 +15,7 @@ from latency_predictor import LatencyPredictor
 
 ROOT = Path(__file__).resolve().parent
 REACTION_PATH = ROOT / "hybrid_reactions.json"
-EXTREME_AUDIO_MANIFEST = ROOT / "expressive_audio_pool" / "manifest.json"
+EXTREME_AUDIO_MANIFEST = ROOT / "archive" / "legacy_audio" / "expressive_audio_pool" / "manifest.json"
 SWDA_PATH = ROOT / "prepared_fasttrack_data" / "swda_intent_coarse.jsonl"
 
 
@@ -24,6 +24,13 @@ MOTION_MAP = {
     "negative": ["negative_01", "negative_02", "negative_03", "negative_04"],
     "ambiguous": ["ambiguous_01", "ambiguous_02", "ambiguous_03", "ambiguous_04"],
     "neutral": ["neutral_01", "neutral_02", "neutral_03", "neutral_04"],
+}
+
+PURE_INTERJECTION_CARRIERS = {
+    "positive": {"ha-ha!", "hee-hee!", "ahaha!", "oh!", "haha!", "yay!", "aw!"},
+    "negative": {"oh.", "mm.", "ugh.", "ah.", "hm.", "ugh?"},
+    "ambiguous": {"huh?", "oh?", "hm?", "oh."},
+    "neutral": {"mm.", "hm."},
 }
 
 FISH_SPEECH_CUE_BUNDLES = {
@@ -63,10 +70,26 @@ class CoverComposer:
     def __init__(self, *, seed: int | None = None) -> None:
         self.rng = random.Random(seed)
         self.reactions = self._load_json(REACTION_PATH, {})
-        self.extreme_audio = self._load_json(EXTREME_AUDIO_MANIFEST, {"items": []}).get("items", [])
+        self.extreme_audio = self._load_audio_items()
         self.swda_examples = self._load_swda_examples()
         self.predictor = LatencyPredictor()
         self.intent_transition = IntentTransitionPlanner()
+
+    def _load_audio_items(self) -> list[dict[str, Any]]:
+        """Load the pure interjection bundle first, then the legacy pool."""
+        bundle_path = getattr(config, "CREDO_INTERJECTION_AUDIO_BUNDLE_PATH", None)
+        if bundle_path and Path(bundle_path).exists():
+            raw = self._load_json(Path(bundle_path), {"items": []})
+            root = Path(bundle_path).parent
+            items = []
+            for item in raw.get("items", []):
+                audio_path = str(item.get("audio_path") or "")
+                if audio_path and not Path(audio_path).is_absolute():
+                    item = dict(item)
+                    item["audio_path"] = str((root / audio_path).resolve())
+                items.append(item)
+            return items
+        return self._load_json(EXTREME_AUDIO_MANIFEST, {"items": []}).get("items", [])
 
     def compose(
         self,
@@ -121,15 +144,52 @@ class CoverComposer:
             "blocks": [block.__dict__ for block in blocks],
         }
 
-    def choose_extreme_audio(self, emotion: str) -> str | None:
-        """Pick one prebuilt extreme nonverbal audio path for the emotion."""
+    def choose_extreme_audio_items(self, emotion: str, count: int = 1) -> list[dict[str, Any]]:
+        """Pick prebuilt pure interjection audio items for the emotion."""
+        emotion = str(emotion or "neutral").lower()
+        allowed = PURE_INTERJECTION_CARRIERS.get(emotion, PURE_INTERJECTION_CARRIERS["neutral"])
         candidates = [
             item for item in self.extreme_audio
-            if str(item.get("emotion", "")).lower() == emotion and item.get("audio_path")
+            if str(item.get("emotion", "")).lower() == emotion
+            and str(item.get("carrier", "")).lower().strip() in allowed
+            and item.get("audio_path")
         ]
         if not candidates:
+            candidates = [
+                item for item in self.extreme_audio
+                if str(item.get("emotion", "")).lower() == "neutral"
+                and str(item.get("carrier", "")).lower().strip() in PURE_INTERJECTION_CARRIERS["neutral"]
+                and item.get("audio_path")
+            ]
+        if not candidates:
+            return []
+
+        self.rng.shuffle(candidates)
+        return candidates[: max(0, count)]
+
+    def choose_extreme_audio_item(self, emotion: str) -> dict[str, Any] | None:
+        """Pick one prebuilt pure interjection audio manifest item for the emotion."""
+        items = self.choose_extreme_audio_items(emotion, count=1)
+        return items[0] if items else None
+
+    def choose_extreme_audio(self, emotion: str) -> str | None:
+        """Pick one prebuilt extreme nonverbal audio path for the emotion."""
+        item = self.choose_extreme_audio_item(emotion)
+        if not item:
             return None
-        return str(self.rng.choice(candidates)["audio_path"])
+        return str(item["audio_path"])
+
+    def choose_waiting_audio_item(self) -> dict[str, Any] | None:
+        """Pick a short neutral filler such as hm/mm while SlowTrack is not ready."""
+        candidates = [
+            item for item in self.extreme_audio
+            if str(item.get("emotion", "")).lower() == "neutral"
+            and str(item.get("carrier", "")).lower().strip() in PURE_INTERJECTION_CARRIERS["neutral"]
+            and item.get("audio_path")
+        ]
+        if not candidates:
+            return self.choose_extreme_audio_item("neutral")
+        return self.rng.choice(candidates)
 
     def _make_block(
         self,

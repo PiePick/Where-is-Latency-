@@ -81,8 +81,8 @@ vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_persona_reac
 ## Output
 
 ```text
-AI_NPC_System/persona_reaction_bundle/manifest.json
-AI_NPC_System/persona_reaction_bundle/audio/<emotion>/<intent>/<style_tag>/*.wav
+AI_NPC_System/persona_reaction_bundle_response_act_v1/manifest.json
+AI_NPC_System/persona_reaction_bundle_response_act_v1/audio/<emotion>/<response_act>/<style_tag>/*.wav
 ```
 
 The manifest is intentionally compact. Global metadata such as personality, style-tag definitions, dataset sources, LLM filter settings, and Fish Speech reference settings is stored once at the top level. Each cell stores its dimensions plus `item_ids`; each runtime item stores only item-specific data:
@@ -94,6 +94,26 @@ reaction
 audio_path
 ```
 
-`tts_text` is omitted when it is identical to `reaction`. Runtime loaders recover `emotion`, `intent`, and `style_tag` from the owning cell to avoid duplicating the same dimensions across every item.
+`tts_text` is omitted when it is identical to `reaction`. Runtime loaders recover `emotion`, `response_act`, and `style_tag` from the owning cell to avoid duplicating the same dimensions across every item.
 
 `style_tts_cue_chains` records how the five personality style axes expand into multiple Fish Speech prosody cues. The manifest records `use_memory_cache: off` for Fish Speech reference safety.
+
+## Runtime Selection
+
+Runtime does not treat the detected user intent as the response intent. It first
+classifies the incoming user intent, then samples a response act from the SWDA
+speaker-transition matrix before choosing a prebuilt audio item. This keeps the
+FastTrack reaction probabilistic and conversational:
+
+```text
+viewer text
+  -> emotion label
+  -> user intent label
+  -> sampled response act
+  -> emotion + response act + style tag cell
+  -> cached Fish Speech wav
+```
+
+This distinction matters for research validity. The bundle items are
+dataset-grounded response candidates, not direct labels for the viewer's current
+utterance.

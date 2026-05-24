@@ -13,6 +13,7 @@ import random
 import re
 import sys
 import time
+import uuid
 from pathlib import Path
 from typing import Any, AsyncIterator
 
@@ -54,6 +55,7 @@ FISH_STYLE_TAG_RE = re.compile(r"\s*\[[^\]]+\]\s*")
 LAUGH_EVENT_RE = re.compile(r"(?i)(?:\b(?:ha+ha+|he+he+|ahaha+|hehe+|lol)\b)")
 SURPRISE_EVENT_RE = re.compile(r"(?i)(?:\b(?:wow|whoa|woah|no way)\b|oh[!,.]?)")
 THINKING_EVENT_RE = re.compile(r"(?i)\b(?:uh|um|hmm+|mmm+)\b")
+SIGH_EVENT_RE = re.compile(r"(?i)\b(?:sigh|ugh|oof)\b")
 
 
 class CredoLatencyCoverAgent(AgentInterface):
@@ -175,7 +177,9 @@ class CredoLatencyCoverAgent(AgentInterface):
     async def chat(self, input_data: BaseInput) -> AsyncIterator[AudioOutput | SentenceOutput]:
         """Yield immediate cover, then continue with SlowTrack when ready."""
         turn_started = time.perf_counter()
-        metadata = input_data.metadata if isinstance(input_data, BatchInput) and input_data.metadata else {}
+        metadata = dict(input_data.metadata) if isinstance(input_data, BatchInput) and input_data.metadata else {}
+        turn_id = str(metadata.get("turn_id") or uuid.uuid4())
+        metadata["turn_id"] = turn_id
         user_text, is_proactive = self._extract_input(input_data)
         if not user_text:
             return
@@ -187,12 +191,20 @@ class CredoLatencyCoverAgent(AgentInterface):
 
         if not self.fast_track_enabled:
             logger.info("CREDO FastTrack disabled; running SlowTrack-only turn.")
-            async for output in self._chat_slow_only(user_text, turn_started):
+            async for output in self._chat_slow_only(user_text, turn_started, turn_id):
                 yield output
             return
 
         if is_proactive:
-            yield self._build_proactive_output()
+            output = self._build_proactive_output()
+            self._log_latency(
+                "proactive_cover",
+                turn_started,
+                text=getattr(getattr(output, "display_text", None), "text", "") or "",
+                engine="prebuilt_cover_cache",
+                metadata={"turn_id": turn_id, "proactive": True},
+            )
+            yield output
             return
 
         fast_started = time.perf_counter()
@@ -205,6 +217,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             metadata={
                 "emotion": fast_result.get("emotion_label"),
                 "keywords": fast_result.get("keywords") or [],
+                "turn_id": turn_id,
             },
         )
 
@@ -231,8 +244,10 @@ class CredoLatencyCoverAgent(AgentInterface):
             fast_result["reaction_source"] = persona_cover.source
             fast_result["fast_audio_path"] = str(persona_cover.audio_path) if persona_cover.audio_path else None
             fast_result["fast_audio_cache_path"] = str(persona_cover.audio_path) if persona_cover.audio_path else None
+            fast_result["fast_audio_cache_hit"] = bool(persona_cover.audio_path and persona_cover.audio_path.exists())
             fast_result["persona_bundle_id"] = persona_cover.cache_id
             fast_result["persona_style_tag"] = style_tag
+            fast_result["persona_response_act"] = persona_cover.response_act
         speech_actions = self._speech_actions(emotion, style_tag=style_tag, text=fast_plain_text)
 
         logger.info(
@@ -248,8 +263,51 @@ class CredoLatencyCoverAgent(AgentInterface):
             fast_audio_started,
             text=fast_tts_text,
             engine=self._credo_config.FAST_TRACK_TTS_MODE,
-            metadata={"audio_path": str(fast_audio_path) if fast_audio_path else None},
+            metadata={
+                "audio_path": str(fast_audio_path) if fast_audio_path else None,
+                "emotion": emotion,
+                "intent": intent,
+                "style_tag": style_tag,
+                "persona_style_tag": fast_result.get("persona_style_tag"),
+                "response_act": fast_result.get("persona_response_act"),
+                "persona_response_act": fast_result.get("persona_response_act"),
+                "fast_audio_cache_hit": bool(fast_audio_path and Path(str(fast_audio_path)).exists()),
+                "turn_id": turn_id,
+            },
         )
+
+        memory_context = self.memory.build_prompt_context() if self.memory else None
+        slow_started = time.perf_counter()
+        slow_task: asyncio.Task | None = None
+        cover_plan: dict[str, Any] = {}
+        if self.slow_enabled:
+            slow_task = asyncio.create_task(
+                self._slow_track.generate_response(
+                    user_text,
+                    fast_tts_text,
+                    fast_result.get("strategy"),
+                    memory_context,
+                )
+            )
+            cover_plan = await asyncio.to_thread(
+                self.cover_composer.compose,
+                user_text=user_text,
+                fast_result=fast_result,
+                intent=intent,
+                expected_slow_text="",
+            )
+            self.latency_logger.log(
+                self._latency_observer.LatencyEvent(
+                    stage="latency_cover_plan",
+                    elapsed_ms=0.0,
+                    text=user_text,
+                    engine="composer_faiss_knn",
+                    metadata={**cover_plan, "turn_id": turn_id, "emotion": emotion, "intent": intent},
+                )
+            )
+
+        for interjection in self._build_initial_interjection_outputs(emotion, turn_id):
+            yield interjection
 
         if self.use_fast_audio and fast_audio_path and Path(str(fast_audio_path)).exists():
             yield AudioOutput(
@@ -269,37 +327,10 @@ class CredoLatencyCoverAgent(AgentInterface):
                 "Skipping FastTrack Open-LLM TTS fallback because dedicated FastTrack audio is unavailable."
             )
 
-        if not self.slow_enabled:
+        if not self.slow_enabled or slow_task is None:
             return
 
-        memory_context = self.memory.build_prompt_context() if self.memory else None
-        slow_started = time.perf_counter()
-        slow_task = asyncio.create_task(
-            self._slow_track.generate_response(
-                user_text,
-                fast_tts_text,
-                fast_result.get("strategy"),
-                memory_context,
-            )
-        )
-
-        cover_plan = await asyncio.to_thread(
-            self.cover_composer.compose,
-            user_text=user_text,
-            fast_result=fast_result,
-            intent=intent,
-            expected_slow_text="",
-        )
-        self.latency_logger.log(
-            self._latency_observer.LatencyEvent(
-                stage="latency_cover_plan",
-                elapsed_ms=0.0,
-                text=user_text,
-                engine="composer_faiss_knn",
-                metadata=cover_plan,
-            )
-        )
-        async for cover_output in self._yield_extra_cover_audio(cover_plan, slow_task, emotion):
+        async for cover_output in self._yield_waiting_cover_audio(slow_task, emotion, turn_id, reason="slow_llm"):
             yield cover_output
 
         slow_text = await slow_task
@@ -308,18 +339,26 @@ class CredoLatencyCoverAgent(AgentInterface):
             slow_started,
             text=user_text,
             engine=self._credo_config.LOCAL_LLM_MODEL,
-            metadata={"emotion": emotion, "intent": intent},
+            metadata={"emotion": emotion, "intent": intent, "turn_id": turn_id},
         )
         slow_text = self._clean_spoken_text(slow_text) or "I hear you."
 
         slow_tts_started = time.perf_counter()
-        slow_audio = await self._try_synthesize_slow_audio(slow_text)
+        slow_audio_task = asyncio.create_task(self._try_synthesize_slow_audio(slow_text))
+        async for cover_output in self._yield_waiting_cover_audio(slow_audio_task, emotion, turn_id, reason="slow_tts"):
+            yield cover_output
+        slow_audio = await slow_audio_task
         self._log_latency(
             "slow_track_tts",
             slow_tts_started,
             text=slow_text,
             engine="fish_speech" if slow_audio else "open_llm_tts_fallback",
-            metadata={"audio_path": str(slow_audio) if slow_audio else None},
+            metadata={
+                "audio_path": str(slow_audio) if slow_audio else None,
+                "emotion": emotion,
+                "intent": intent,
+                "turn_id": turn_id,
+            },
         )
 
         if slow_audio:
@@ -358,7 +397,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             turn_started,
             text=f"{fast_display_text} {slow_text}",
             engine="open_llm_vtuber_credo",
-            metadata={"emotion": emotion, "intent": intent},
+            metadata={"emotion": emotion, "intent": intent, "turn_id": turn_id},
         )
 
     async def _chat_vtuber_mode(
@@ -383,12 +422,13 @@ class CredoLatencyCoverAgent(AgentInterface):
             mode="vtuber_monologue",
             max_tokens=getattr(self._credo_config, "CREDO_VTUBER_LLM_MAX_TOKENS", 180),
         )
+        turn_id = str(metadata.get("turn_id") or uuid.uuid4())
         self._log_latency(
             "vtuber_mode_llm",
             slow_started,
             text=prompt,
             engine=self._credo_config.LOCAL_LLM_MODEL,
-            metadata={"event": event},
+            metadata={"event": event, "emotion": emotion, "turn_id": turn_id},
         )
 
         slow_text = self._clean_spoken_text(slow_text) or "Chat got quiet for a second, so I am keeping the room warm. What should we talk about next?"
@@ -401,7 +441,13 @@ class CredoLatencyCoverAgent(AgentInterface):
             slow_tts_started,
             text=slow_text,
             engine="fish_speech" if slow_audio else "open_llm_tts_fallback",
-            metadata={"event": event, "audio_path": str(slow_audio) if slow_audio else None},
+            metadata={
+                "event": event,
+                "emotion": emotion,
+                "style_tag": metadata.get("style_tag", ""),
+                "audio_path": str(slow_audio) if slow_audio else None,
+                "turn_id": turn_id,
+            },
         )
 
         if slow_audio:
@@ -438,7 +484,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             turn_started,
             text=slow_text,
             engine="open_llm_vtuber_credo",
-            metadata={"event": event},
+            metadata={"event": event, "emotion": emotion, "turn_id": turn_id},
         )
 
     def _build_vtuber_prompt(self, text: str, metadata: dict[str, Any]) -> str:
@@ -468,6 +514,7 @@ class CredoLatencyCoverAgent(AgentInterface):
         self,
         user_text: str,
         turn_started: float,
+        turn_id: str,
     ) -> AsyncIterator[AudioOutput | SentenceOutput]:
         """Run the ablation path with no FastTrack analysis, cover text, audio, or motion."""
         speech_actions = self._speech_actions("neutral")
@@ -485,7 +532,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             slow_started,
             text=user_text,
             engine=self._credo_config.LOCAL_LLM_MODEL,
-            metadata={"fast_track_enabled": False},
+            metadata={"fast_track_enabled": False, "turn_id": turn_id},
         )
         slow_text = self._clean_spoken_text(slow_text) or "I hear you."
 
@@ -496,7 +543,11 @@ class CredoLatencyCoverAgent(AgentInterface):
             slow_tts_started,
             text=slow_text,
             engine="fish_speech" if slow_audio else "open_llm_tts_fallback",
-            metadata={"audio_path": str(slow_audio) if slow_audio else None, "fast_track_enabled": False},
+            metadata={
+                "audio_path": str(slow_audio) if slow_audio else None,
+                "fast_track_enabled": False,
+                "turn_id": turn_id,
+            },
         )
 
         if slow_audio:
@@ -535,7 +586,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             turn_started,
             text=slow_text,
             engine="open_llm_vtuber_credo",
-            metadata={"fast_track_enabled": False},
+            metadata={"fast_track_enabled": False, "turn_id": turn_id},
         )
 
     def _extract_user_text(self, input_data: BaseInput) -> str:
@@ -711,6 +762,8 @@ class CredoLatencyCoverAgent(AgentInterface):
             tags.append("credo_event_motion:surprise")
         if THINKING_EVENT_RE.search(spoken):
             tags.append("credo_event_motion:thinking")
+        if SIGH_EVENT_RE.search(spoken):
+            tags.append("credo_event_motion:sigh")
         return tags
 
     def _build_actions(self, emotion: str) -> Actions:
@@ -757,6 +810,115 @@ class CredoLatencyCoverAgent(AgentInterface):
         """Trigger CREDO emotion motion only for prebuilt nonverbal cover audio."""
         emotion = self._normalize_emotion(emotion)
         return Actions(expressions=[f"credo_fast_motion:{emotion}"])
+
+    def _expressive_cover_actions(self, emotion: str, event: str) -> Actions:
+        """Trigger a short expressive Live2D motion together with nonverbal audio."""
+        emotion = self._normalize_emotion(emotion)
+        profile = self._motion_profile(emotion)
+        expressions = [
+            f"credo_motion_profile:{profile}",
+            f"credo_fast_motion:{emotion}",
+            f"credo_event_motion:{event}",
+        ]
+        return Actions(expressions=expressions)
+
+    def _event_for_emotion(self, emotion: str) -> str:
+        """Map emotion classes to the nearest available event-motion group."""
+        emotion = self._normalize_emotion(emotion)
+        return {
+            "positive": "laugh",
+            "negative": "sigh",
+            "ambiguous": "surprise",
+            "neutral": "thinking",
+        }.get(emotion, "thinking")
+
+    def _build_initial_interjection_outputs(self, emotion: str, turn_id: str) -> list[AudioOutput]:
+        """Return initial FastTrack beats: pure interjection audio plus Live2D motion."""
+        if not getattr(self._credo_config, "CREDO_ENABLE_INITIAL_INTERJECTION_AUDIO", True):
+            return []
+        count = max(1, int(getattr(self._credo_config, "CREDO_INITIAL_INTERJECTION_MAX_BLOCKS", 2)))
+        items = self.cover_composer.choose_extreme_audio_items(self._normalize_emotion(emotion), count=count)
+        event = self._event_for_emotion(emotion)
+        outputs: list[AudioOutput] = []
+        for index, item in enumerate(items, start=1):
+            audio_path = Path(str(item.get("audio_path") or ""))
+            if not audio_path.exists():
+                continue
+            carrier = self._clean_spoken_text(str(item.get("carrier") or ""))
+            self.latency_logger.log(
+                self._latency_observer.LatencyEvent(
+                    stage="fast_track_interjection",
+                    elapsed_ms=0.0,
+                    text=carrier,
+                    engine="interjection_audio_bundle",
+                    metadata={
+                        "turn_id": turn_id,
+                        "emotion": self._normalize_emotion(emotion),
+                        "event": event,
+                        "interjection_index": index,
+                        "audio_path": str(audio_path),
+                    },
+                )
+            )
+            outputs.append(
+                AudioOutput(
+                    audio_path=str(audio_path),
+                    display_text=self._display(""),
+                    transcript="",
+                    actions=self._expressive_cover_actions(emotion, event),
+                )
+            )
+        return outputs
+
+    async def _yield_waiting_cover_audio(
+        self,
+        pending_task: asyncio.Task,
+        emotion: str,
+        turn_id: str,
+        *,
+        reason: str,
+    ) -> AsyncIterator[AudioOutput]:
+        """Play short hm/mm waiting audio while SlowTrack is not ready."""
+        if not getattr(self._credo_config, "CREDO_ENABLE_WAITING_COVER_AUDIO", True):
+            return
+
+        max_blocks = max(0, int(getattr(self._credo_config, "CREDO_WAITING_COVER_MAX_BLOCKS", 1)))
+        gap = max(0.0, float(getattr(self._credo_config, "CREDO_WAITING_COVER_GAP_SECONDS", 0.45)))
+        for _idx in range(max_blocks):
+            if pending_task.done():
+                break
+            if gap:
+                await asyncio.sleep(gap)
+            if pending_task.done():
+                break
+            item = self.cover_composer.choose_waiting_audio_item()
+            if not item:
+                break
+            audio_path = Path(str(item.get("audio_path") or ""))
+            if not audio_path.exists():
+                break
+            text = self._clean_spoken_text(str(item.get("carrier") or item.get("text") or "hm."))
+            self.latency_logger.log(
+                self._latency_observer.LatencyEvent(
+                    stage="fast_track_waiting_audio",
+                    elapsed_ms=0.0,
+                    text=text,
+                    engine="interjection_audio_bundle",
+                    metadata={
+                        "turn_id": turn_id,
+                        "emotion": self._normalize_emotion(emotion),
+                        "event": "thinking",
+                        "reason": reason,
+                        "audio_path": str(audio_path),
+                    },
+                )
+            )
+            yield AudioOutput(
+                audio_path=str(audio_path),
+                display_text=self._display(""),
+                transcript="",
+                actions=self._expressive_cover_actions("neutral", "thinking"),
+            )
 
     async def _yield_extra_cover_audio(
         self,

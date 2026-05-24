@@ -245,6 +245,48 @@ def check_fast_track_audio_cache(cfg: Any) -> CheckResult:
     return ok("FastTrack audio cache", f"{manifest_path}; reference={reference_id}; usable_items={usable}", required=False)
 
 
+def check_persona_reaction_bundle(cfg: Any) -> CheckResult:
+    """Verify that the configured persona bundle can serve prebuilt FastTrack audio."""
+    if not getattr(cfg, "FAST_TRACK_PERSONA_BUNDLE_ENABLED", False):
+        return skip("FastTrack persona bundle", "disabled by FAST_TRACK_PERSONA_BUNDLE_ENABLED=0", required=False)
+    manifest_path = cfg.FAST_TRACK_PERSONA_BUNDLE_PATH
+    if not manifest_path.exists():
+        return fail("FastTrack persona bundle", f"missing: {manifest_path}")
+
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    metadata = payload.get("tts_reference", {}) if isinstance(payload, dict) else {}
+    reference_id = str(metadata.get("reference_id", "")).strip()
+    expected = str(getattr(cfg, "FAST_TRACK_AUDIO_CACHE_REFERENCE_ID", "") or "").strip()
+    if expected and reference_id != expected:
+        return fail(
+            "FastTrack persona bundle",
+            f"reference mismatch: manifest={reference_id!r}, expected={expected!r}",
+        )
+
+    personality_id = str(payload.get("personality_id", "")).strip()
+    expected_personality = str(getattr(cfg, "FAST_TRACK_PERSONA_ID", "") or "").strip()
+    if expected_personality and personality_id != expected_personality:
+        return fail(
+            "FastTrack persona bundle",
+            f"personality mismatch: manifest={personality_id!r}, expected={expected_personality!r}",
+        )
+
+    root = manifest_path.parent
+    total = 0
+    usable = 0
+    for item in payload.get("items", []):
+        total += 1
+        audio_path = Path(str(item.get("audio_path", "")))
+        if not audio_path.is_absolute():
+            audio_path = root / audio_path
+        if audio_path.exists():
+            usable += 1
+
+    if usable == 0:
+        return fail("FastTrack persona bundle", f"no usable audio_path files in {manifest_path}")
+    return ok("FastTrack persona bundle", f"{manifest_path}; reference={reference_id}; usable_items={usable}/{total}")
+
+
 def collect_checks() -> list[CheckResult]:
     cfg = load_config()
     open_llm_dir = PROJECT_ROOT / "vendor" / "open-llm-vtuber"
@@ -258,8 +300,10 @@ def collect_checks() -> list[CheckResult]:
         check_fish_reference_voice(fish_reference_dir),
         check_path("SetFit optimized intent model", ROOT / "models" / "setfit_swda_intent_minilm_optimized" / "model_head.pkl"),
         check_path("Hybrid reaction list", ROOT / "hybrid_reactions.json"),
-        check_path("Expressive audio manifest", ROOT / "expressive_audio_pool" / "manifest.json", required=False),
+        check_path("Interjection audio bundle", getattr(cfg, "CREDO_INTERJECTION_AUDIO_BUNDLE_PATH", ROOT / "expressive_interjection_bundle" / "manifest.json"), required=False),
+        check_path("Legacy expressive audio manifest", ROOT / "archive" / "legacy_audio" / "expressive_audio_pool" / "manifest.json", required=False),
         check_fast_track_audio_cache(cfg),
+        check_persona_reaction_bundle(cfg),
         check_intent_matrix(),
         check_motion_groups(),
         check_import("spacy"),

@@ -79,6 +79,8 @@ class CachedCover:
     tts_text: str
     audio_path: Path | None
     cue: dict[str, Any] | None
+    response_act: str = ""
+    style_tag: str = ""
 
 
 class FastTrackAudioCache:
@@ -285,6 +287,8 @@ class PersonaReactionBundle:
                 tts_text=tts_text,
                 audio_path=audio_path,
                 cue=item.get("cue"),
+                response_act=response_act,
+                style_tag=style_tag,
             )
             if not cover.plain_tts_text:
                 continue

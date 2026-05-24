@@ -59,7 +59,7 @@ LOCAL_LLM_MODEL=qwen2.5:7b \
 AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
 ```
 
-Fish Speech 서버가 꺼져 있어도 Open-LLM-VTuber의 기본 TTS fallback이 동작하도록 설계되어 있다. 다만 논문 실험에서 비언어 태그 TTS를 다룰 때는 Fish Speech 서버를 켜고 조건을 고정해야 한다.
+현재 기본 설정에서는 잘못된 목소리로 fallback되는 것을 막기 위해 SlowTrack Open-LLM TTS fallback을 꺼 둔다. Fish Speech가 꺼져 있으면 SlowTrack 음성은 나오지 않을 수 있으므로, 데모와 실험에서는 Fish Speech 서버를 먼저 켜고 조건을 고정해야 한다.
 
 ## 로컬 LLM 선택 기준
 
@@ -130,12 +130,12 @@ conf.credo.yaml, conf.yaml
 4. FastTrack은 DistilBERT로 4분류 감정을 계산한다.
 5. spaCy는 명사/고유명사 키워드를 뽑는다.
 6. 키워드는 직접 발화에 붙이지 않고, everyday/stream 반응 출처를 고르는 약한 힌트로만 쓴다.
-7. 감정 범주에 맞는 짧은 반응문과 Fish Speech 비언어 cue를 고른다.
-8. 사전 생성된 wav가 있으면 바로 `AudioOutput`으로 반환한다.
+7. 감정 범주, 사용자 의도, SWDA 기반 응답 행위 확률, 스타일 축에 맞는 짧은 반응문을 고른다.
+8. 사전 생성된 Fish Speech wav가 있으면 바로 `AudioOutput`으로 반환한다.
 9. 동시에 같은 감정 범주에 대응하는 Live2D expression action을 같이 보낸다.
 10. SlowTrack은 로컬 LLM에 본문 응답을 요청한다.
 11. Fish Speech가 켜져 있으면 SlowTrack 텍스트를 wav로 합성한다.
-12. 합성 실패 또는 서버 부재 시 Open-LLM-VTuber 기본 TTS로 fallback한다.
+12. 합성 실패 또는 서버 부재 시 현재 기본 설정에서는 잘못된 목소리 fallback을 막고 텍스트만 반환한다. 실험 목적에 따라 fallback을 명시적으로 켤 수 있다.
 13. memory가 켜져 있으면 사용자 입력, FastTrack 반응, SlowTrack 응답, 감정, 키워드를 JSON에 저장한다.
 
 ## 논문 관점의 모듈 분리

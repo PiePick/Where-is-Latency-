@@ -15,8 +15,14 @@ AI_NPC_System/scripts/run_credo_stack.sh --profile live
 
 1. Fish Speech on `http://127.0.0.1:8080`
 2. Local LLM on `http://127.0.0.1:8001`
-3. Piper FastTrack TTS on `http://127.0.0.1:5001`
-4. Open-LLM-VTuber on `http://127.0.0.1:12393`
+3. Open-LLM-VTuber on `http://127.0.0.1:12393`
+
+Piper is no longer part of the default `live` profile. It is kept only for
+explicit realtime-TTS experiments:
+
+```bash
+AI_NPC_System/scripts/run_credo_stack.sh --profile live-piper
+```
 
 If a service is already healthy, the stack runner reuses it instead of starting
 a duplicate.
@@ -30,7 +36,7 @@ AI_NPC_System/scripts/run_credo_stack.sh --profile live --status
 # Fish-only mode for offline cache generation.
 AI_NPC_System/scripts/run_credo_stack.sh --profile cache
 
-# Run without Piper if FastTrack is disabled or not needed.
+# Alias for the default Fish-bundle live path.
 AI_NPC_System/scripts/run_credo_stack.sh --profile live-no-piper
 
 # Start only selected services.
@@ -55,6 +61,37 @@ The latest machine-readable service state is:
 
 ```text
 AI_NPC_System/runtime/credo_stack_state.json
+```
+
+## Live Latency CSV
+
+Every CREDO turn appends module-level latency rows in real time:
+
+```text
+AI_NPC_System/latency_logs/module_events.csv
+```
+
+Each row is one measured module/stage event, not a whole session summary. The
+important columns are:
+
+- `turn_id`: groups FastTrack, SlowTrack, TTS, and total rows from the same user turn.
+- `module`: compact module name such as `fasttrack_analysis`, `fasttrack_audio`, `slowtrack_llm`, `slowtrack_tts`, or `turn_total`.
+- `elapsed_ms`: measured latency for that module.
+- `emotion`, `intent`, `response_act`, `style_tag`: runtime routing labels when available.
+- `cache_hit`, `audio_path`: whether FastTrack used a prebuilt wav and where it came from.
+- `text_preview`: short preview for quickly matching the row to the utterance.
+
+Watch it while the stack is running:
+
+```bash
+tail -f AI_NPC_System/latency_logs/module_events.csv
+```
+
+The older JSONL log and Markdown summary are still written:
+
+```text
+AI_NPC_System/latency_logs/events.jsonl
+AI_NPC_System/latency_logs/latest_summary.md
 ```
 
 ## Restart Policy
@@ -99,7 +136,7 @@ Idle speech now uses server-side stream state instead of a fixed short prompt:
 1. It waits until no conversation is active.
 2. It checks how long chat has been quiet.
 3. It includes the topic anchor and latest viewer/chat text.
-4. It asks the CREDO agent for one cohesive 45-90 word spoken segment.
+4. It asks the CREDO agent for one cohesive 12-24 word spoken segment.
 5. It uses the same Fish/Live2D path as normal speech.
 
 Short-term memory is still lightweight JSON memory, not a vector database. It
@@ -118,12 +155,40 @@ For the current Fish-cache plan:
 FISH_SPEECH_AUTO_PLAY=0 \
 vendor/open-llm-vtuber/.venv/bin/python \
 AI_NPC_System/scripts/build_persona_reaction_bundle.py \
-  --output-dir AI_NPC_System/persona_reaction_bundle_clean_v2 \
+  --output-dir AI_NPC_System/persona_reaction_bundle_response_act_v1 \
   --skip-existing \
   --synthesize
 ```
 
 This command is resumable. Re-running it skips items whose `audio_path` already
 exists. Do not add `--disable-tts-cues` for the current Fish 600-audio bundle;
-the intended bundle uses inline emotion/style cues such as `[happy] [playful]`
-and `[excited] [energetic]`.
+the intended bundle uses inline emotion/style cues during offline synthesis such
+as `[happy] [playful]` and `[excited] [energetic]`. Runtime playback uses the
+pre-generated wav files, not inline tags.
+
+## Interjection Audio Bundle
+
+FastTrack starts with pre-generated nonverbal/interjection audio plus Live2D
+motion before the text reaction. The current pure-interjection bundle is:
+
+```text
+AI_NPC_System/expressive_interjection_bundle/manifest.json
+```
+
+It contains only short carriers such as `ha-ha!`, `hee-hee!`, `ahaha!`,
+`haha!`, `oh!`, `aw!`, `ugh.`, `hm.`, `mm.`, `huh?`, and `oh?`. Dialogue-like
+carriers such as `nice!`, `let's go!`, `what?`, `wait.`, `okay.`, `got it.`,
+and `alright.` are intentionally excluded from this bundle. Each synthesized
+line starts and ends with one `[short pause]` cue so the clip does not cut in or
+out too abruptly.
+
+Regenerate or resume the bundle:
+
+```bash
+cd /mnt/c/Users/CGLAB/Desktop/CREDO
+FISH_SPEECH_AUTO_PLAY=0 \
+vendor/open-llm-vtuber/.venv/bin/python \
+AI_NPC_System/scripts/build_interjection_audio_bundle.py \
+  --skip-existing \
+  --synthesize
+```

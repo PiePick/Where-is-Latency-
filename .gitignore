@@ -12,9 +12,11 @@ AI_NPC_System/tts_outputs/
 AI_NPC_System/tts_benchmarks/
 AI_NPC_System/latency_benchmarks/
 AI_NPC_System/latency_logs/
+AI_NPC_System/runtime/
 AI_NPC_System/fast_track_audio_cache*/
 AI_NPC_System/fish_speech_tag_audio/
 AI_NPC_System/expressive_audio_pool/
+AI_NPC_System/archive/legacy_audio/
 AI_NPC_System/VoiceSample/
 AI_NPC_System/integrations/open_llm_vtuber/live2d_models/
 
@@ -30,6 +32,7 @@ vendor/*/.venv/
 vendor/*/logs/
 vendor/open-llm-vtuber/conf.yaml.backup
 vendor/Style-Bert-VITS2/
+vendor/CosyVoice/
 vendor/piper-tts/
 vendor/fish-speech/*
 !vendor/fish-speech/
