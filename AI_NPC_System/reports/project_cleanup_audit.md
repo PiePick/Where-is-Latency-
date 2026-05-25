@@ -14,8 +14,8 @@
 | `vendor/open-llm-vtuber` | 9.7G | 유지. UI/runtime 본체다. |
 | `vendor/CosyVoice` | 4.6G | 삭제 완료. 현재 기본 경로에서 제외되었고 untracked 실험 폴더였으므로 제거했다. |
 | `vendor/piper-tts` | 221M | 보류. `live-piper` 실험과 lightweight TTS baseline에 필요할 수 있다. |
-| `AI_NPC_System/persona_reaction_bundle_response_act_v1` | 116M | 유지. 현재 FastTrack 기본 cached Fish bundle이다. |
-| `AI_NPC_System/models` | 176M | 유지. SetFit intent model이 readiness 필수 항목이다. |
+| `AI_NPC_System/fasttrack_assets/audio/persona_reaction_bundle_response_act_v1` | 116M | 유지. 현재 FastTrack 기본 cached Fish bundle이다. |
+| `AI_NPC_System/fasttrack_assets/models` | 176M | 유지. SetFit intent model이 readiness 필수 항목이다. |
 | `AI_NPC_System/tts_outputs` | 16M | 정리 가능. 대부분 임시 TTS 출력이다. 필요한 대표 샘플만 reports 또는 style_examples로 보존. |
 | `AI_NPC_System/runtime` | 1.6M | 커밋 제외. 실행 로그/pid/state이며 재생성된다. `.gitignore`에 추가했다. |
 | `__pycache__` 계열 | 수백 KB | 정리 가능. 재생성된다. |
@@ -71,8 +71,8 @@ AI_NPC_System/runtime/logs/
 ## 보존해야 하는 연구 산출물
 
 ```text
-AI_NPC_System/persona_reaction_bundle_response_act_v1/
-AI_NPC_System/expressive_interjection_bundle/
+AI_NPC_System/fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/
+AI_NPC_System/fasttrack_assets/audio/expressive_interjection_bundle/
 AI_NPC_System/reports/intent_transition_matrix_from_swda.*
 AI_NPC_System/reports/setfit_intent_evaluation_summary.json
 AI_NPC_System/reports/latency_prediction_model.*
@@ -89,8 +89,8 @@ archive 이동: AI_NPC_System/expressive_audio_pool/ -> AI_NPC_System/archive/le
 archive 이동: AI_NPC_System/persona_reaction_bundle_response_act_probe/ -> AI_NPC_System/archive/legacy_manifests/persona_reaction_bundle_response_act_probe/
 archive 이동: AI_NPC_System/scripts/build_extreme_nonverbal_reactions.py -> AI_NPC_System/archive/legacy_scripts/build_extreme_nonverbal_reactions.py
 archive 이동: AI_NPC_System/tts_style_examples/ -> AI_NPC_System/archive/tts_style_examples/
-유지: AI_NPC_System/persona_reaction_bundle_response_act_v1/
-유지: AI_NPC_System/expressive_interjection_bundle/
+유지: AI_NPC_System/fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/
+유지: AI_NPC_System/fasttrack_assets/audio/expressive_interjection_bundle/
 커밋 제외: AI_NPC_System/runtime/
 ```
 

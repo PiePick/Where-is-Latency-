@@ -107,7 +107,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=AI_NPC_ROOT / "professor_jinsama_call_bundle",
+        default=AI_NPC_ROOT / "fasttrack_assets" / "audio" / "professor_jinsama_call_bundle",
     )
     parser.add_argument("--synthesize", action="store_true")
     parser.add_argument("--limit", type=int, default=None)

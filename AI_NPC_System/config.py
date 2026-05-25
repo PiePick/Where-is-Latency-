@@ -154,7 +154,7 @@ FAST_TRACK_AUDIO_CACHE_REFERENCE_ID = os.getenv(
 FAST_TRACK_PERSONA_BUNDLE_ENABLED = _env_bool("FAST_TRACK_PERSONA_BUNDLE_ENABLED", False)
 FAST_TRACK_PERSONA_BUNDLE_FILE = os.getenv(
     "FAST_TRACK_PERSONA_BUNDLE_FILE",
-    "persona_reaction_bundle/manifest.json",
+    "fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/manifest.json",
 )
 FAST_TRACK_PERSONA_BUNDLE_PATH = ROOT_DIR / FAST_TRACK_PERSONA_BUNDLE_FILE
 FAST_TRACK_PERSONA_ID = os.getenv("FAST_TRACK_PERSONA_ID", "credo_vtuber_default")
@@ -268,12 +268,12 @@ CREDO_MAX_COVER_BLOCKS = _env_int("CREDO_MAX_COVER_BLOCKS", 3)
 CREDO_ENABLE_EXTRA_COVER_AUDIO = _env_bool("CREDO_ENABLE_EXTRA_COVER_AUDIO", True)
 CREDO_INTERJECTION_AUDIO_BUNDLE_FILE = os.getenv(
     "CREDO_INTERJECTION_AUDIO_BUNDLE_FILE",
-    "expressive_interjection_bundle/manifest.json",
+    "fasttrack_assets/audio/expressive_interjection_bundle/manifest.json",
 )
 CREDO_INTERJECTION_AUDIO_BUNDLE_PATH = ROOT_DIR / CREDO_INTERJECTION_AUDIO_BUNDLE_FILE
 PROFESSOR_JINSAMA_CALL_BUNDLE_FILE = os.getenv(
     "PROFESSOR_JINSAMA_CALL_BUNDLE_FILE",
-    "professor_jinsama_call_bundle/manifest.json",
+    "fasttrack_assets/audio/professor_jinsama_call_bundle/manifest.json",
 )
 PROFESSOR_JINSAMA_CALL_BUNDLE_PATH = ROOT_DIR / PROFESSOR_JINSAMA_CALL_BUNDLE_FILE
 CREDO_ENABLE_INITIAL_INTERJECTION_AUDIO = _env_bool("CREDO_ENABLE_INITIAL_INTERJECTION_AUDIO", True)
@@ -283,7 +283,7 @@ CREDO_WAITING_COVER_MAX_BLOCKS = _env_int("CREDO_WAITING_COVER_MAX_BLOCKS", 1)
 CREDO_WAITING_COVER_GAP_SECONDS = _env_float("CREDO_WAITING_COVER_GAP_SECONDS", 0.45)
 CREDO_THINKING_BRIDGE_AUDIO_BUNDLE_FILE = os.getenv(
     "CREDO_THINKING_BRIDGE_AUDIO_BUNDLE_FILE",
-    "thinking_bridge_bundle/manifest.json",
+    "fasttrack_assets/audio/thinking_bridge_bundle/manifest.json",
 )
 CREDO_THINKING_BRIDGE_AUDIO_BUNDLE_PATH = ROOT_DIR / CREDO_THINKING_BRIDGE_AUDIO_BUNDLE_FILE
 CREDO_ENABLE_THINKING_BRIDGE_AUDIO = _env_bool("CREDO_ENABLE_THINKING_BRIDGE_AUDIO", True)

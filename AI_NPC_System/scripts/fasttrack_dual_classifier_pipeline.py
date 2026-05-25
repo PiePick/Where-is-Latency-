@@ -35,7 +35,8 @@ import numpy as np
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_INTENT_MODEL_DIR = ROOT / "models" / "setfit_swda_intent_minilm"
+FASTTRACK_ASSET_ROOT = ROOT / "fasttrack_assets"
+DEFAULT_INTENT_MODEL_DIR = FASTTRACK_ASSET_ROOT / "models" / "setfit_swda_intent_minilm"
 DEFAULT_DISTILBERT_EMOTION_MODEL = "./my_distilbert_emotion"
 DEFAULT_DISTILBERT_FALLBACK_MODEL = "joeddav/distilbert-base-uncased-go-emotions-student"
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
@@ -651,7 +652,7 @@ def parse_args() -> argparse.Namespace:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     prep = subparsers.add_parser("prepare-data", help="Preprocess datasets and write JSONL files.")
-    prep.add_argument("--output-dir", type=Path, default=ROOT / "prepared_fasttrack_data")
+    prep.add_argument("--output-dir", type=Path, default=FASTTRACK_ASSET_ROOT / "datasets" / "prepared_fasttrack_data")
     prep.add_argument("--unknown-policy", choices=("exclude", "expressive"), default="exclude")
     prep.add_argument("--max-words", type=int, default=30)
 

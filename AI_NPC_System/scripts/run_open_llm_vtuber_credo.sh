@@ -101,7 +101,7 @@ fi
 if [[ "${fast_track_enabled}" == "1" && "${allow_open_llm_fast_tts}" != "1" && "${fast_tts_mode}" == "cached_fish_bundle" ]]; then
   if ! "$VENV_DIR/bin/python" -c 'import sys; from pathlib import Path; root=Path(sys.argv[1]); sys.path.insert(0, str(root/"AI_NPC_System")); import config; from fast_track_audio_cache import PersonaReactionBundle; bundle=PersonaReactionBundle(config.FAST_TRACK_PERSONA_BUNDLE_PATH, enabled=config.FAST_TRACK_PERSONA_BUNDLE_ENABLED, seed=20260514, expected_reference_id=config.FAST_TRACK_AUDIO_CACHE_REFERENCE_ID, personality_id=config.FAST_TRACK_PERSONA_ID); raise SystemExit(0 if bundle.available else 1)' "$ROOT_DIR" >/dev/null 2>&1; then
     echo "FastTrack cached Fish bundle is not available." >&2
-    echo "Expected manifest: ${FAST_TRACK_PERSONA_BUNDLE_FILE:-persona_reaction_bundle_response_act_v1/manifest.json}" >&2
+    echo "Expected manifest: ${FAST_TRACK_PERSONA_BUNDLE_FILE:-fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/manifest.json}" >&2
     echo "Expected reference id: ${FAST_TRACK_AUDIO_CACHE_REFERENCE_ID:-unset}" >&2
     echo "FastTrack fallback is disabled, so Open-LLM-VTuber would appear silent before SlowTrack." >&2
     echo "Regenerate or point FAST_TRACK_PERSONA_BUNDLE_FILE at a manifest with existing audio_path files." >&2

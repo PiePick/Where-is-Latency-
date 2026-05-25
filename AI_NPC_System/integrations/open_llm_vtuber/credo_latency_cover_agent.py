@@ -1431,7 +1431,12 @@ class CredoLatencyCoverAgent(AgentInterface):
         normalized = " ".join(text.lower().split())
         if self._intent_model is None and not self._intent_model_checked:
             self._intent_model_checked = True
-            model_dir = self.ai_npc_path / "models" / "setfit_swda_intent_minilm_optimized"
+            model_dir = (
+                self.ai_npc_path
+                / "fasttrack_assets"
+                / "models"
+                / "setfit_swda_intent_minilm_optimized"
+            )
             if model_dir.exists():
                 try:
                     from setfit import SetFitModel

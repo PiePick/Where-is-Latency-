@@ -191,12 +191,12 @@ class Cell:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build a CREDO persona reaction bundle.")
-    parser.add_argument("--output-dir", type=Path, default=ROOT / "persona_reaction_bundle")
+    parser.add_argument("--output-dir", type=Path, default=ROOT / "fasttrack_assets" / "audio" / "persona_reaction_bundle_response_act_v1")
     parser.add_argument("--variants-per-cell", type=int, default=DEFAULT_VARIANTS_PER_CELL)
     parser.add_argument("--personality-id", default=DEFAULT_PERSONALITY_ID)
     parser.add_argument("--personality", default=DEFAULT_PERSONALITY)
-    parser.add_argument("--emotion-data", type=Path, default=ROOT / "prepared_fasttrack_data" / "go_emotions_coarse.jsonl")
-    parser.add_argument("--intent-data", type=Path, default=ROOT / "prepared_fasttrack_data" / "swda_intent_coarse.jsonl")
+    parser.add_argument("--emotion-data", type=Path, default=ROOT / "fasttrack_assets" / "datasets" / "prepared_fasttrack_data" / "go_emotions_coarse.jsonl")
+    parser.add_argument("--intent-data", type=Path, default=ROOT / "fasttrack_assets" / "datasets" / "prepared_fasttrack_data" / "swda_intent_coarse.jsonl")
     parser.add_argument("--candidate-pool-size", type=int, default=30)
     parser.add_argument(
         "--allow-specific-content",

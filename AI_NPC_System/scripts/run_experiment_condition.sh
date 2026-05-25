@@ -53,7 +53,7 @@ case "${CONDITION}" in
     export FAST_TRACK_ENABLED="1"
     export FAST_TRACK_TTS_MODE="cached_fish_bundle"
     export FAST_TRACK_PERSONA_BUNDLE_ENABLED="1"
-    export FAST_TRACK_PERSONA_BUNDLE_FILE="persona_reaction_bundle_response_act_v1/manifest.json"
+    export FAST_TRACK_PERSONA_BUNDLE_FILE="fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/manifest.json"
     export FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
     export SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
     ;;
@@ -85,4 +85,3 @@ fi
 cd "${ROOT_DIR}"
 echo "CREDO experiment condition: ${CREDO_EXPERIMENT_CONDITION}"
 exec AI_NPC_System/scripts/run_credo_stack.sh "$@"
-

@@ -589,7 +589,7 @@ def patch_vtuber_routes(vendor: Path) -> None:
         '        for root in list(roots):\n'
         '            roots.extend(root.parents)\n'
         '        for root in roots:\n'
-        '            if (root / "AI_NPC_System" / "expressive_interjection_bundle" / "manifest.json").exists():\n'
+            '            if (root / "AI_NPC_System" / "fasttrack_assets" / "audio" / "expressive_interjection_bundle" / "manifest.json").exists():\n'
         '                return root\n'
         '        return Path.cwd().resolve().parents[1]\n',
     )
@@ -839,7 +839,7 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '\n'
             '    def _interjection_manifest_path() -> Path:\n'
             '        """Return the active pure interjection bundle manifest."""\n'
-            '        return _credo_root() / "AI_NPC_System" / "expressive_interjection_bundle" / "manifest.json"\n'
+            '        return _credo_root() / "AI_NPC_System" / "fasttrack_assets" / "audio" / "expressive_interjection_bundle" / "manifest.json"\n'
             '\n'
             '    def _load_interjection_items() -> list[dict]:\n'
             '        """Load selectable prebuilt interjection audio items for manual motion tests."""\n'

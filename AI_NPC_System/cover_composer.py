@@ -16,7 +16,7 @@ from latency_predictor import LatencyPredictor
 ROOT = Path(__file__).resolve().parent
 REACTION_PATH = ROOT / "hybrid_reactions.json"
 EXTREME_AUDIO_MANIFEST = ROOT / "archive" / "legacy_audio" / "expressive_audio_pool" / "manifest.json"
-SWDA_PATH = ROOT / "prepared_fasttrack_data" / "swda_intent_coarse.jsonl"
+SWDA_PATH = ROOT / "fasttrack_assets" / "datasets" / "prepared_fasttrack_data" / "swda_intent_coarse.jsonl"
 
 
 MOTION_MAP = {

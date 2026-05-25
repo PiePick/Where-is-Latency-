@@ -23,10 +23,11 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DATA_PATH = ROOT / "prepared_fasttrack_data" / "swda_intent_coarse.jsonl"
-DEFAULT_BASELINE_MODEL = ROOT / "models" / "setfit_swda_intent_minilm"
-DEFAULT_OPTIMIZED_MODEL = ROOT / "models" / "setfit_swda_intent_minilm_optimized"
-DEFAULT_RUN_DIR = ROOT / "models" / "setfit_swda_tuning_runs"
+FASTTRACK_ASSET_ROOT = ROOT / "fasttrack_assets"
+DEFAULT_DATA_PATH = FASTTRACK_ASSET_ROOT / "datasets" / "prepared_fasttrack_data" / "swda_intent_coarse.jsonl"
+DEFAULT_BASELINE_MODEL = FASTTRACK_ASSET_ROOT / "models" / "setfit_swda_intent_minilm"
+DEFAULT_OPTIMIZED_MODEL = FASTTRACK_ASSET_ROOT / "models" / "setfit_swda_intent_minilm_optimized"
+DEFAULT_RUN_DIR = FASTTRACK_ASSET_ROOT / "models" / "setfit_swda_tuning_runs"
 DEFAULT_REPORT_DIR = ROOT / "reports"
 DEFAULT_BASE_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 LABELS = ["QUESTION", "INFORM", "ACKNOWLEDGE", "DIRECTIVE", "EXPRESSIVE", "REJECT"]

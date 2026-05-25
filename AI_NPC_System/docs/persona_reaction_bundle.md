@@ -81,8 +81,8 @@ vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_persona_reac
 ## Output
 
 ```text
-AI_NPC_System/persona_reaction_bundle_response_act_v1/manifest.json
-AI_NPC_System/persona_reaction_bundle_response_act_v1/audio/<emotion>/<response_act>/<style_tag>/*.wav
+AI_NPC_System/fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/manifest.json
+AI_NPC_System/fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/audio/<emotion>/<response_act>/<style_tag>/*.wav
 ```
 
 The manifest is intentionally compact. Global metadata such as personality, style-tag definitions, dataset sources, LLM filter settings, and Fish Speech reference settings is stored once at the top level. Each cell stores its dimensions plus `item_ids`; each runtime item stores only item-specific data:

@@ -95,8 +95,8 @@
   },
   "tts_cue_policy": "Fish Speech inline cues control only pitch, energy, pace, tension, and attitude. Nonverbal events such as laugh, giggle, sigh, sob, or gasp are excluded and should be handled by separate motion/audio events.",
   "labeled_dataset_sources": {
-    "emotion_data": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/prepared_fasttrack_data/go_emotions_coarse.jsonl",
-    "intent_data": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/prepared_fasttrack_data/swda_intent_coarse.jsonl",
+    "emotion_data": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/datasets/prepared_fasttrack_data/go_emotions_coarse.jsonl",
+    "intent_data": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/datasets/prepared_fasttrack_data/swda_intent_coarse.jsonl",
     "candidate_pool_size": 12,
     "seed_pair_count_per_cell": 12,
     "seed_max_words": 7,

@@ -43,7 +43,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--manifest",
         type=Path,
-        default=ROOT / "persona_reaction_bundle_response_act_v1" / "manifest.json",
+        default=ROOT / "fasttrack_assets" / "audio" / "persona_reaction_bundle_response_act_v1" / "manifest.json",
     )
     parser.add_argument("--expected-reference-id", default="")
     parser.add_argument("--expected-personality-id", default="dataset_grounded_playful_vtuber")
@@ -239,4 +239,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

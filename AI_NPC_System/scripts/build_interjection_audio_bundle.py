@@ -19,7 +19,7 @@ import config  # noqa: E402
 from tts_client import FishSpeechTTSClient, FishSpeechTTSConfig  # noqa: E402
 
 
-OUTPUT_DIR = ROOT / "expressive_interjection_bundle"
+OUTPUT_DIR = ROOT / "fasttrack_assets" / "audio" / "expressive_interjection_bundle"
 
 EMOTION_CUES = {
     "positive": "[happy]",

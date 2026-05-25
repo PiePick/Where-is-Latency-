@@ -1,6 +1,6 @@
 {
   "selected_model": "baseline_1080",
-  "optimized_model_dir": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/models/setfit_swda_intent_minilm_optimized",
+  "optimized_model_dir": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/models/setfit_swda_intent_minilm_optimized",
   "summary": [
     {
       "split": "balanced_val",

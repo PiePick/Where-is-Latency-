@@ -1,8 +1,8 @@
 # CREDO FastTrack Assets
 
 This folder is the single navigation point for FastTrack research/runtime assets.
-The actual runtime files stay in their original locations, and this folder links
-to them so existing config paths do not break.
+FastTrack datasets, trained intent models, and prebuilt audio bundles live here
+as canonical files so the project root stays readable.
 
 ## Layout
 
@@ -16,8 +16,11 @@ to them so existing config paths do not break.
   - Pure interjection + motion bundle.
   - Thinking bridge bundle such as `Let me think about it.`
   - Professor Jinsama callout bundle.
-- `runtime/`
-  - FastTrack runtime config and routing helpers.
+
+Runtime source files such as `config.py`, `fast_track.py`, and
+`fast_track_engine.py` remain at the `AI_NPC_System/` root because importing
+them from their existing module paths is simpler and less fragile. They are
+listed in `INDEX.generated.json`, but they are not duplicated here.
 
 ## Refresh
 
@@ -27,8 +30,6 @@ After generating new audio, refresh this folder:
 cd /mnt/c/Users/CGLAB/Desktop/CREDO
 vendor/open-llm-vtuber/.venv/bin/python \
   AI_NPC_System/scripts/collect_fasttrack_assets.py \
-  --force
 ```
 
-The script creates symlinks by default and writes `INDEX.generated.json` with
-counts and source paths.
+The script writes `INDEX.generated.json` with file counts and canonical paths.

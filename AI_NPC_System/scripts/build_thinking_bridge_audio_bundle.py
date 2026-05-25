@@ -122,7 +122,7 @@ def synthesize(output_dir: Path, manifest_path: Path, *, skip_existing: bool, au
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build CREDO thinking bridge FastTrack audio.")
-    parser.add_argument("--output-dir", type=Path, default=ROOT / "thinking_bridge_bundle")
+    parser.add_argument("--output-dir", type=Path, default=ROOT / "fasttrack_assets" / "audio" / "thinking_bridge_bundle")
     parser.add_argument("--synthesize", action="store_true")
     parser.add_argument("--skip-existing", action="store_true")
     parser.add_argument("--audio-limit", type=int, default=0)

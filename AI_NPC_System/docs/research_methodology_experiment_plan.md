@@ -110,7 +110,7 @@ bundle 선택에서 emotion을 neutral로 고정하는 ablation path가 필요�
 FAST_TRACK_ENABLED=1
 FAST_TRACK_TTS_MODE=cached_fish_bundle
 FAST_TRACK_PERSONA_BUNDLE_ENABLED=1
-FAST_TRACK_PERSONA_BUNDLE_FILE=persona_reaction_bundle_response_act_v1/manifest.json
+FAST_TRACK_PERSONA_BUNDLE_FILE=fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/manifest.json
 ```
 
 기대 결과:

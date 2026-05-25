@@ -155,7 +155,7 @@ For the current Fish-cache plan:
 FISH_SPEECH_AUTO_PLAY=0 \
 vendor/open-llm-vtuber/.venv/bin/python \
 AI_NPC_System/scripts/build_persona_reaction_bundle.py \
-  --output-dir AI_NPC_System/persona_reaction_bundle_response_act_v1 \
+  --output-dir AI_NPC_System/fasttrack_assets/audio/persona_reaction_bundle_response_act_v1 \
   --skip-existing \
   --synthesize
 ```
@@ -172,7 +172,7 @@ FastTrack starts with pre-generated nonverbal/interjection audio plus Live2D
 motion before the text reaction. The current pure-interjection bundle is:
 
 ```text
-AI_NPC_System/expressive_interjection_bundle/manifest.json
+AI_NPC_System/fasttrack_assets/audio/expressive_interjection_bundle/manifest.json
 ```
 
 It contains only short carriers such as `ha-ha!`, `hee-hee!`, `ahaha!`,
