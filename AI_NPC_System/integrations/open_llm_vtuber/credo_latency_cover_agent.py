@@ -83,6 +83,7 @@ class CredoLatencyCoverAgent(AgentInterface):
         self.rng = random.Random(self.settings.get("seed"))
         self._proactive_count = 0
         self._vtuber_slow_prefetch_task: asyncio.Task | None = None
+        self._recent_runtime_context: list[dict[str, str]] = []
 
         self.ai_npc_path = self._resolve_ai_npc_path()
         self._load_credo_modules()
@@ -264,7 +265,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             f"cache={fast_result.get('fast_audio_cache_hit')}"
         )
 
-        memory_context = self.memory.build_prompt_context() if self.memory else None
+        memory_context = self._build_memory_context()
         slow_started = time.perf_counter()
         slow_task: asyncio.Task | None = None
         prefetched_slow = self._take_ready_vtuber_slow_prefetch(metadata)
@@ -404,6 +405,12 @@ class CredoLatencyCoverAgent(AgentInterface):
                     actions=speech_actions,
                 )
 
+            self._remember_runtime_context(
+                user_text=user_text,
+                assistant_text=slow_text,
+                emotion=emotion,
+                event=str(metadata.get("vtuber_event") or ""),
+            )
             if self.memory and not metadata.get("skip_memory"):
                 self.memory.record_turn(
                     user_text=user_text,
@@ -501,6 +508,12 @@ class CredoLatencyCoverAgent(AgentInterface):
                 actions=speech_actions,
             )
 
+        self._remember_runtime_context(
+            user_text=user_text,
+            assistant_text=slow_text,
+            emotion=emotion,
+            event=str(metadata.get("vtuber_event") or ""),
+        )
         if self.memory and not metadata.get("skip_memory"):
             self.memory.record_turn(
                 user_text=user_text,
@@ -680,7 +693,7 @@ class CredoLatencyCoverAgent(AgentInterface):
         event = str(metadata.get("vtuber_event") or "idle")
         emotion = str(metadata.get("emotion") or "positive").lower()
         speech_actions = self._speech_actions(emotion, style_tag=metadata.get("style_tag"), text=user_text)
-        memory_context = self.memory.build_prompt_context() if self.memory else None
+        memory_context = self._build_memory_context()
 
         prompt = self._build_vtuber_prompt(user_text, metadata)
         slow_started = time.perf_counter()
@@ -740,6 +753,12 @@ class CredoLatencyCoverAgent(AgentInterface):
                 actions=speech_actions,
             )
 
+        self._remember_runtime_context(
+            user_text=user_text,
+            assistant_text=slow_text,
+            emotion=emotion,
+            event=event,
+        )
         if self.memory and not metadata.get("skip_memory"):
             self.memory.record_turn(
                 user_text=f"VTuber mode {event}: {user_text}",
@@ -756,6 +775,50 @@ class CredoLatencyCoverAgent(AgentInterface):
             engine="open_llm_vtuber_credo",
             metadata={"event": event, "emotion": emotion, "turn_id": turn_id},
         )
+
+    def _build_memory_context(self) -> str | None:
+        """Combine persistent memory with a short in-process stream context window."""
+        blocks: list[str] = []
+        if self.memory:
+            persistent = self.memory.build_prompt_context().strip()
+            if persistent:
+                blocks.append(persistent)
+        if self._recent_runtime_context:
+            lines = [
+                "Recent stream context. Use for continuity; do not mention that this is memory."
+            ]
+            for turn in self._recent_runtime_context[-6:]:
+                event = turn.get("event") or "turn"
+                emotion = turn.get("emotion") or "neutral"
+                user = turn.get("user") or ""
+                assistant = turn.get("assistant") or ""
+                lines.append(f"- {event}/{emotion} viewer context: {user}")
+                lines.append(f"  Lera Mei said: {assistant}")
+            blocks.append("\n".join(lines))
+        return "\n\n".join(blocks) if blocks else None
+
+    def _remember_runtime_context(
+        self,
+        *,
+        user_text: str,
+        assistant_text: str,
+        emotion: str,
+        event: str,
+    ) -> None:
+        """Keep a small volatile context window for VTuber continuity."""
+        user_text = self._clean_spoken_text(str(user_text or ""))[:360]
+        assistant_text = self._clean_spoken_text(str(assistant_text or ""))[:360]
+        if not user_text and not assistant_text:
+            return
+        self._recent_runtime_context.append(
+            {
+                "user": user_text,
+                "assistant": assistant_text,
+                "emotion": str(emotion or "neutral"),
+                "event": str(event or "turn"),
+            }
+        )
+        del self._recent_runtime_context[: max(0, len(self._recent_runtime_context) - 8)]
 
     def _build_vtuber_prompt(self, text: str, metadata: dict[str, Any]) -> str:
         """Make route-provided stream state explicit without exposing internals."""
@@ -789,7 +852,7 @@ class CredoLatencyCoverAgent(AgentInterface):
     ) -> AsyncIterator[AudioOutput | SentenceOutput]:
         """Run the ablation path with no FastTrack analysis, cover text, audio, or motion."""
         speech_actions = self._speech_actions("neutral")
-        memory_context = self.memory.build_prompt_context() if self.memory else None
+        memory_context = self._build_memory_context()
 
         slow_started = time.perf_counter()
         slow_text = await self._slow_track.generate_response(
@@ -843,6 +906,12 @@ class CredoLatencyCoverAgent(AgentInterface):
                 actions=speech_actions,
             )
 
+        self._remember_runtime_context(
+            user_text=user_text,
+            assistant_text=slow_text,
+            emotion="fast_track_disabled",
+            event="slow_only",
+        )
         if self.memory:
             self.memory.record_turn(
                 user_text=user_text,

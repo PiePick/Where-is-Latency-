@@ -126,6 +126,7 @@ export CREDO_VTUBER_DEFAULT_TOPIC="chatting with viewers about games, daily life
 export CREDO_VTUBER_LLM_MAX_TOKENS="72"
 export CREDO_OUTPUT_LANGUAGE="English"
 export CREDO_ENGLISH_ONLY_OUTPUT="1"
+export CREDO_PERSONA_PROFILE_FILE="docs/lera_mei_persona.md"
 export CREDO_LANGUAGE_POLICY="All audience-facing communication must be in English only. If the viewer writes or speaks Korean, Japanese, Chinese, or any other language, understand the intent but answer in natural English. Do not translate the viewer's message aloud, do not switch languages, and do not mention this language policy."
 
 # SlowTrack system prompt. Keep it one shell string; use \n if line breaks are

@@ -59,6 +59,7 @@
   let parameterPulseFrame = null;
   let parameterPulseUntil = 0;
   let subtitleTimer = null;
+  let interjectionItems = [];
 
   const availableGroup = (group) => {
     if (!group) return "";
@@ -370,6 +371,7 @@
       }
       #credo-vtuber-mode .row { display: flex; gap: 6px; margin-top: 8px; }
       #credo-vtuber-mode .grid { display: grid; grid-template-columns: 1fr 96px; gap: 6px; margin-top: 8px; }
+      #credo-vtuber-mode .tool-grid { display: grid; grid-template-columns: 1fr 82px; gap: 6px; margin-top: 8px; }
       #credo-vtuber-mode .section { margin-top: 10px; }
       #credo-vtuber-mode .section-title { color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 700; }
       #credo-vtuber-mode .chat-list {
@@ -392,7 +394,8 @@
       }
       #credo-vtuber-mode .chat-message .author { color: #95b8ff; font-weight: 700; }
       #credo-vtuber-mode .mode-panel[hidden] { display: none; }
-      #credo-vtuber-mode input {
+      #credo-vtuber-mode input,
+      #credo-vtuber-mode select {
         width: 100%;
         min-width: 0;
         box-sizing: border-box;
@@ -402,6 +405,7 @@
         background: rgba(255,255,255,0.08);
         color: #fff;
       }
+      #credo-vtuber-mode select option { color: #111; }
       #credo-vtuber-mode button {
         flex: 1;
         border: 0;
@@ -425,17 +429,30 @@
         font-size: 11px;
         background: rgba(255,255,255,0.16);
       }
+      #credo-vtuber-mode .wide-toggle {
+        width: auto;
+        min-width: 78px;
+      }
       #credo-vtuber-mode .pill { font-size: 11px; color: #cfd8ff; background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 999px; }
       #credo-vtuber-mode .meta { margin-top: 7px; color: rgba(255,255,255,0.72); font-size: 12px; min-height: 16px; }
+      #credo-vtuber-mode .manual-tools[hidden] { display: none; }
     </style>
     <div class="title">
       <span>CREDO VTuber Mode</span>
       <span class="title-actions">
         <span class="pill" data-role="pill">off</span>
+        <button class="toggle wide-toggle" data-action="toggle-interjections" type="button">Reactions</button>
         <button class="toggle" data-action="toggle-panel" type="button">Hide</button>
       </span>
     </div>
     <div class="panel-body">
+      <div class="manual-tools" data-role="interjection-panel" hidden>
+        <div class="section-title">Manual interjection + motion</div>
+        <div class="tool-grid">
+          <select data-key="interjectionId" aria-label="Interjection and motion"></select>
+          <button data-action="play-interjection" type="button">Play</button>
+        </div>
+      </div>
       <div class="mode-panel" data-role="virtual-panel">
         <div class="section-title">Virtual broadcast chat</div>
         <div class="chat-list" data-role="chat-list">
@@ -478,6 +495,29 @@
   `;
 
   const value = (key) => root.querySelector(`[data-key="${key}"]`)?.value.trim() || "";
+  const optionLabel = (item) => {
+    const carrier = item.carrier || item.id;
+    return `${item.emotion} / ${item.style_tag} / ${item.event} / ${carrier}`;
+  };
+  const populateInterjections = (items) => {
+    interjectionItems = Array.isArray(items) ? items : [];
+    const select = root.querySelector('[data-key="interjectionId"]');
+    if (!select) return;
+    select.innerHTML = "";
+    for (const item of interjectionItems) {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = optionLabel(item);
+      select.appendChild(option);
+    }
+  };
+  const loadInterjections = async () => {
+    const response = await fetch("/credo/interjections");
+    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+    const data = await response.json();
+    populateInterjections(data.items || []);
+    return data.items || [];
+  };
   const appendChat = (author, message) => {
     const list = root.querySelector('[data-role="chat-list"]');
     if (!list) return;
@@ -528,6 +568,10 @@
       // The overlay is optional; avoid noisy errors while the backend is booting.
     }
   };
+  const ensureInterjectionsLoaded = async () => {
+    if (interjectionItems.length) return interjectionItems;
+    return loadInterjections();
+  };
   const post = async (path, body = {}) => {
     const response = await fetch(path, {
       method: "POST",
@@ -566,6 +610,20 @@
     if (!action) return;
     if (action === "toggle-panel") {
       setCollapsed(!root.classList.contains("collapsed"));
+      return;
+    }
+    if (action === "toggle-interjections") {
+      const panel = root.querySelector('[data-role="interjection-panel"]');
+      if (!panel) return;
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden) {
+        try {
+          const items = await ensureInterjectionsLoaded();
+          status(items.length ? `Loaded ${items.length} reactions.` : "No interjection audio found.");
+        } catch (error) {
+          status(`Error: ${error.message}`);
+        }
+      }
       return;
     }
     try {
@@ -608,6 +666,15 @@
           message: "Nice stream.",
         });
         status("Donation reaction queued.");
+      } else if (action === "play-interjection") {
+        await ensureInterjectionsLoaded();
+        const id = value("interjectionId");
+        if (!id) {
+          status("Choose a reaction first.");
+          return;
+        }
+        const result = await post("/credo/interjections/play", { id });
+        status(result.played ? `Played ${result.carrier || result.id}.` : "Reaction not played.");
       }
     } catch (error) {
       status(`Error: ${error.message}`);

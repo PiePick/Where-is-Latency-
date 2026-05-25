@@ -17,10 +17,13 @@ def _system_prompt(
     mode: str | None = None,
 ) -> str:
     """Build the local LLM prompt for continuation after latency cover."""
+    persona = getattr(config, "CREDO_PERSONA_PROMPT", "").strip()
     if mode == "vtuber_monologue":
         prompt = config.CREDO_VTUBER_SYSTEM_PROMPT.strip()
     else:
         prompt = config.SLOW_TRACK_SYSTEM_PROMPT.strip()
+    if persona:
+        prompt = f"{persona}\n\nRuntime behavior instructions:\n{prompt}"
     if getattr(config, "CREDO_ENGLISH_ONLY_OUTPUT", True):
         policy = getattr(config, "CREDO_LANGUAGE_POLICY", "").strip()
         if policy and policy not in prompt:

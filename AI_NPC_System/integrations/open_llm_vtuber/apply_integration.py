@@ -566,6 +566,13 @@ def patch_vtuber_routes(vendor: Path) -> None:
     text = path.read_text(encoding="utf-8")
     if "/credo/vtuber-mode/" not in text:
         return
+    if "from .utils.stream_audio import prepare_audio_payload" not in text:
+        text = text.replace(
+            "from .proxy_handler import ProxyHandler\n",
+            "from .proxy_handler import ProxyHandler\n"
+            "from .utils.stream_audio import prepare_audio_payload\n",
+            1,
+        )
 
     replacements = [
         (
@@ -764,6 +771,124 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '        return prompt, metadata\n'
             '\n'
             '    async def _idle_loop() -> None:\n',
+            1,
+        )
+    if "def _interjection_manifest_path(" not in text:
+        text = text.replace(
+            '    def _clean_prompt_piece(value: object, limit: int = 500) -> str:\n'
+            '        """Keep server-generated stream context compact and safe for prompts."""\n'
+            '        text = " ".join(str(value or "").split())\n'
+            '        return text[:limit]\n'
+            '\n',
+            '    def _clean_prompt_piece(value: object, limit: int = 500) -> str:\n'
+            '        """Keep server-generated stream context compact and safe for prompts."""\n'
+            '        text = " ".join(str(value or "").split())\n'
+            '        return text[:limit]\n'
+            '\n'
+            '    def _interjection_manifest_path() -> Path:\n'
+            '        """Return the active pure interjection bundle manifest."""\n'
+            '        return _credo_root() / "AI_NPC_System" / "expressive_interjection_bundle" / "manifest.json"\n'
+            '\n'
+            '    def _load_interjection_items() -> list[dict]:\n'
+            '        """Load selectable prebuilt interjection audio items for manual motion tests."""\n'
+            '        manifest_path = _interjection_manifest_path()\n'
+            '        if not manifest_path.exists():\n'
+            '            return []\n'
+            '        try:\n'
+            '            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))\n'
+            '        except Exception as exc:\n'
+            '            logger.warning(f"CREDO interjection manifest read failed: {exc}")\n'
+            '            return []\n'
+            '        items = []\n'
+            '        for item in manifest.get("items", []):\n'
+            '            audio_path = Path(str(item.get("audio_path") or ""))\n'
+            '            if not audio_path.is_absolute():\n'
+            '                audio_path = manifest_path.parent / audio_path\n'
+            '            if not audio_path.exists():\n'
+            '                continue\n'
+            '            items.append(\n'
+            '                {\n'
+            '                    "id": str(item.get("id") or ""),\n'
+            '                    "emotion": str(item.get("emotion") or "neutral"),\n'
+            '                    "style_tag": str(item.get("style_tag") or "steady"),\n'
+            '                    "event": str(item.get("event") or "thinking"),\n'
+            '                    "carrier": str(item.get("carrier") or item.get("plain_tts_text") or ""),\n'
+            '                    "audio_path": str(audio_path),\n'
+            '                }\n'
+            '            )\n'
+            '        return items\n'
+            '\n'
+            '    def _motion_profile_for_item(item: dict) -> str:\n'
+            '        """Map selected interjection metadata to a frontend motion profile."""\n'
+            '        style = str(item.get("style_tag") or "").lower()\n'
+            '        if style in {"energetic", "playful", "smug", "cute"}:\n'
+            '            return style\n'
+            '        if style in {"high-pitched", "high_pitched", "bright"}:\n'
+            '            return "bright"\n'
+            '        event = str(item.get("event") or "").lower()\n'
+            '        if event == "surprise":\n'
+            '            return "alert"\n'
+            '        if event == "sigh":\n'
+            '            return "low"\n'
+            '        if event == "laugh":\n'
+            '            return "playful"\n'
+            '        return "steady"\n'
+            '\n',
+            1,
+        )
+    if '@router.get("/credo/interjections")' not in text:
+        text = text.replace(
+            '    @router.post("/credo/vtuber-mode/virtual-chat")\n',
+            '    @router.get("/credo/interjections")\n'
+            '    async def credo_interjection_list():\n'
+            '        """Return manual FastTrack interjection+motion choices."""\n'
+            '        items = _load_interjection_items()\n'
+            '        return {\n'
+            '            "items": [\n'
+            '                {key: value for key, value in item.items() if key != "audio_path"}\n'
+            '                for item in items\n'
+            '            ]\n'
+            '        }\n'
+            '\n'
+            '    @router.post("/credo/interjections/play")\n'
+            '    async def credo_interjection_play(request: Request):\n'
+            '        """Force-play one prebuilt interjection audio clip with its Live2D motion tags."""\n'
+            '        payload = await request.json()\n'
+            '        item_id = str(payload.get("id") or "")\n'
+            '        items = _load_interjection_items()\n'
+            '        item = next((candidate for candidate in items if candidate.get("id") == item_id), None)\n'
+            '        if item is None:\n'
+            '            return JSONResponse({"played": False, "error": "unknown interjection id"}, status_code=404)\n'
+            '        target_uid = ws_handler.first_client_uid()\n'
+            '        if not target_uid or target_uid not in ws_handler.client_connections:\n'
+            '            return JSONResponse({"played": False, "error": "no browser client connected"}, status_code=409)\n'
+            '\n'
+            '        emotion = str(item.get("emotion") or "neutral").lower()\n'
+            '        style = str(item.get("style_tag") or "steady").lower()\n'
+            '        event = str(item.get("event") or "thinking").lower()\n'
+            '        profile = _motion_profile_for_item(item)\n'
+            '        expressions = [\n'
+            '            f"credo_motion_profile:{profile}",\n'
+            '            f"credo_fast_motion:{emotion}",\n'
+            '            f"credo_event_motion:{event}",\n'
+            '            f"credo_style_motion:{style}",\n'
+            '        ]\n'
+            '        audio_payload = prepare_audio_payload(\n'
+            '            audio_path=item["audio_path"],\n'
+            '            display_text={"text": "", "name": "CREDO", "avatar": None},\n'
+            '            actions={"expressions": expressions},\n'
+            '        )\n'
+            '        await ws_handler.client_connections[target_uid].send_text(json.dumps(audio_payload))\n'
+            '        return {\n'
+            '            "played": True,\n'
+            '            "id": item["id"],\n'
+            '            "emotion": emotion,\n'
+            '            "style_tag": style,\n'
+            '            "event": event,\n'
+            '            "carrier": item.get("carrier", ""),\n'
+            '        }\n'
+            '\n'
+            '    @router.post("/credo/vtuber-mode/virtual-chat")\n',
             1,
         )
     if "consume_vtuber_chat_context" not in text:

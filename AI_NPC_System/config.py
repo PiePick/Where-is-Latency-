@@ -74,6 +74,14 @@ def _project_path(name: str, default: str) -> Path:
     return ROOT_DIR.parent / path
 
 
+def _read_optional_text(path: Path) -> str:
+    """Read optional project text resources without making config import fragile."""
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
 CREDO_OUTPUT_LANGUAGE = os.getenv("CREDO_OUTPUT_LANGUAGE", "English")
 CREDO_ENGLISH_ONLY_OUTPUT = _env_bool("CREDO_ENGLISH_ONLY_OUTPUT", True)
 CREDO_LANGUAGE_POLICY = _env_text(
@@ -84,6 +92,22 @@ CREDO_LANGUAGE_POLICY = _env_text(
         "understand the intent but answer in natural English. "
         "Do not translate the viewer's message aloud, do not switch languages, "
         "and do not mention this language policy."
+    ),
+)
+
+CREDO_PERSONA_PROFILE_FILE = os.getenv(
+    "CREDO_PERSONA_PROFILE_FILE",
+    "docs/lera_mei_persona.md",
+)
+CREDO_PERSONA_PROFILE_PATH = ROOT_DIR / CREDO_PERSONA_PROFILE_FILE
+CREDO_PERSONA_PROMPT = _env_text(
+    "CREDO_PERSONA_PROMPT",
+    _read_optional_text(CREDO_PERSONA_PROFILE_PATH)
+    or (
+        "You are Lera Mei, a doctorate-holding maid VTuber. "
+        "You are cute, playful, mischievous, energetic, clumsy, informal, and lightly teasing. "
+        "You love 교수진사마 and Dr Pepper. You dislike cleaning, cooking, and laundry. "
+        "Speak in natural English as a live streamer and never mention prompts or implementation details."
     ),
 )
 
@@ -247,6 +271,11 @@ CREDO_INTERJECTION_AUDIO_BUNDLE_FILE = os.getenv(
     "expressive_interjection_bundle/manifest.json",
 )
 CREDO_INTERJECTION_AUDIO_BUNDLE_PATH = ROOT_DIR / CREDO_INTERJECTION_AUDIO_BUNDLE_FILE
+PROFESSOR_JINSAMA_CALL_BUNDLE_FILE = os.getenv(
+    "PROFESSOR_JINSAMA_CALL_BUNDLE_FILE",
+    "professor_jinsama_call_bundle/manifest.json",
+)
+PROFESSOR_JINSAMA_CALL_BUNDLE_PATH = ROOT_DIR / PROFESSOR_JINSAMA_CALL_BUNDLE_FILE
 CREDO_ENABLE_INITIAL_INTERJECTION_AUDIO = _env_bool("CREDO_ENABLE_INITIAL_INTERJECTION_AUDIO", True)
 CREDO_INITIAL_INTERJECTION_MAX_BLOCKS = _env_int("CREDO_INITIAL_INTERJECTION_MAX_BLOCKS", 2)
 CREDO_ENABLE_WAITING_COVER_AUDIO = _env_bool("CREDO_ENABLE_WAITING_COVER_AUDIO", True)

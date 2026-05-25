@@ -1,0 +1,54 @@
+{
+  "version": "professor-jinsama-call-bundle-v1",
+  "purpose": "Pre-generated Lera Mei callout audio for FastTrack special beats.",
+  "persona": "Lera Mei",
+  "reference_id": "credo_eunice_english_v2",
+  "policy": {
+    "spoken_phrase": "교수진사마",
+    "no_realtime_fasttrack_tts": true,
+    "use": "Select by emotion/tension; do not synthesize during runtime."
+  },
+  "output_dir": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/professor_jinsama_call_bundle",
+  "items": [
+    {
+      "id": "professor_jinsama_soft_01",
+      "label": "soft",
+      "emotion": "positive",
+      "tension": 0.25,
+      "tts_text": "교수진사마.",
+      "usage": "quiet affectionate recognition"
+    },
+    {
+      "id": "professor_jinsama_bright_01",
+      "label": "bright",
+      "emotion": "positive",
+      "tension": 0.5,
+      "tts_text": "교수진사마!",
+      "usage": "normal upbeat FastTrack callout"
+    },
+    {
+      "id": "professor_jinsama_playful_01",
+      "label": "playful",
+      "emotion": "ambiguous",
+      "tension": 0.62,
+      "tts_text": "교수진사마?",
+      "usage": "curious teasing callout"
+    },
+    {
+      "id": "professor_jinsama_excited_01",
+      "label": "excited",
+      "emotion": "positive",
+      "tension": 0.82,
+      "tts_text": "교수진사마!!",
+      "usage": "high-energy greeting or surprise"
+    },
+    {
+      "id": "professor_jinsama_flustered_01",
+      "label": "flustered",
+      "emotion": "ambiguous",
+      "tension": 0.72,
+      "tts_text": "교수진사마아!",
+      "usage": "panicked cute appeal"
+    }
+  ]
+}
