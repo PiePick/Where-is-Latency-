@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-05-25T14:34:53.576163+00:00",
+  "created_at": "2026-05-25T14:38:13.949611+00:00",
   "generator": "AI_NPC_System/scripts/build_thinking_bridge_audio_bundle.py",
   "kind": "thinking_bridge_audio_bundle",
   "purpose": "Short spoken bridge after FastTrack persona wav while SlowTrack is still pending.",
@@ -38,7 +38,8 @@
       "carrier": "Let me think about it.",
       "plain_tts_text": "Let me think about it.",
       "tts_text": "[short pause] [calm] [thoughtful] [steady] [soft] Let me think about it. [short pause]",
-      "audio_path": "audio/thinking_bridge_01.wav"
+      "audio_path": "audio/thinking_bridge_01.wav",
+      "latency_ms": 9103.684
     },
     {
       "id": "thinking_bridge_02",
@@ -48,7 +49,8 @@
       "carrier": "Give me a second to think.",
       "plain_tts_text": "Give me a second to think.",
       "tts_text": "[short pause] [calm] [thoughtful] [steady] [soft] Give me a second to think. [short pause]",
-      "audio_path": "audio/thinking_bridge_02.wav"
+      "audio_path": "audio/thinking_bridge_02.wav",
+      "latency_ms": 10516.2
     },
     {
       "id": "thinking_bridge_03",
@@ -58,7 +60,8 @@
       "carrier": "Hold on, let me think.",
       "plain_tts_text": "Hold on, let me think.",
       "tts_text": "[short pause] [curious] [thoughtful] [slightly surprised] Hold on, let me think. [short pause]",
-      "audio_path": "audio/thinking_bridge_03.wav"
+      "audio_path": "audio/thinking_bridge_03.wav",
+      "latency_ms": 10220.818
     },
     {
       "id": "thinking_bridge_04",
@@ -68,7 +71,8 @@
       "carrier": "Let me think for a second.",
       "plain_tts_text": "Let me think for a second.",
       "tts_text": "[short pause] [calm] [thoughtful] [soft] [gentle] [low volume] Let me think for a second. [short pause]",
-      "audio_path": "audio/thinking_bridge_04.wav"
+      "audio_path": "audio/thinking_bridge_04.wav",
+      "latency_ms": 10633.635
     },
     {
       "id": "thinking_bridge_05",
@@ -78,7 +82,8 @@
       "carrier": "Okay, let me think about that.",
       "plain_tts_text": "Okay, let me think about that.",
       "tts_text": "[short pause] [happy] [thoughtful] [playful] [bright] [lightly teasing] Okay, let me think about that. [short pause]",
-      "audio_path": "audio/thinking_bridge_05.wav"
+      "audio_path": "audio/thinking_bridge_05.wav",
+      "latency_ms": 14406.059
     }
   ]
 }
