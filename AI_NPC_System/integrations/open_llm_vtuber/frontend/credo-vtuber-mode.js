@@ -451,7 +451,9 @@
       <div class="manual-tools" data-role="interjection-panel" hidden>
         <div class="section-title">Manual interjection + motion</div>
         <div class="tool-grid">
-          <select data-key="interjectionId" aria-label="Interjection and motion"></select>
+          <select data-key="interjectionId" aria-label="Interjection and motion">
+            <option value="">Loading reactions...</option>
+          </select>
           <button data-action="play-interjection" type="button">Play</button>
         </div>
       </div>
@@ -514,6 +516,13 @@
     const select = root.querySelector('[data-key="interjectionId"]');
     if (!select) return;
     select.innerHTML = "";
+    if (!interjectionItems.length) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "No reactions found";
+      select.appendChild(option);
+      return;
+    }
     for (const item of interjectionItems) {
       const option = document.createElement("option");
       option.value = item.id;
@@ -522,11 +531,23 @@
     }
   };
   const loadInterjections = async () => {
-    const response = await fetch("/credo/interjections");
-    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-    const data = await response.json();
-    populateInterjections(data.items || []);
-    return data.items || [];
+    try {
+      const response = await fetch("/credo/interjections");
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      const data = await response.json();
+      populateInterjections(data.items || []);
+      return data.items || [];
+    } catch (error) {
+      const select = root.querySelector('[data-key="interjectionId"]');
+      if (select) {
+        select.innerHTML = "";
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = `Failed to load reactions: ${error.message}`;
+        select.appendChild(option);
+      }
+      throw error;
+    }
   };
   const appendChat = (author, message) => {
     const list = root.querySelector('[data-role="chat-list"]');
@@ -722,6 +743,7 @@
     document.body.appendChild(root);
     ensureSubtitleRoot();
     startThinkingTextObserver();
+    loadInterjections().catch((error) => status(`Reaction load error: ${error.message}`));
     refresh();
     window.setInterval(refresh, 4000);
   });

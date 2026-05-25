@@ -573,6 +573,26 @@ def patch_vtuber_routes(vendor: Path) -> None:
             "from .utils.stream_audio import prepare_audio_payload\n",
             1,
         )
+    text = text.replace(
+        '    def _credo_root() -> Path:\n'
+        '        """Resolve the CREDO workspace root from the vendored runtime."""\n'
+        '        configured = os.getenv("CREDO_AI_NPC_PATH")\n'
+        '        if configured:\n'
+        '            return Path(configured).expanduser().resolve().parent\n'
+        '        return Path.cwd().resolve().parents[1]\n',
+        '    def _credo_root() -> Path:\n'
+        '        """Resolve the CREDO workspace root from env, cwd, or this vendored file."""\n'
+        '        configured = os.getenv("CREDO_AI_NPC_PATH")\n'
+        '        if configured:\n'
+        '            return Path(configured).expanduser().resolve().parent\n'
+        '        roots = [Path.cwd().resolve(), Path(__file__).resolve()]\n'
+        '        for root in list(roots):\n'
+        '            roots.extend(root.parents)\n'
+        '        for root in roots:\n'
+        '            if (root / "AI_NPC_System" / "expressive_interjection_bundle" / "manifest.json").exists():\n'
+        '                return root\n'
+        '        return Path.cwd().resolve().parents[1]\n',
+    )
     if '"experiment_mode": "fish_cover",' not in text:
         text = text.replace(
             '        "last_prompt": "",\n'

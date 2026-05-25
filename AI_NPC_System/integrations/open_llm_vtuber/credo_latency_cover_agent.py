@@ -1151,16 +1151,18 @@ class CredoLatencyCoverAgent(AgentInterface):
         emotion = self._normalize_emotion(emotion)
         return Actions(expressions=[f"credo_fast_motion:{emotion}"])
 
-    def _expressive_cover_actions(self, emotion: str, event: str) -> Actions:
+    def _expressive_cover_actions(self, emotion: str, event: str, style_tag: str | None = None) -> Actions:
         """Trigger a short expressive Live2D motion together with nonverbal audio."""
         emotion = self._normalize_emotion(emotion)
-        profile = self._motion_profile(emotion)
+        style_motion = self._normalize_style_tag(style_tag)
+        profile = self._motion_profile(emotion, style_motion)
         expressions = [
             f"credo_motion_profile:{profile}",
-            f"credo_fast_motion:{emotion}",
+            f"credo_style_motion:{style_motion}" if style_motion else "",
             f"credo_event_motion:{event}",
+            f"credo_fast_motion:{emotion}",
         ]
-        return Actions(expressions=expressions)
+        return Actions(expressions=[item for item in expressions if item])
 
     def _event_for_emotion(self, emotion: str) -> str:
         """Map emotion classes to the nearest available event-motion group."""
@@ -1205,7 +1207,11 @@ class CredoLatencyCoverAgent(AgentInterface):
                     audio_path=str(audio_path),
                     display_text=self._display(""),
                     transcript="",
-                    actions=self._expressive_cover_actions(emotion, event),
+                    actions=self._expressive_cover_actions(
+                        emotion,
+                        str(item.get("event") or event),
+                        style_tag=str(item.get("style_tag") or ""),
+                    ),
                 )
             )
         return outputs
