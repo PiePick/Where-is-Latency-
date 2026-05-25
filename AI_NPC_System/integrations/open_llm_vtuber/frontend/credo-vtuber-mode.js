@@ -60,6 +60,7 @@
   let parameterPulseUntil = 0;
   let subtitleTimer = null;
   let interjectionItems = [];
+  let selectedExperimentMode = localStorage.getItem("credo-vtuber-mode:experimentMode") || "fish_cover";
 
   const availableGroup = (group) => {
     if (!group) return "";
@@ -507,6 +508,16 @@
   `;
 
   const value = (key) => root.querySelector(`[data-key="${key}"]`)?.value.trim() || "";
+  const setExperimentButtons = (mode) => {
+    selectedExperimentMode = mode || selectedExperimentMode || "fish_cover";
+    localStorage.setItem("credo-vtuber-mode:experimentMode", selectedExperimentMode);
+    for (const button of root.querySelectorAll('[data-action="experiment-mode"]')) {
+      const active = button.dataset.mode === selectedExperimentMode;
+      button.classList.toggle("active", active);
+      button.classList.toggle("secondary", !active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    }
+  };
   const optionLabel = (item) => {
     const carrier = item.carrier || item.id;
     return `${item.emotion} / ${item.style_tag} / ${item.event} / ${carrier}`;
@@ -588,13 +599,9 @@
     const client = data.connected_client ? "client connected" : "no browser client";
     const bridge = data.youtube_bridge_running ? "YouTube bridge on" : "YouTube bridge off";
     const mode = data.active ? "YouTube live mode" : "virtual chat mode";
-    const experiment = data.experiment_label || data.experiment_mode || "experiment unknown";
+    if (data.experiment_mode) setExperimentButtons(data.experiment_mode);
+    const experiment = data.experiment_label || data.experiment_mode || `local ${selectedExperimentMode}`;
     meta.textContent = `${mode} / ${client} / ${bridge} / ${experiment} / idle ${data.seconds_since_last_activity ?? "-"}s / turns ${data.idle_turn ?? 0}`;
-    for (const button of root.querySelectorAll('[data-action="experiment-mode"]')) {
-      const active = button.dataset.mode === data.experiment_mode;
-      button.classList.toggle("active", active);
-      button.classList.toggle("secondary", !active);
-    }
   };
   const refresh = async () => {
     try {
@@ -674,6 +681,7 @@
           include_author: true,
           batch_window: Number(value("batchWindow") || 8),
           max_batch: Number(value("maxBatch") || 8),
+          experiment_mode: selectedExperimentMode,
         });
         status(data.active ? "VTuber mode running." : "Start requested.");
         setMeta(data);
@@ -715,9 +723,18 @@
       } else if (action === "experiment-mode") {
         const mode = event.target?.dataset?.mode;
         if (!mode) return;
-        const result = await post("/credo/experiment-mode", { mode });
-        status(result.ok ? `Experiment: ${result.label}` : "Experiment mode not changed.");
-        await refresh();
+        setExperimentButtons(mode);
+        try {
+          const result = await post("/credo/experiment-mode", { mode });
+          status(result.ok ? `Experiment: ${result.label}` : "Experiment mode not changed.");
+          await refresh();
+        } catch (error) {
+          if (String(error.message || "").startsWith("405")) {
+            status("Experiment selected locally. Restart the CREDO stack so the backend route is active.");
+            return;
+          }
+          throw error;
+        }
       }
     } catch (error) {
       status(`Error: ${error.message}`);
@@ -743,6 +760,7 @@
     document.body.appendChild(root);
     ensureSubtitleRoot();
     startThinkingTextObserver();
+    setExperimentButtons(selectedExperimentMode);
     loadInterjections().catch((error) => status(`Reaction load error: ${error.message}`));
     refresh();
     window.setInterval(refresh, 4000);

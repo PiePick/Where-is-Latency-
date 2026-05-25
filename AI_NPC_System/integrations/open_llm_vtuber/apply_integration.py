@@ -1058,6 +1058,20 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '            silence_seconds = ws_handler.seconds_since_last_activity()\n',
             1,
         )
+    if 'requested_experiment = payload.get("experiment_mode")' not in text:
+        text = text.replace(
+            '        payload = await request.json()\n'
+            '        vtuber_mode["active"] = True\n',
+            '        payload = await request.json()\n'
+            '        requested_experiment = payload.get("experiment_mode")\n'
+            '        if requested_experiment:\n'
+            '            try:\n'
+            '                _apply_experiment_mode(str(requested_experiment))\n'
+            '            except KeyError:\n'
+            '                return JSONResponse({"active": False, "error": "unknown experiment mode"}, status_code=404)\n'
+            '        vtuber_mode["active"] = True\n',
+            1,
+        )
     if 'ws_handler.enqueue_vtuber_chat_context(text)' not in text:
         text = text.replace(
             '        text = f"Viewer {author} says: {message}"\n'
