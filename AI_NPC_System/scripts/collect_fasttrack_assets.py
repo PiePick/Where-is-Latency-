@@ -12,7 +12,6 @@ import argparse
 import json
 import shutil
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -124,7 +123,8 @@ def link_asset(asset: AssetLink, *, mode: str, force: bool) -> dict:
         if force:
             remove_destination(asset.destination)
         else:
-            return asset_index(asset, exists=exists, action="kept")
+            action = "symlink" if asset.destination.is_symlink() else "copy"
+            return asset_index(asset, exists=exists, action=action)
 
     if exists:
         if mode == "copy":
@@ -172,7 +172,6 @@ def asset_index(asset: AssetLink, *, exists: bool, action: str) -> dict:
 def write_index(entries: list[dict], *, mode: str) -> Path:
     """Write a compact generated inventory for the organized asset folder."""
     index = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
         "mode": mode,
         "asset_root": rel(ASSET_ROOT),
         "entries": entries,
