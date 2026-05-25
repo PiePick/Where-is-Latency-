@@ -28,6 +28,36 @@ PHRASES = [
     ("thinking_bridge_05", "Okay, let me think about that.", "positive", "thinking", "playful"),
 ]
 
+EMOTION_CUES = {
+    "positive": "[happy]",
+    "negative": "[sad]",
+    "ambiguous": "[curious]",
+    "neutral": "[calm]",
+}
+
+EVENT_CUES = {
+    "thinking": "[thoughtful]",
+}
+
+STYLE_CUE_CHAINS = {
+    "steady": ("[steady]", "[soft]", "[calm]"),
+    "curious": ("[curious]", "[thoughtful]", "[slightly surprised]"),
+    "soft": ("[soft]", "[gentle]", "[low volume]"),
+    "playful": ("[playful]", "[bright]", "[lightly teasing]"),
+}
+
+
+def synthesis_text(emotion: str, event: str, style_tag: str, carrier: str) -> str:
+    """Build Fish Speech text with front-loaded style cues and pause guards."""
+    cues = [
+        "[short pause]",
+        EMOTION_CUES.get(emotion, EMOTION_CUES["neutral"]),
+        EVENT_CUES.get(event, "[thoughtful]"),
+        *STYLE_CUE_CHAINS.get(style_tag, STYLE_CUE_CHAINS["steady"]),
+    ]
+    cues = list(dict.fromkeys(cues))
+    return " ".join([*cues, carrier, "[short pause]"]).strip()
+
 
 def build_manifest(output_dir: Path) -> Path:
     """Write a manifest with relative target audio paths."""
@@ -40,7 +70,8 @@ def build_manifest(output_dir: Path) -> Path:
                 "event": event,
                 "style_tag": style_tag,
                 "carrier": text,
-                "tts_text": text,
+                "plain_tts_text": text,
+                "tts_text": synthesis_text(emotion, event, style_tag, text),
                 "audio_path": f"audio/{item_id}.wav",
             }
         )
@@ -53,6 +84,7 @@ def build_manifest(output_dir: Path) -> Path:
             "reference_id": config.FISH_SPEECH_REFERENCE_ID,
             "reference_source": config.FISH_SPEECH_REFERENCE_SOURCE,
         },
+        "style_tts_cue_chains": STYLE_CUE_CHAINS,
         "items": items,
     }
     output_dir.mkdir(parents=True, exist_ok=True)

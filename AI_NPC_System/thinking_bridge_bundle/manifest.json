@@ -1,11 +1,33 @@
 {
-  "created_at": "2026-05-25T14:25:48.396334+00:00",
+  "created_at": "2026-05-25T14:34:53.576163+00:00",
   "generator": "AI_NPC_System/scripts/build_thinking_bridge_audio_bundle.py",
   "kind": "thinking_bridge_audio_bundle",
   "purpose": "Short spoken bridge after FastTrack persona wav while SlowTrack is still pending.",
   "tts_reference": {
     "reference_id": "credo_eunice_english_v2",
     "reference_source": "AI_NPC_System/VoiceSample/first try.m4a;AI_NPC_System/VoiceSample/second try.m4a;AI_NPC_System/VoiceSample/third try.m4a"
+  },
+  "style_tts_cue_chains": {
+    "steady": [
+      "[steady]",
+      "[soft]",
+      "[calm]"
+    ],
+    "curious": [
+      "[curious]",
+      "[thoughtful]",
+      "[slightly surprised]"
+    ],
+    "soft": [
+      "[soft]",
+      "[gentle]",
+      "[low volume]"
+    ],
+    "playful": [
+      "[playful]",
+      "[bright]",
+      "[lightly teasing]"
+    ]
   },
   "items": [
     {
@@ -14,7 +36,8 @@
       "event": "thinking",
       "style_tag": "steady",
       "carrier": "Let me think about it.",
-      "tts_text": "Let me think about it.",
+      "plain_tts_text": "Let me think about it.",
+      "tts_text": "[short pause] [calm] [thoughtful] [steady] [soft] Let me think about it. [short pause]",
       "audio_path": "audio/thinking_bridge_01.wav"
     },
     {
@@ -23,7 +46,8 @@
       "event": "thinking",
       "style_tag": "steady",
       "carrier": "Give me a second to think.",
-      "tts_text": "Give me a second to think.",
+      "plain_tts_text": "Give me a second to think.",
+      "tts_text": "[short pause] [calm] [thoughtful] [steady] [soft] Give me a second to think. [short pause]",
       "audio_path": "audio/thinking_bridge_02.wav"
     },
     {
@@ -32,7 +56,8 @@
       "event": "thinking",
       "style_tag": "curious",
       "carrier": "Hold on, let me think.",
-      "tts_text": "Hold on, let me think.",
+      "plain_tts_text": "Hold on, let me think.",
+      "tts_text": "[short pause] [curious] [thoughtful] [slightly surprised] Hold on, let me think. [short pause]",
       "audio_path": "audio/thinking_bridge_03.wav"
     },
     {
@@ -41,7 +66,8 @@
       "event": "thinking",
       "style_tag": "soft",
       "carrier": "Let me think for a second.",
-      "tts_text": "Let me think for a second.",
+      "plain_tts_text": "Let me think for a second.",
+      "tts_text": "[short pause] [calm] [thoughtful] [soft] [gentle] [low volume] Let me think for a second. [short pause]",
       "audio_path": "audio/thinking_bridge_04.wav"
     },
     {
@@ -50,7 +76,8 @@
       "event": "thinking",
       "style_tag": "playful",
       "carrier": "Okay, let me think about that.",
-      "tts_text": "Okay, let me think about that.",
+      "plain_tts_text": "Okay, let me think about that.",
+      "tts_text": "[short pause] [happy] [thoughtful] [playful] [bright] [lightly teasing] Okay, let me think about that. [short pause]",
       "audio_path": "audio/thinking_bridge_05.wav"
     }
   ]
