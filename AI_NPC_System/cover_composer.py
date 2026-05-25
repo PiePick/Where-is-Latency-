@@ -71,6 +71,7 @@ class CoverComposer:
         self.rng = random.Random(seed)
         self.reactions = self._load_json(REACTION_PATH, {})
         self.extreme_audio = self._load_audio_items()
+        self.thinking_bridge_audio = self._load_thinking_bridge_items()
         self.swda_examples = self._load_swda_examples()
         self.predictor = LatencyPredictor()
         self.intent_transition = IntentTransitionPlanner()
@@ -90,6 +91,23 @@ class CoverComposer:
                 items.append(item)
             return items
         return self._load_json(EXTREME_AUDIO_MANIFEST, {"items": []}).get("items", [])
+
+    def _load_thinking_bridge_items(self) -> list[dict[str, Any]]:
+        """Load short spoken thinking bridges such as 'Let me think about it.'"""
+        bundle_path = getattr(config, "CREDO_THINKING_BRIDGE_AUDIO_BUNDLE_PATH", None)
+        if not bundle_path or not Path(bundle_path).exists():
+            return []
+        raw = self._load_json(Path(bundle_path), {"items": []})
+        root = Path(bundle_path).parent
+        items = []
+        for item in raw.get("items", []):
+            audio_path = str(item.get("audio_path") or "")
+            if audio_path and not Path(audio_path).is_absolute():
+                item = dict(item)
+                item["audio_path"] = str((root / audio_path).resolve())
+            if item.get("audio_path"):
+                items.append(item)
+        return items
 
     def compose(
         self,
@@ -189,6 +207,19 @@ class CoverComposer:
         ]
         if not candidates:
             return self.choose_extreme_audio_item("neutral")
+        return self.rng.choice(candidates)
+
+    def choose_thinking_bridge_audio_item(self, emotion: str = "neutral") -> dict[str, Any] | None:
+        """Pick a short spoken thinking bridge before longer SlowTrack speech."""
+        candidates = [
+            item for item in self.thinking_bridge_audio
+            if str(item.get("emotion", "")).lower() in {str(emotion or "").lower(), "neutral"}
+            and item.get("audio_path")
+        ]
+        if not candidates:
+            candidates = [item for item in self.thinking_bridge_audio if item.get("audio_path")]
+        if not candidates:
+            return None
         return self.rng.choice(candidates)
 
     def _make_block(

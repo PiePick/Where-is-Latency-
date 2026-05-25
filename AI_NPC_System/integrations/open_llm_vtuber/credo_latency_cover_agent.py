@@ -291,6 +291,87 @@ class CredoLatencyCoverAgent(AgentInterface):
                 )
             )
 
+        if prefetched_slow is not None:
+            slow_text = str(prefetched_slow.get("text") or "").strip() or "I hear you."
+            slow_audio_raw = prefetched_slow.get("audio_path")
+            slow_audio = Path(str(slow_audio_raw)) if slow_audio_raw else None
+            if slow_audio and not slow_audio.exists():
+                slow_audio = None
+            self._log_latency(
+                "vtuber_slow_prefetch_fasttrack_skip",
+                turn_started,
+                text=slow_text,
+                engine="prefetched_fish_speech",
+                metadata={
+                    "audio_path": str(slow_audio) if slow_audio else None,
+                    "emotion": emotion,
+                    "intent": intent,
+                    "turn_id": turn_id,
+                    "vtuber_mode": bool(metadata.get("vtuber_mode")),
+                    "vtuber_event": metadata.get("vtuber_event"),
+                    "prefetch_age_ms": int((time.perf_counter() - float(prefetched_slow.get("created_at", turn_started))) * 1000),
+                    "skipped_fasttrack_audio": True,
+                },
+            )
+            self._start_vtuber_slow_prefetch(
+                user_text=user_text,
+                metadata=metadata,
+                fast_reaction=fast_tts_text,
+                strategy=f"prefetch_after:{fast_result.get('strategy') or 'persona_bundle'}",
+                memory_context=memory_context,
+                emotion=emotion,
+                turn_id=turn_id,
+            )
+            if slow_audio:
+                yield AudioOutput(
+                    audio_path=str(slow_audio),
+                    display_text=self._display(slow_text),
+                    transcript=slow_text,
+                    actions=speech_actions,
+                )
+            elif getattr(self._credo_config, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", False):
+                yield SentenceOutput(
+                    display_text=self._display(slow_text),
+                    tts_text=slow_text,
+                    actions=speech_actions,
+                )
+            else:
+                yield SentenceOutput(
+                    display_text=self._display(slow_text),
+                    tts_text="",
+                    actions=speech_actions,
+                )
+            self._remember_runtime_context(
+                user_text=user_text,
+                assistant_text=slow_text,
+                emotion=emotion,
+                event=str(metadata.get("vtuber_event") or ""),
+            )
+            if self.memory and not metadata.get("skip_memory"):
+                self.memory.record_turn(
+                    user_text=user_text,
+                    assistant_text=slow_text,
+                    fast_reaction="",
+                    emotion=emotion,
+                    keywords=[str(metadata.get("topic") or ""), str(metadata.get("vtuber_event") or "")],
+                )
+            self._log_latency(
+                "turn_total",
+                turn_started,
+                text=slow_text,
+                engine="open_llm_vtuber_credo",
+                metadata={
+                    "emotion": emotion,
+                    "intent": intent,
+                    "turn_id": turn_id,
+                    "vtuber_mode": bool(metadata.get("vtuber_mode")),
+                    "vtuber_event": metadata.get("vtuber_event"),
+                    "used_slow_prefetch": True,
+                    "skipped_fasttrack_audio": True,
+                },
+            )
+            return
+
         for interjection in self._build_initial_interjection_outputs(emotion, turn_id):
             yield interjection
 
@@ -351,6 +432,10 @@ class CredoLatencyCoverAgent(AgentInterface):
             logger.warning(
                 "Skipping FastTrack Open-LLM TTS fallback because dedicated FastTrack audio is unavailable."
             )
+
+        if slow_task is not None:
+            async for bridge_output in self._yield_thinking_bridge_audio(slow_task, emotion, turn_id):
+                yield bridge_output
 
         if not self.slow_enabled:
             return
@@ -1215,6 +1300,50 @@ class CredoLatencyCoverAgent(AgentInterface):
                 )
             )
         return outputs
+
+    async def _yield_thinking_bridge_audio(
+        self,
+        pending_task: asyncio.Task,
+        emotion: str,
+        turn_id: str,
+    ) -> AsyncIterator[AudioOutput]:
+        """Play one spoken thinking bridge after FastTrack if SlowTrack is still pending."""
+        if not getattr(self._credo_config, "CREDO_ENABLE_THINKING_BRIDGE_AUDIO", True):
+            return
+        if pending_task.done():
+            return
+        gap = max(0.0, float(getattr(self._credo_config, "CREDO_THINKING_BRIDGE_GAP_SECONDS", 0.15)))
+        if gap:
+            await asyncio.sleep(gap)
+        if pending_task.done():
+            return
+        item = self.cover_composer.choose_thinking_bridge_audio_item(self._normalize_emotion(emotion))
+        if not item:
+            return
+        audio_path = Path(str(item.get("audio_path") or ""))
+        if not audio_path.exists():
+            return
+        text = self._clean_spoken_text(str(item.get("carrier") or item.get("text") or "Let me think about it."))
+        self.latency_logger.log(
+            self._latency_observer.LatencyEvent(
+                stage="fast_track_thinking_bridge",
+                elapsed_ms=0.0,
+                text=text,
+                engine="thinking_bridge_bundle",
+                metadata={
+                    "turn_id": turn_id,
+                    "emotion": self._normalize_emotion(emotion),
+                    "event": "thinking",
+                    "audio_path": str(audio_path),
+                },
+            )
+        )
+        yield AudioOutput(
+            audio_path=str(audio_path),
+            display_text=self._display(""),
+            transcript="",
+            actions=self._expressive_cover_actions("neutral", "thinking", style_tag=str(item.get("style_tag") or "")),
+        )
 
     async def _yield_waiting_cover_audio(
         self,
