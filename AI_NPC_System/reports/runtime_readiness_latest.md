@@ -1,8 +1,8 @@
 # CREDO Runtime Readiness
 
-- readiness: PARTIAL
+- readiness: READY
 - required_failed: 0
-- optional_failed: 3
+- optional_failed: 0
 - warnings: 0
 
 ## Checks
@@ -25,9 +25,9 @@
 | OK | False | python import: faiss | importable |
 | OK | False | python import: websockets | importable |
 | OK | False | YouTube bridge dependency | websockets 16.0 |
-| FAIL | False | Local LLM endpoint | unreachable: http://127.0.0.1:8001/v1/models (<urlopen error [Errno 1] Operation not permitted>) |
-| FAIL | False | Fish Speech endpoint | unreachable: http://127.0.0.1:8080/v1/health (<urlopen error [Errno 1] Operation not permitted>) |
-| FAIL | False | Open-LLM-VTuber web server | 127.0.0.1:12393 is closed or unreachable ([Errno 1] Operation not permitted) |
+| OK | False | Local LLM endpoint | http://127.0.0.1:8001/v1/models responded HTTP 200 in 14.5 ms |
+| OK | False | Fish Speech endpoint | http://127.0.0.1:8080/v1/health responded HTTP 200 in 0.8 ms |
+| OK | False | Open-LLM-VTuber web server | 127.0.0.1:12393 accepts TCP connections |
 | SKIP | False | FastTrack realtime TTS | disabled by FAST_TRACK_TTS_MODE=cached_fish_bundle |
 
 ## Interpretation

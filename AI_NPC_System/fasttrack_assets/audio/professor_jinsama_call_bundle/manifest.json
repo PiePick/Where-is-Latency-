@@ -16,7 +16,8 @@
       "emotion": "positive",
       "tension": 0.25,
       "tts_text": "교수진사마.",
-      "usage": "quiet affectionate recognition"
+      "usage": "quiet affectionate recognition",
+      "audio_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/audio/professor_jinsama_call_bundle/audio/professor_jinsama_soft_01.wav"
     },
     {
       "id": "professor_jinsama_bright_01",
@@ -24,7 +25,8 @@
       "emotion": "positive",
       "tension": 0.5,
       "tts_text": "교수진사마!",
-      "usage": "normal upbeat FastTrack callout"
+      "usage": "normal upbeat FastTrack callout",
+      "audio_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/audio/professor_jinsama_call_bundle/audio/professor_jinsama_bright_01.wav"
     },
     {
       "id": "professor_jinsama_playful_01",
@@ -32,7 +34,8 @@
       "emotion": "ambiguous",
       "tension": 0.62,
       "tts_text": "교수진사마?",
-      "usage": "curious teasing callout"
+      "usage": "curious teasing callout",
+      "audio_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/audio/professor_jinsama_call_bundle/audio/professor_jinsama_playful_01.wav"
     },
     {
       "id": "professor_jinsama_excited_01",
@@ -40,7 +43,8 @@
       "emotion": "positive",
       "tension": 0.82,
       "tts_text": "교수진사마!!",
-      "usage": "high-energy greeting or surprise"
+      "usage": "high-energy greeting or surprise",
+      "audio_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/audio/professor_jinsama_call_bundle/audio/professor_jinsama_excited_01.wav"
     },
     {
       "id": "professor_jinsama_flustered_01",
@@ -48,7 +52,8 @@
       "emotion": "ambiguous",
       "tension": 0.72,
       "tts_text": "교수진사마아!",
-      "usage": "panicked cute appeal"
+      "usage": "panicked cute appeal",
+      "audio_path": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/audio/professor_jinsama_call_bundle/audio/professor_jinsama_flustered_01.wav"
     }
   ]
 }

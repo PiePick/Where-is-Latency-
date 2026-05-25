@@ -1,10 +1,10 @@
 {
   "summary": {
-    "readiness": "PARTIAL",
+    "readiness": "READY",
     "required_failed": 0,
-    "optional_failed": 3,
+    "optional_failed": 0,
     "warnings": 0,
-    "checked_at_unix": 1779721813.5696807
+    "checked_at_unix": 1779726818.5870907
   },
   "checks": [
     {
@@ -111,20 +111,20 @@
     },
     {
       "name": "Local LLM endpoint",
-      "status": "FAIL",
-      "detail": "unreachable: http://127.0.0.1:8001/v1/models (<urlopen error [Errno 1] Operation not permitted>)",
+      "status": "OK",
+      "detail": "http://127.0.0.1:8001/v1/models responded HTTP 200 in 14.5 ms",
       "required": false
     },
     {
       "name": "Fish Speech endpoint",
-      "status": "FAIL",
-      "detail": "unreachable: http://127.0.0.1:8080/v1/health (<urlopen error [Errno 1] Operation not permitted>)",
+      "status": "OK",
+      "detail": "http://127.0.0.1:8080/v1/health responded HTTP 200 in 0.8 ms",
       "required": false
     },
     {
       "name": "Open-LLM-VTuber web server",
-      "status": "FAIL",
-      "detail": "127.0.0.1:12393 is closed or unreachable ([Errno 1] Operation not permitted)",
+      "status": "OK",
+      "detail": "127.0.0.1:12393 accepts TCP connections",
       "required": false
     },
     {

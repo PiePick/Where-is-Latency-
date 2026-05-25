@@ -566,6 +566,10 @@ def patch_vtuber_routes(vendor: Path) -> None:
     text = path.read_text(encoding="utf-8")
     if "/credo/vtuber-mode/" not in text:
         return
+    text = text.replace(
+        '"AI_NPC_System" / "expressive_interjection_bundle" / "manifest.json"',
+        '"AI_NPC_System" / "fasttrack_assets" / "audio" / "expressive_interjection_bundle" / "manifest.json"',
+    )
     if "from .utils.stream_audio import prepare_audio_payload" not in text:
         text = text.replace(
             "from .proxy_handler import ProxyHandler\n",

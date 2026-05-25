@@ -126,6 +126,8 @@ class CredoLatencyCoverAgent(AgentInterface):
             expected_reference_id=self._credo_config.FAST_TRACK_AUDIO_CACHE_REFERENCE_ID,
             personality_id=getattr(self._credo_config, "FAST_TRACK_PERSONA_ID", None),
         )
+        if self.fast_track_enabled:
+            self._warm_fast_track_models()
 
         logger.info(f"CREDO latency-cover agent loaded from {self.ai_npc_path}")
 
@@ -135,6 +137,17 @@ class CredoLatencyCoverAgent(AgentInterface):
         if isinstance(value, bool):
             return value
         return str(value).strip().lower() not in {"0", "false", "no", "off", "none"}
+
+    def _warm_fast_track_models(self) -> None:
+        """Load FastTrack classifiers during server startup, before live turns arrive."""
+        started = time.perf_counter()
+        try:
+            self._fast_track.analyze_and_react("Warm up the live reaction path.")
+            self._classify_intent("Could you tell me more?")
+        except Exception as exc:
+            logger.warning(f"CREDO FastTrack warmup failed; first turn may be slower: {exc}")
+            return
+        logger.info(f"CREDO FastTrack classifiers warmed in {(time.perf_counter() - started) * 1000.0:.1f} ms")
 
     def _resolve_ai_npc_path(self) -> Path:
         """Resolve the CREDO AI_NPC_System folder from config or environment."""
@@ -208,6 +221,14 @@ class CredoLatencyCoverAgent(AgentInterface):
             )
             yield output
             return
+
+        initial_interjection_sent = False
+        if metadata.get("vtuber_mode") and metadata.get("emotion"):
+            early_emotion = self._normalize_emotion(str(metadata.get("emotion")))
+            early_interjections = self._build_initial_interjection_outputs(early_emotion, turn_id)
+            for interjection in early_interjections:
+                yield interjection
+            initial_interjection_sent = bool(early_interjections)
 
         fast_started = time.perf_counter()
         fast_result = await asyncio.to_thread(self._fast_track.analyze_and_react, user_text)
@@ -372,8 +393,9 @@ class CredoLatencyCoverAgent(AgentInterface):
             )
             return
 
-        for interjection in self._build_initial_interjection_outputs(emotion, turn_id):
-            yield interjection
+        if not initial_interjection_sent:
+            for interjection in self._build_initial_interjection_outputs(emotion, turn_id):
+                yield interjection
 
         fast_audio_started = time.perf_counter()
         fast_audio_path = await self._resolve_fast_audio(fast_result, fast_tts_text, emotion=emotion)

@@ -79,7 +79,7 @@
       "path": "AI_NPC_System/fasttrack_assets/audio/professor_jinsama_call_bundle",
       "exists": true,
       "counts": {
-        "wav": 0,
+        "wav": 5,
         "jsonl": 0,
         "json": 1,
         "safetensors": 0
