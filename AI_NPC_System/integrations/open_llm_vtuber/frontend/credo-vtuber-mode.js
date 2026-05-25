@@ -372,6 +372,7 @@
       #credo-vtuber-mode .row { display: flex; gap: 6px; margin-top: 8px; }
       #credo-vtuber-mode .grid { display: grid; grid-template-columns: 1fr 96px; gap: 6px; margin-top: 8px; }
       #credo-vtuber-mode .tool-grid { display: grid; grid-template-columns: 1fr 82px; gap: 6px; margin-top: 8px; }
+      #credo-vtuber-mode .experiment-grid { display: grid; grid-template-columns: 1fr; gap: 6px; margin-top: 8px; }
       #credo-vtuber-mode .section { margin-top: 10px; }
       #credo-vtuber-mode .section-title { color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 700; }
       #credo-vtuber-mode .chat-list {
@@ -418,6 +419,7 @@
       }
       #credo-vtuber-mode button.secondary { background: rgba(255,255,255,0.16); }
       #credo-vtuber-mode button.warn { background: #d64b4b; }
+      #credo-vtuber-mode button.active { background: #16a36b; }
       #credo-vtuber-mode .status { margin-top: 8px; color: #b7c7ff; min-height: 18px; }
       #credo-vtuber-mode .title { font-weight: 700; letter-spacing: 0; display: flex; justify-content: space-between; align-items: center; }
       #credo-vtuber-mode .title-actions { display: flex; align-items: center; gap: 6px; }
@@ -451,6 +453,14 @@
         <div class="tool-grid">
           <select data-key="interjectionId" aria-label="Interjection and motion"></select>
           <button data-action="play-interjection" type="button">Play</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Experiment mode</div>
+        <div class="experiment-grid">
+          <button class="secondary" data-action="experiment-mode" data-mode="fast_no_cover" type="button">1. Fast TTS / no cover</button>
+          <button class="secondary" data-action="experiment-mode" data-mode="fish_no_cover" type="button">2. Fish TTS / no cover</button>
+          <button class="secondary" data-action="experiment-mode" data-mode="fish_cover" type="button">3. Fish TTS / cover</button>
         </div>
       </div>
       <div class="mode-panel" data-role="virtual-panel">
@@ -557,7 +567,13 @@
     const client = data.connected_client ? "client connected" : "no browser client";
     const bridge = data.youtube_bridge_running ? "YouTube bridge on" : "YouTube bridge off";
     const mode = data.active ? "YouTube live mode" : "virtual chat mode";
-    meta.textContent = `${mode} / ${client} / ${bridge} / idle ${data.seconds_since_last_activity ?? "-"}s / turns ${data.idle_turn ?? 0}`;
+    const experiment = data.experiment_label || data.experiment_mode || "experiment unknown";
+    meta.textContent = `${mode} / ${client} / ${bridge} / ${experiment} / idle ${data.seconds_since_last_activity ?? "-"}s / turns ${data.idle_turn ?? 0}`;
+    for (const button of root.querySelectorAll('[data-action="experiment-mode"]')) {
+      const active = button.dataset.mode === data.experiment_mode;
+      button.classList.toggle("active", active);
+      button.classList.toggle("secondary", !active);
+    }
   };
   const refresh = async () => {
     try {
@@ -675,6 +691,12 @@
         }
         const result = await post("/credo/interjections/play", { id });
         status(result.played ? `Played ${result.carrier || result.id}.` : "Reaction not played.");
+      } else if (action === "experiment-mode") {
+        const mode = event.target?.dataset?.mode;
+        if (!mode) return;
+        const result = await post("/credo/experiment-mode", { mode });
+        status(result.ok ? `Experiment: ${result.label}` : "Experiment mode not changed.");
+        await refresh();
       }
     } catch (error) {
       status(`Error: ${error.message}`);

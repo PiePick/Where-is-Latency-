@@ -573,6 +573,38 @@ def patch_vtuber_routes(vendor: Path) -> None:
             "from .utils.stream_audio import prepare_audio_payload\n",
             1,
         )
+    if '"experiment_mode": "fish_cover",' not in text:
+        text = text.replace(
+            '        "last_prompt": "",\n'
+            '    }\n',
+            '        "last_prompt": "",\n'
+            '        "experiment_mode": "fish_cover",\n'
+            '    }\n'
+            '    experiment_modes = {\n'
+            '        "fast_no_cover": {\n'
+            '            "label": "Fast low-quality TTS / no cover",\n'
+            '            "fast_track_enabled": False,\n'
+            '            "use_fast_audio": False,\n'
+            '            "slow_tts_mode": "open_llm",\n'
+            '            "open_llm_tts_fallback": True,\n'
+            '        },\n'
+            '        "fish_no_cover": {\n'
+            '            "label": "Fish high-quality TTS / no cover",\n'
+            '            "fast_track_enabled": False,\n'
+            '            "use_fast_audio": False,\n'
+            '            "slow_tts_mode": "credo_fish_speech",\n'
+            '            "open_llm_tts_fallback": False,\n'
+            '        },\n'
+            '        "fish_cover": {\n'
+            '            "label": "Fish high-quality TTS / FastTrack cover",\n'
+            '            "fast_track_enabled": True,\n'
+            '            "use_fast_audio": True,\n'
+            '            "slow_tts_mode": "credo_fish_speech",\n'
+            '            "open_llm_tts_fallback": False,\n'
+            '        },\n'
+            '    }\n',
+            1,
+        )
 
     replacements = [
         (
@@ -836,6 +868,59 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '\n',
             1,
         )
+    if "def _iter_credo_agents(" not in text:
+        text = text.replace(
+            '        if event == "laugh":\n'
+            '            return "playful"\n'
+            '        return "steady"\n'
+            '\n',
+            '        if event == "laugh":\n'
+            '            return "playful"\n'
+            '        return "steady"\n'
+            '\n'
+            '    def _iter_credo_agents():\n'
+            '        """Yield all active CREDO agent instances that need experiment updates."""\n'
+            '        seen = set()\n'
+            '        candidates = [default_context_cache.agent_engine]\n'
+            '        candidates.extend(context.agent_engine for context in ws_handler.client_contexts.values())\n'
+            '        for agent in candidates:\n'
+            '            if agent is None or id(agent) in seen:\n'
+            '                continue\n'
+            '            seen.add(id(agent))\n'
+            '            if hasattr(agent, "fast_track_enabled") and hasattr(agent, "slow_tts_mode"):\n'
+            '                yield agent\n'
+            '\n'
+            '    def _apply_experiment_mode(mode_key: str) -> dict:\n'
+            '        """Switch current CREDO agents between ablation/runtime experiment modes."""\n'
+            '        mode = experiment_modes.get(mode_key)\n'
+            '        if mode is None:\n'
+            '            raise KeyError(mode_key)\n'
+            '        vtuber_mode["experiment_mode"] = mode_key\n'
+            '        updated = 0\n'
+            '        for agent in _iter_credo_agents():\n'
+            '            agent.fast_track_enabled = bool(mode["fast_track_enabled"])\n'
+            '            agent.use_fast_audio = bool(mode["use_fast_audio"])\n'
+            '            agent.slow_tts_mode = str(mode["slow_tts_mode"])\n'
+            '            agent.settings["fast_track_enabled"] = agent.fast_track_enabled\n'
+            '            agent.settings["use_fast_audio"] = agent.use_fast_audio\n'
+            '            agent.settings["slow_tts_mode"] = agent.slow_tts_mode\n'
+            '            if hasattr(agent, "_credo_config"):\n'
+            '                setattr(\n'
+            '                    agent._credo_config,\n'
+            '                    "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK",\n'
+            '                    bool(mode["open_llm_tts_fallback"]),\n'
+            '                )\n'
+            '            if agent.slow_tts_mode == "credo_fish_speech" and getattr(agent, "fish_tts", None) is None:\n'
+            '                agent.fish_tts = agent._tts_client.FishSpeechTTSClient()\n'
+            '            task = getattr(agent, "_vtuber_slow_prefetch_task", None)\n'
+            '            if task is not None and not task.done():\n'
+            '                task.cancel()\n'
+            '            agent._vtuber_slow_prefetch_task = None\n'
+            '            updated += 1\n'
+            '        return {"mode": mode_key, **mode, "updated_agents": updated}\n'
+            '\n',
+            1,
+        )
     if '@router.get("/credo/interjections")' not in text:
         text = text.replace(
             '    @router.post("/credo/vtuber-mode/virtual-chat")\n',
@@ -889,6 +974,44 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '        }\n'
             '\n'
             '    @router.post("/credo/vtuber-mode/virtual-chat")\n',
+            1,
+        )
+    if '@router.get("/credo/experiment-modes")' not in text:
+        text = text.replace(
+            '    @router.get("/credo/interjections")\n',
+            '    @router.get("/credo/experiment-modes")\n'
+            '    async def credo_experiment_modes():\n'
+            '        """Return available CREDO experiment mode presets."""\n'
+            '        return {\n'
+            '            "active": vtuber_mode["experiment_mode"],\n'
+            '            "modes": [\n'
+            '                {"id": key, **value}\n'
+            '                for key, value in experiment_modes.items()\n'
+            '            ],\n'
+            '        }\n'
+            '\n'
+            '    @router.post("/credo/experiment-mode")\n'
+            '    async def credo_experiment_mode(request: Request):\n'
+            '        """Switch CREDO runtime experiment mode without restarting the UI."""\n'
+            '        payload = await request.json()\n'
+            '        mode_key = str(payload.get("mode") or "")\n'
+            '        try:\n'
+            '            result = _apply_experiment_mode(mode_key)\n'
+            '        except KeyError:\n'
+            '            return JSONResponse({"ok": False, "error": "unknown experiment mode"}, status_code=404)\n'
+            '        return {"ok": True, **result}\n'
+            '\n'
+            '    @router.get("/credo/interjections")\n',
+            1,
+        )
+    if '"experiment_mode": vtuber_mode["experiment_mode"],' not in text:
+        text = text.replace(
+            '            "last_text_input": ws_handler.last_text_input(),\n'
+            '        }\n',
+            '            "last_text_input": ws_handler.last_text_input(),\n'
+            '            "experiment_mode": vtuber_mode["experiment_mode"],\n'
+            '            "experiment_label": experiment_modes[vtuber_mode["experiment_mode"]]["label"],\n'
+            '        }\n',
             1,
         )
     if "consume_vtuber_chat_context" not in text:
