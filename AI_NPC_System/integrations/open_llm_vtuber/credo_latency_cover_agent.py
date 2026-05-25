@@ -206,7 +206,12 @@ class CredoLatencyCoverAgent(AgentInterface):
 
         if not self.fast_track_enabled:
             logger.info("CREDO FastTrack disabled; running SlowTrack-only turn.")
-            async for output in self._chat_slow_only(user_text, turn_started, turn_id):
+            async for output in self._chat_slow_only(
+                user_text,
+                turn_started,
+                turn_id,
+                hide_display=bool(metadata.get("vtuber_mode")),
+            ):
                 yield output
             return
 
@@ -222,8 +227,14 @@ class CredoLatencyCoverAgent(AgentInterface):
             yield output
             return
 
+        prefetched_task = self._vtuber_slow_prefetch_task
+        prefetch_ready_for_turn = bool(
+            self._vtuber_slow_prefetch_enabled(metadata)
+            and prefetched_task is not None
+            and prefetched_task.done()
+        )
         initial_interjection_sent = False
-        if metadata.get("vtuber_mode") and metadata.get("emotion"):
+        if metadata.get("vtuber_mode") and metadata.get("emotion") and not prefetch_ready_for_turn:
             early_emotion = self._normalize_emotion(str(metadata.get("emotion")))
             early_interjections = self._build_initial_interjection_outputs(early_emotion, turn_id)
             for interjection in early_interjections:
@@ -300,7 +311,7 @@ class CredoLatencyCoverAgent(AgentInterface):
                 event = str(metadata.get("vtuber_event") or "idle")
                 slow_strategy = f"vtuber_mode:{event}; fasttrack:{slow_strategy or 'persona_bundle'}"
                 slow_mode = "vtuber_monologue"
-                slow_max_tokens = getattr(self._credo_config, "CREDO_VTUBER_LLM_MAX_TOKENS", 180)
+                slow_max_tokens = getattr(self._credo_config, "CREDO_VTUBER_LLM_MAX_TOKENS", 48)
             slow_task = asyncio.create_task(
                 self._slow_track.generate_response(
                     slow_input,
@@ -346,19 +357,19 @@ class CredoLatencyCoverAgent(AgentInterface):
             if slow_audio:
                 yield AudioOutput(
                     audio_path=str(slow_audio),
-                    display_text=self._display(slow_text),
+                    display_text=self._display_for_turn(slow_text, metadata),
                     transcript=slow_text,
                     actions=speech_actions,
                 )
             elif getattr(self._credo_config, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", False):
                 yield SentenceOutput(
-                    display_text=self._display(slow_text),
+                    display_text=self._display_for_turn(slow_text, metadata),
                     tts_text=slow_text,
                     actions=speech_actions,
                 )
             else:
                 yield SentenceOutput(
-                    display_text=self._display(slow_text),
+                    display_text=self._display_for_turn(slow_text, metadata),
                     tts_text="",
                     actions=speech_actions,
                 )
@@ -440,13 +451,13 @@ class CredoLatencyCoverAgent(AgentInterface):
         if self.use_fast_audio and fast_audio_path and Path(str(fast_audio_path)).exists():
             yield AudioOutput(
                 audio_path=str(fast_audio_path),
-                display_text=self._display(fast_display_text),
+                display_text=self._display_for_turn(fast_display_text, metadata),
                 transcript=fast_display_text,
                 actions=speech_actions,
             )
         elif self._credo_config.FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK:
             yield SentenceOutput(
-                display_text=self._display(fast_display_text),
+                display_text=self._display_for_turn(fast_display_text, metadata),
                 tts_text=fast_tts_text,
                 actions=speech_actions,
             )
@@ -495,19 +506,19 @@ class CredoLatencyCoverAgent(AgentInterface):
             if slow_audio:
                 yield AudioOutput(
                     audio_path=str(slow_audio),
-                    display_text=self._display(slow_text),
+                    display_text=self._display_for_turn(slow_text, metadata),
                     transcript=slow_text,
                     actions=speech_actions,
                 )
             elif getattr(self._credo_config, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", False):
                 yield SentenceOutput(
-                    display_text=self._display(slow_text),
+                    display_text=self._display_for_turn(slow_text, metadata),
                     tts_text=slow_text,
                     actions=speech_actions,
                 )
             else:
                 yield SentenceOutput(
-                    display_text=self._display(slow_text),
+                    display_text=self._display_for_turn(slow_text, metadata),
                     tts_text="",
                     actions=speech_actions,
                 )
@@ -562,7 +573,11 @@ class CredoLatencyCoverAgent(AgentInterface):
                 "vtuber_event": metadata.get("vtuber_event"),
             },
         )
-        slow_text = self._clean_spoken_text(slow_text) or "I hear you."
+        slow_text = (
+            self._clean_vtuber_slow_text(slow_text)
+            if metadata.get("vtuber_mode")
+            else self._clean_spoken_text(slow_text)
+        ) or "I hear you."
 
         slow_tts_started = time.perf_counter()
         slow_audio_task = asyncio.create_task(self._try_synthesize_slow_audio(slow_text))
@@ -596,21 +611,21 @@ class CredoLatencyCoverAgent(AgentInterface):
             )
             yield AudioOutput(
                 audio_path=str(slow_audio),
-                display_text=self._display(slow_text),
+                display_text=self._display_for_turn(slow_text, metadata),
                 transcript=slow_text,
                 actions=speech_actions,
             )
         elif getattr(self._credo_config, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", False):
             logger.warning("Fish Speech slow audio unavailable; using configured Open-LLM fallback TTS.")
             yield SentenceOutput(
-                display_text=self._display(slow_text),
+                display_text=self._display_for_turn(slow_text, metadata),
                 tts_text=slow_text,
                 actions=speech_actions,
             )
         else:
             logger.warning("Fish Speech slow audio unavailable; suppressing Open-LLM fallback TTS to avoid wrong voice.")
             yield SentenceOutput(
-                display_text=self._display(slow_text),
+                display_text=self._display_for_turn(slow_text, metadata),
                 tts_text="",
                 actions=speech_actions,
             )
@@ -753,9 +768,9 @@ class CredoLatencyCoverAgent(AgentInterface):
             strategy=strategy,
             memory_context=memory_context,
             mode="vtuber_monologue",
-            max_tokens=getattr(self._credo_config, "CREDO_VTUBER_LLM_MAX_TOKENS", 180),
+            max_tokens=getattr(self._credo_config, "CREDO_VTUBER_LLM_MAX_TOKENS", 48),
         )
-        slow_text = self._clean_spoken_text(slow_text) or "So, chat, where should we take this next?"
+        slow_text = self._clean_vtuber_slow_text(slow_text) or "So, chat, where should we take this next?"
         self._log_latency(
             "vtuber_slow_prefetch_llm",
             started,
@@ -810,7 +825,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             strategy=f"vtuber_mode:{event}",
             memory_context=memory_context,
             mode="vtuber_monologue",
-            max_tokens=getattr(self._credo_config, "CREDO_VTUBER_LLM_MAX_TOKENS", 180),
+            max_tokens=getattr(self._credo_config, "CREDO_VTUBER_LLM_MAX_TOKENS", 48),
         )
         turn_id = str(metadata.get("turn_id") or uuid.uuid4())
         self._log_latency(
@@ -821,7 +836,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             metadata={"event": event, "emotion": emotion, "turn_id": turn_id},
         )
 
-        slow_text = self._clean_spoken_text(slow_text) or "Chat got quiet for a second, so I am keeping the room warm. What should we talk about next?"
+        slow_text = self._clean_vtuber_slow_text(slow_text) or "Chat got quiet for a second. What should we talk about next?"
         speech_actions = self._speech_actions(emotion, style_tag=metadata.get("style_tag"), text=slow_text)
 
         slow_tts_started = time.perf_counter()
@@ -843,19 +858,19 @@ class CredoLatencyCoverAgent(AgentInterface):
         if slow_audio:
             yield AudioOutput(
                 audio_path=str(slow_audio),
-                display_text=self._display(slow_text),
+                display_text=self._display(""),
                 transcript=slow_text,
                 actions=speech_actions,
             )
         elif getattr(self._credo_config, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", False):
             yield SentenceOutput(
-                display_text=self._display(slow_text),
+                display_text=self._display(""),
                 tts_text=slow_text,
                 actions=speech_actions,
             )
         else:
             yield SentenceOutput(
-                display_text=self._display(slow_text),
+                display_text=self._display(""),
                 tts_text="",
                 actions=speech_actions,
             )
@@ -956,6 +971,8 @@ class CredoLatencyCoverAgent(AgentInterface):
         user_text: str,
         turn_started: float,
         turn_id: str,
+        *,
+        hide_display: bool = False,
     ) -> AsyncIterator[AudioOutput | SentenceOutput]:
         """Run the ablation path with no FastTrack analysis, cover text, audio, or motion."""
         speech_actions = self._speech_actions("neutral")
@@ -994,21 +1011,21 @@ class CredoLatencyCoverAgent(AgentInterface):
         if slow_audio:
             yield AudioOutput(
                 audio_path=str(slow_audio),
-                display_text=self._display(slow_text),
+                display_text=self._display("" if hide_display else slow_text),
                 transcript=slow_text,
                 actions=speech_actions,
             )
         elif getattr(self._credo_config, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", False):
             logger.warning("Fish Speech slow audio unavailable; using configured Open-LLM fallback TTS.")
             yield SentenceOutput(
-                display_text=self._display(slow_text),
+                display_text=self._display("" if hide_display else slow_text),
                 tts_text=slow_text,
                 actions=speech_actions,
             )
         else:
             logger.warning("Fish Speech slow audio unavailable; suppressing Open-LLM fallback TTS to avoid wrong voice.")
             yield SentenceOutput(
-                display_text=self._display(slow_text),
+                display_text=self._display("" if hide_display else slow_text),
                 tts_text="",
                 actions=speech_actions,
             )
@@ -1130,6 +1147,39 @@ class CredoLatencyCoverAgent(AgentInterface):
         text = re.sub(r"\s+", " ", text).strip()
         text = re.sub(r"\s+([,.!?])", r"\1", text)
         return text
+
+    def _clean_vtuber_slow_text(self, text: str) -> str:
+        """Keep live Fish segments short, speakable, and bounded in latency."""
+        text = self._clean_spoken_text(text)
+        text = (
+            text.replace("\u2018", "'")
+            .replace("\u2019", "'")
+            .replace("\u201c", '"')
+            .replace("\u201d", '"')
+            .replace("\u2013", "-")
+            .replace("\u2014", "-")
+        )
+        text = re.sub(r"[^\x20-\x7e]", " ", text)
+        text = re.sub(r"\s+", " ", text).strip()
+        if not text:
+            return text
+
+        max_words = max(8, int(getattr(self._credo_config, "CREDO_VTUBER_MAX_SPOKEN_WORDS", 22)))
+        sentences = [part.strip() for part in re.findall(r"[^.!?]*[.!?]+|[^.!?]+$", text) if part.strip()]
+        selected: list[str] = []
+        count = 0
+        for sentence in sentences:
+            words = sentence.split()
+            if count + len(words) <= max_words:
+                selected.append(sentence)
+                count += len(words)
+            elif selected:
+                continue
+            else:
+                clipped = " ".join(words[:max_words]).rstrip(" ,;:-")
+                selected.append(clipped if clipped.endswith((".", "!", "?")) else f"{clipped}.")
+                break
+        return " ".join(selected).strip()
 
     def _with_response_gap(self, text: str) -> str:
         """Keep Open-LLM-VTuber's appended chat bubbles from running together."""
@@ -1612,6 +1662,10 @@ class CredoLatencyCoverAgent(AgentInterface):
     def _display(self, text: str) -> DisplayText:
         """Build display metadata for Open-LLM-VTuber."""
         return DisplayText(text=text, name=self.character_name, avatar=self.character_avatar)
+
+    def _display_for_turn(self, text: str, metadata: dict[str, Any]) -> DisplayText:
+        """Suppress avatar subtitles during VTuber-mode playback while retaining transcripts."""
+        return self._display("" if metadata.get("vtuber_mode") else text)
 
     def handle_interrupt(self, heard_response: str) -> None:
         """Keep interruption compatible with Open-LLM-VTuber's agent interface."""
