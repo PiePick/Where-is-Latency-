@@ -20,7 +20,7 @@ Current decisions:
 - Normal speech should keep Idle/Talk/lip-sync. Emotion motions should be tied to pre-generated nonverbal audio blocks only.
 
 Generated bundle files:
-- `AI_NPC_System/persona_reaction_bundle_response_act_v1/manifest.json` is the runtime bundle. It has 120 cells and 600 selected reactions/audio files.
+- `AI_NPC_System/fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/manifest.json` is the runtime bundle. It has 120 cells and 600 selected reactions/audio files.
 - `AI_NPC_System/reports/intent_transition_matrix_from_swda.*` stores the SWDA user-intent to response-act transition evidence used for probabilistic response selection.
 
 ## Current Architecture
@@ -46,7 +46,7 @@ Viewer text / mic input
 The old Unity project and WinTTS prototype were removed. The active runtime is now:
 
 ```text
-AI_NPC_System/                 CREDO Python code, models, data, scripts
+AI_NPC_System/                 CREDO Python code, FastTrack assets, reports, docs, scripts
 reaction_sources/              source datasets and merged reaction evidence
 vendor/open-llm-vtuber/        VTuber UI/runtime platform
 vendor/fish-speech/            SlowTrack expressive TTS runtime
@@ -61,23 +61,26 @@ AI_NPC_System/project_config.sh
 AI_NPC_System/integrations/open_llm_vtuber/
   CREDO agent adapter for Open-LLM-VTuber.
 
-AI_NPC_System/models/setfit_swda_intent_minilm_optimized/
+AI_NPC_System/fasttrack_assets/models/setfit_swda_intent_minilm_optimized/
   Selected SWDA SetFit intent model.
 
 AI_NPC_System/reports/setfit_intent_evaluation.xlsx
   Validation/test report for the SetFit intent model.
 
-AI_NPC_System/prepared_fasttrack_data/
+AI_NPC_System/fasttrack_assets/datasets/prepared_fasttrack_data/
   Preprocessed GoEmotions and SWDA coarse-label data.
 
 AI_NPC_System/latency_logs/
   Local-only JSONL, CSV, and Markdown latency records generated during experiments.
 
-AI_NPC_System/expressive_interjection_bundle/
+AI_NPC_System/fasttrack_assets/audio/expressive_interjection_bundle/
   Current pre-generated Fish Speech interjection bundle used before FastTrack text audio.
 
+AI_NPC_System/fasttrack_assets/
+  Canonical FastTrack datasets, SetFit models, persona reaction audio, interjection audio, thinking bridge audio, and special callout manifests.
+
 AI_NPC_System/archive/
-  Legacy manifests, old TTS style examples, and deprecated local-only audio pools.
+  Legacy manifests, old TTS style examples, deprecated local-only audio pools, resolved notes, and old one-off repair tools.
 
 AI_NPC_System/VoiceSample/
   Project voice source used for CREDO voice reference preparation.
@@ -85,8 +88,8 @@ AI_NPC_System/VoiceSample/
 AI_NPC_System/integrations/open_llm_vtuber/live2d_models/
   Project Live2D avatar and motion assets copied into Open-LLM-VTuber.
 
-vendor/fish-speech/references/credo_voice_sample/
-  Fish Speech reference voice clips generated from the tracked CREDO sample.
+vendor/fish-speech/references/credo_eunice_english_v2/
+  Current Fish Speech runtime reference voice clips.
 
 vendor/open-llm-vtuber/live2d-models/credo_avatar/
   Open-LLM-VTuber runtime copy of the CREDO Live2D model.
@@ -192,7 +195,7 @@ FISH_SPEECH_CUDA_VISIBLE_DEVICES GPU0 for heavier SlowTrack Fish Speech
 Rebuild the reaction dataset:
 
 ```bash
-vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_reaction_dataset.py
+vendor/open-llm-vtuber/.venv/bin/python reaction_sources/scripts/build_reaction_dataset.py
 ```
 
 Run the dual classifier prototype script:

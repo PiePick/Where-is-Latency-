@@ -28,6 +28,8 @@ AI_NPC_System/tts_outputs/
 AI_NPC_System/latency_logs/
 AI_NPC_System/fast_track_audio_cache*/
 AI_NPC_System/expressive_audio_pool/
+AI_NPC_System/runtime/
+AI_NPC_System/tts_outputs/
 ```
 
 ## Fresh Clone Recovery
@@ -94,14 +96,15 @@ python3 -m pip install --user -U "huggingface_hub[cli]"
 
 ## Reference Voice
 
-Expected reference directory:
+Expected runtime reference directory:
 
 ```text
-vendor/fish-speech/references/credo_voice_sample
+vendor/fish-speech/references/credo_eunice_english_v2
 ```
 
-It should contain four `.wav/.lab` pairs plus `source_translation.txt`. If the
-directory is missing or stale, regenerate from the tracked voice sample:
+It should contain `.wav/.lab` pairs. If the directory is missing or stale,
+regenerate from the tracked voice sample or copy the current Eunice reference
+set from the lab workstation:
 
 ```bash
 vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/prepare_fish_reference_voice.py
@@ -168,11 +171,10 @@ AI_NPC_System/scripts/build_fast_track_audio_cache.py --engine fish_speech --for
 Current generated files:
 
 ```text
-AI_NPC_System/persona_reaction_bundle/manifest.json
-AI_NPC_System/persona_reaction_bundle/seed_provenance.json
+AI_NPC_System/fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/manifest.json
 ```
 
-`manifest.json` is the runtime file: 120 cells and 600 selected reactions. `seed_provenance.json` stores 30 GoEmotions/SWDA seed pairs per cell for reproducibility and should not be confused with runtime candidates.
+`manifest.json` is the runtime file: 120 cells and 600 selected reactions/audio files. The manifest stores global dataset, style, and reference metadata once at the top level and keeps each item compact.
 
 Refresh text bundle only when needed:
 

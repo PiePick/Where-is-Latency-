@@ -20,7 +20,7 @@ to viewers.
 - Expected path: `vendor/fish-speech`
 - Required checkpoint: `vendor/fish-speech/checkpoints/s2-pro`
 - `codec.pth` must exist inside the checkpoint directory.
-- Required voice reference: `vendor/fish-speech/references/credo_voice_sample`
+- Required runtime voice reference: `vendor/fish-speech/references/credo_eunice_english_v2`
 - The reference directory must contain matching `.wav` and `.lab` pairs.
 - If missing, regenerate it from:
   - `AI_NPC_System/VoiceSample/VoicePack1_Morning.wav`
@@ -63,7 +63,7 @@ Important current decisions:
 - Realtime FastTrack TTS is discarded for the main handoff path. Do not require Piper or StyleBERT to run CREDO.
 - The latency-cover path is real-time selection/sequencing of prepared assets, not real-time synthesis.
 - `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"` should remain disabled so the wrong cute fallback voice does not appear.
-- `FISH_SPEECH_REFERENCE_ID="credo_voice_sample"`
+- `FISH_SPEECH_REFERENCE_ID="credo_eunice_english_v2"`
 - `FISH_SPEECH_GLOBAL_STYLE_TAG=""`
 - `OPEN_LLM_VTUBER_SLOW_TTS_MODE="credo_fish_speech"`
 - Fish Speech is for SlowTrack high-quality TTS and offline audio/bundle generation.
@@ -83,9 +83,8 @@ Current block pipeline:
 5. SlowTrack local LLM + Fish Speech produces the main answer.
 
 Persona reaction bundle files:
-- `AI_NPC_System/persona_reaction_bundle/manifest.json`: runtime file with 120 cells and 600 selected reactions.
-- `AI_NPC_System/persona_reaction_bundle/seed_provenance.json`: 30 GoEmotions/SWDA seed pairs per cell for reproducibility. This is not the runtime candidate list.
-- `AI_NPC_System/scripts/build_persona_reaction_bundle.py`: generator. It handles `Ambiguous -> SURPRISE` GoEmotions aliasing and robust local-LLM JSON parsing.
+- `AI_NPC_System/fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/manifest.json`: runtime file with 120 cells and 600 selected reactions/audio files.
+- `AI_NPC_System/scripts/build_persona_reaction_bundle.py`: generator for the compact dataset-grounded bundle.
 
 FastTrack realtime TTS status:
 - Discarded for the main research path.
@@ -135,7 +134,7 @@ vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/check_runtime_read
 Check these first when broken:
 - Fish Speech health: `http://127.0.0.1:8080/v1/health`
 - Local LLM models: `http://127.0.0.1:8001/v1/models`
-- `credo_voice_sample` contains `.wav/.lab` pairs.
+- `credo_eunice_english_v2` contains `.wav/.lab` pairs.
 - `transformers.pipeline` imports inside Open-LLM-VTuber `.venv`.
 - `spacy.load("en_core_web_sm")` works.
 - CREDO integration was re-applied after integration edits.
@@ -146,6 +145,7 @@ These project-owned assets should be tracked even if broader ignore rules hide
 binary files:
 - `AI_NPC_System/VoiceSample`
 - `vendor/fish-speech/references/credo_voice_sample`
+- `vendor/fish-speech/references/credo_eunice_english_v2` when distributing the current Eunice runtime voice outside this workstation
 - `AI_NPC_System/integrations/open_llm_vtuber/live2d_models/credo_avatar`
 - `vendor/open-llm-vtuber/live2d-models/credo_avatar`
 - `vendor/open-llm-vtuber/avatars/credo_avatar.png`
