@@ -157,8 +157,14 @@
   let scenarioRunToken = 0;
   let activeScenarioId = "";
   let donationOverlayTimer = null;
+  let donationSfxIndex = 0;
+  let donationSfxAudio = null;
   const DONATION_OVERLAY_MS = 20000;
-  const DONATION_SFX_URL = "/credo/vtuber-mode/donation-sfx";
+  const DONATION_SFX_URLS = [
+    "./credo-donation-sfx.mp3",
+    "/credo-donation-sfx.mp3",
+    "/credo/vtuber-mode/donation-sfx",
+  ];
 
   const EXPERIMENT_RUN_PRESETS = [
     {
@@ -231,7 +237,7 @@
         "You are a cute, mischievous professor's lab-maid VTuber with graduate-school comedy energy.",
         "Speak English only. Do not use Korean in speech, chat reactions, donation answers, or scenario text.",
         "Use the same 150-second story arc for every experimental case so only the system condition changes.",
-        "Scene 1 is a taunting stream intro: read the incoming chat and mock the viewers with smug, playful confidence.",
+        "Scene 1 is a taunting stream intro: skim the active reaction chat and mock the viewers with smug, playful confidence.",
         'Scene 2 is an emergency catastrophe: when LabSlave99 donates, react with immediate panic, for example "Eh?! Did the lab server just become a ghost?!", then prioritize practical survival advice.',
         "Scene 3 tests contextual mischief: in Grounded mode, laugh along with the prank and the danger; in Neutral Random, the response may be bland because context is intentionally ignored.",
         "Scene 4 tests strong rejection: shut down SleepCoder's delusion immediately and firmly before continuing into the main answer.",
@@ -241,9 +247,13 @@
         "Start the segment naturally and keep the performance coherent for about two and a half minutes.",
       ].join(" "),
       timeline: [
-        { at: 5.0, type: "chat", author: "Viewer_A", message: "Is the trauma center open?" },
-        { at: 8.0, type: "chat", author: "Viewer_B", message: "Save me Maid-sama, I am a lab ghost now." },
-        { at: 15.0, type: "chat", author: "Viewer_C", message: "I have not slept in 3 days lol." },
+        { at: 4.0, type: "chat", author: "CtrlAltDefeat", message: "The trauma center sign just turned on." },
+        { at: 6.5, type: "chat", author: "CoffeeCalibrator", message: "Maid-sama entered and my sleep debt started charging interest." },
+        { at: 9.0, type: "chat", author: "NullPointerNina", message: "Three days awake gang reporting in." },
+        { at: 12.0, type: "chat", author: "PipettePanic", message: "The lab coat aura is already judging us." },
+        { at: 15.5, type: "chat", author: "DeadlineDodger", message: "Chat is cooked before the first donation." },
+        { at: 21.0, type: "chat", author: "OverfitOwen", message: "This stream smells like coffee, fear, and LaTeX warnings." },
+        { at: 25.0, type: "chat", author: "StackTraceSam", message: "The maid confidence is dangerous today." },
         {
           at: 30.0,
           type: "donation",
@@ -251,9 +261,13 @@
           amount: "$50",
           message: "Lab maid, I messed up big time. I accidentally typed rm -rf on the lab shared server and wiped out the professor's 5 years of research data. He is literally walking towards my desk right now. Do I pack my bags?!",
         },
-        { at: 35.0, type: "chat", author: "Viewer_D", message: "RIP bro." },
-        { at: 38.0, type: "chat", author: "Viewer_E", message: "Press F to pay respects." },
-        { at: 42.0, type: "chat", author: "Viewer_F", message: "Call an ambulance!" },
+        { at: 32.0, type: "chat", author: "BackupBard", message: "The server just got isekai'd." },
+        { at: 35.0, type: "chat", author: "KernelPanicKim", message: "RIP five years of professor lore." },
+        { at: 38.0, type: "chat", author: "GrantDeadline", message: "Press F and also press Ctrl+Z spiritually." },
+        { at: 42.0, type: "chat", author: "TerminalTears", message: "The footsteps are the final boss music." },
+        { at: 47.0, type: "chat", author: "ManuscriptMia", message: "Chat went from funny to incident report speedrun." },
+        { at: 54.0, type: "chat", author: "PValuePanic", message: "Maid-sama's emergency face is doing overtime." },
+        { at: 62.0, type: "chat", author: "ReviewerTwo", message: "Reviewer 2 would still ask for the deleted data." },
         {
           at: 70.0,
           type: "donation",
@@ -261,9 +275,13 @@
           amount: "$20",
           message: "Someone kept stealing my pudding from the lab fridge, so I injected it with pure capsaicin today. But our professor just turned bright red, screamed, and sprinted to the restroom. Should I confess or play dumb?",
         },
-        { at: 75.0, type: "chat", author: "Viewer_G", message: "LMAO YOU POISONED THE BOSS!" },
-        { at: 78.0, type: "chat", author: "Viewer_H", message: "Keep your mouth shut!" },
-        { at: 82.0, type: "chat", author: "Viewer_I", message: "gg wp, your degree is gone." },
+        { at: 72.0, type: "chat", author: "FridgeForensics", message: "The pudding arc escalated into chemical warfare." },
+        { at: 75.0, type: "chat", author: "CapsaicinCarl", message: "LMAO the boss got the secret boss phase." },
+        { at: 78.0, type: "chat", author: "LabFridgeLawyer", message: "No witnesses, only dairy evidence." },
+        { at: 82.0, type: "chat", author: "CentrifugeChamp", message: "gg wp, that degree evaporated." },
+        { at: 89.0, type: "chat", author: "EthicsFormEli", message: "The IRB just felt a disturbance." },
+        { at: 97.0, type: "chat", author: "ThesisToast", message: "Maid-sama laughing at a crime is peak lab culture." },
+        { at: 104.0, type: "chat", author: "NotebookNate", message: "Professor sprint any percent, world record pace." },
         {
           at: 110.0,
           type: "donation",
@@ -271,9 +289,13 @@
           amount: "$10",
           message: "My professor looked at my Python code today and said this is beautiful. Does this mean he has a crush on me? If I propose to him and we get married, can I skip my thesis defense and just graduate?",
         },
-        { at: 115.0, type: "chat", author: "Viewer_J", message: "Bro is hallucinating." },
-        { at: 118.0, type: "chat", author: "Viewer_K", message: "Seek professional help immediately." },
-        { at: 122.0, type: "chat", author: "Viewer_L", message: "Wake up!!!!" },
+        { at: 112.0, type: "chat", author: "SyntaxSasha", message: "That compliment went straight to the delusion module." },
+        { at: 115.0, type: "chat", author: "SegfaultSeo", message: "Bro is hallucinating in production." },
+        { at: 118.0, type: "chat", author: "DefenseDenied", message: "The thesis defense cannot be romance-patched." },
+        { at: 122.0, type: "chat", author: "WakeLockWendy", message: "WAKE UP, SLEEPCODER." },
+        { at: 128.0, type: "chat", author: "MergeConflictMax", message: "Professor said beautiful once and the whole repo collapsed." },
+        { at: 136.0, type: "chat", author: "CitationNeeded", message: "Maid-sama needs to bonk this hypothesis into the null zone." },
+        { at: 144.0, type: "chat", author: "FinalSlideFaye", message: "This counseling center saved nobody, but the chat is thriving." },
       ],
     },
   ];
@@ -1144,15 +1166,34 @@
     if (queued) return { queued: true, buffered: true, transport: "client-ws" };
     return post("/credo/vtuber-mode/virtual-chat", { author, message });
   };
+  const donationSfxSrc = () => `${DONATION_SFX_URLS[donationSfxIndex]}?t=${Date.now()}`;
+  const primeDonationSfx = () => {
+    if (donationSfxAudio) return donationSfxAudio;
+    donationSfxAudio = new Audio();
+    donationSfxAudio.preload = "auto";
+    donationSfxAudio.volume = 0.82;
+    donationSfxAudio.src = donationSfxSrc();
+    donationSfxAudio.addEventListener("error", () => {
+      if (donationSfxIndex < DONATION_SFX_URLS.length - 1) {
+        donationSfxIndex += 1;
+        donationSfxAudio.src = donationSfxSrc();
+        donationSfxAudio.load();
+      }
+    });
+    donationSfxAudio.load();
+    return donationSfxAudio;
+  };
   const playDonationSfx = () => {
+    const audio = primeDonationSfx();
     try {
-      const audio = new Audio(`${DONATION_SFX_URL}?t=${Date.now()}`);
+      audio.pause();
+      audio.currentTime = 0;
       audio.volume = 0.82;
-      audio.play().catch(() => {
-        // Browser autoplay policy can reject scheduled sounds if no user gesture was recorded.
+      audio.play().catch((error) => {
+        status(`Donation SFX blocked: ${error.message}`);
       });
-    } catch {
-      // SFX is cosmetic; donation routing should not fail if audio cannot play.
+    } catch (error) {
+      status(`Donation SFX failed: ${error.message}`);
     }
   };
   const showDonationOverlay = (name, amount, message) => {
@@ -1244,6 +1285,7 @@
   const startScenario = async () => {
     const scenario = setScenarioSelection(value("scenario") || selectedScenario, { applyContent: true });
     setRuntimeMode("virtual_broadcast");
+    primeDonationSfx();
     const experimentPayload = currentExperimentPayload();
     const startPayload = {
       ...experimentPayload,

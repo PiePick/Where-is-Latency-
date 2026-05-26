@@ -18,6 +18,7 @@ DEFAULT_VENDOR = CREDO_ROOT / "vendor" / "open-llm-vtuber"
 AVATAR_MOTION_SRC = CREDO_ROOT / "reaction_sources" / "AvatarMotion"
 FRONTEND_OVERLAY_SRC = INTEGRATION_DIR / "frontend" / "credo-vtuber-mode.js"
 STYLEBERT_TTS_SRC = INTEGRATION_DIR / "stylebert_vits2_tts.py"
+DONATION_SFX_SRC = CREDO_ROOT / "AI_NPC_System" / "fasttrack_assets" / "audio" / "Donatiion_SFX.mp3"
 
 
 MOUTH_PARAMETER_IDS = {"ParamMouthOpenY", "ParamMouthForm"}
@@ -644,6 +645,8 @@ def install_frontend_overlay(vendor: Path) -> None:
     frontend_dir = vendor / "frontend"
     frontend_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(FRONTEND_OVERLAY_SRC, frontend_dir / FRONTEND_OVERLAY_SRC.name)
+    if DONATION_SFX_SRC.exists():
+        shutil.copy2(DONATION_SFX_SRC, frontend_dir / "credo-donation-sfx.mp3")
 
     index_path = frontend_dir / "index.html"
     if not index_path.exists():
