@@ -30,6 +30,52 @@
 - framework/runtime 채팅은 페르소나, 매니페스트, 라우터, Open-LLM-VTuber
   통합, 실행 안정성만 다룬다.
 
+## 2026-05-27 07:00 KST - Active Scenario Chat And Donation SFX Fallback
+
+- Owner/chat: framework/runtime
+- User request:
+  - Scenario chat automation should feel more active.
+  - Replace stiff placeholder nicknames with more believable stream names.
+  - Make normal chat mostly reactions, not questions, and keep it contextual.
+  - Donation alert sound was not applying.
+- Done:
+  - Expanded the 150-second scenario from 12 normal chat events to 28 normal
+    chat events while keeping the 3 donation anchors at 30s, 70s, and 110s.
+  - Replaced `Viewer_A` style nicknames with stream-like lab/research names:
+    `CoffeeCalibrator`, `KernelPanicKim`, `FridgeForensics`,
+    `LabFridgeLawyer`, `SyntaxSasha`, `FinalSlideFaye`, etc.
+  - Rewrote normal chat messages as contextual reactions with no question marks.
+  - Added static donation SFX fallback:
+    - `apply_integration.py --activate` now copies
+      `AI_NPC_System/fasttrack_assets/audio/Donatiion_SFX.mp3` to
+      `vendor/open-llm-vtuber/frontend/credo-donation-sfx.mp3`.
+    - Frontend now tries `./credo-donation-sfx.mp3` first, then
+      `/credo-donation-sfx.mp3`, then `/credo/vtuber-mode/donation-sfx`.
+    - `Start Scenario` preloads the donation SFX before scheduled donations.
+- Verification:
+  - `curl -I http://127.0.0.1:12393/credo-donation-sfx.mp3` returned `200 OK`
+    with `content-type: audio/mpeg`, so the SFX is served by the running server
+    without requiring the backend route to reload.
+  - Source and vendored overlay JS are identical.
+  - JS syntax check passed for source and vendored overlay JS.
+  - Static scenario check confirmed `chatCount=28`, `donationCount=3`, SFX
+    fallback URLs, `primeDonationSfx()`, and WebSocket chat buffering metadata.
+  - Running server served updated `/credo-vtuber-mode.js` containing the new
+    nicknames and SFX fallback.
+  - `git diff --check` passed for touched files.
+- Files touched:
+  - `AI_NPC_System/integrations/open_llm_vtuber/frontend/credo-vtuber-mode.js`
+  - `vendor/open-llm-vtuber/frontend/credo-vtuber-mode.js`
+  - `AI_NPC_System/integrations/open_llm_vtuber/apply_integration.py`
+  - `vendor/open-llm-vtuber/frontend/credo-donation-sfx.mp3`
+  - `CODEX_SHARED_WORKLOG.md`
+- Next handoff:
+  - Browser page reload is enough for the updated static JS/SFX fallback.
+  - Full Open-LLM-VTuber restart is still recommended if backend route changes
+    need to be evaluated, but SFX playback no longer depends on that route.
+- Do not touch:
+  - Existing voice/TTS asset work unless explicitly assigned.
+
 ## 2026-05-27 06:51 KST - StyleBERT Voice Artifact Mitigation
 
 - Owner/chat: voice/TTS + framework/runtime
