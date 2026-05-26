@@ -3,14 +3,68 @@
 from __future__ import annotations
 
 import time
+import wave
 import urllib.error
 import urllib.parse
 import urllib.request
+from array import array
 from dataclasses import dataclass
+from io import BytesIO
 from pathlib import Path
 
 import config
 from tts_client import play_audio
+
+
+def _stabilize_wav_bytes(audio: bytes) -> bytes:
+    """Reduce clipping and short model tail artifacts in StyleBERT output."""
+    try:
+        with wave.open(BytesIO(audio), "rb") as source:
+            params = source.getparams()
+            if params.sampwidth != 2 or params.nframes <= 0:
+                return audio
+            frame_bytes = source.readframes(params.nframes)
+
+        samples = array("h")
+        samples.frombytes(frame_bytes)
+        channels = max(1, params.nchannels)
+        frame_count = len(samples) // channels
+        if frame_count <= 0:
+            return audio
+
+        trim_frames = int(params.framerate * 0.08) if frame_count > int(params.framerate * 0.9) else 0
+        if trim_frames and frame_count - trim_frames > int(params.framerate * 0.25):
+            del samples[(frame_count - trim_frames) * channels :]
+            frame_count -= trim_frames
+
+        peak = max(abs(value) for value in samples) if samples else 0
+        target_peak = int(32767 * 0.88)
+        scale = min(1.0, target_peak / peak) if peak else 1.0
+        fade_in_frames = min(frame_count, int(params.framerate * 0.008))
+        fade_out_frames = min(frame_count, int(params.framerate * 0.08))
+
+        for frame_index in range(frame_count):
+            gain = scale
+            if fade_in_frames and frame_index < fade_in_frames:
+                gain *= frame_index / fade_in_frames
+            if fade_out_frames and frame_index >= frame_count - fade_out_frames:
+                gain *= (frame_count - frame_index - 1) / fade_out_frames
+            if gain == 1.0:
+                continue
+            for channel in range(channels):
+                sample_index = frame_index * channels + channel
+                samples[sample_index] = max(-32768, min(32767, int(samples[sample_index] * gain)))
+
+        output = BytesIO()
+        with wave.open(output, "wb") as target:
+            target.setnchannels(params.nchannels)
+            target.setsampwidth(params.sampwidth)
+            target.setframerate(params.framerate)
+            target.setcomptype(params.comptype, params.compname)
+            target.writeframes(samples.tobytes())
+        return output.getvalue()
+    except Exception:
+        return audio
 
 
 @dataclass(frozen=True)
@@ -26,6 +80,10 @@ class StyleBertVITS2Config:
     speaker_id: int = config.STYLEBERT_VITS2_SPEAKER_ID
     style: str = config.STYLEBERT_VITS2_STYLE
     style_weight: float = config.STYLEBERT_VITS2_STYLE_WEIGHT
+    sdp_ratio: float = config.STYLEBERT_VITS2_SDP_RATIO
+    noise: float = config.STYLEBERT_VITS2_NOISE
+    noisew: float = config.STYLEBERT_VITS2_NOISEW
+    length: float = config.STYLEBERT_VITS2_LENGTH
     language: str = config.STYLEBERT_VITS2_LANGUAGE
     auto_play: bool = config.STYLEBERT_VITS2_AUTO_PLAY
 
@@ -64,23 +122,26 @@ class StyleBertVITS2Client:
             "speaker_id": str(self.cfg.speaker_id),
             "style": style or self.cfg.style,
             "style_weight": str(self.cfg.style_weight if style_weight is None else style_weight),
+            "sdp_ratio": str(self.cfg.sdp_ratio),
+            "noise": str(self.cfg.noise),
+            "noisew": str(self.cfg.noisew),
+            "length": str(self.cfg.length),
             "language": self.cfg.language,
         }
         if self.cfg.model_name:
             params["model_name"] = self.cfg.model_name
-        data = urllib.parse.urlencode(params).encode("utf-8")
+        separator = "&" if "?" in self.cfg.voice_url else "?"
+        url = f"{self.cfg.voice_url}{separator}{urllib.parse.urlencode(params)}"
         req = urllib.request.Request(
-            self.cfg.voice_url,
-            data=data,
+            url,
             headers={
-                "Content-Type": "application/x-www-form-urlencoded",
                 "Accept": "audio/wav",
             },
             method="POST",
         )
         try:
             with urllib.request.urlopen(req, timeout=self.cfg.timeout) as response:
-                audio = response.read()
+                audio = _stabilize_wav_bytes(response.read())
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
             raise RuntimeError(f"Style-Bert-VITS2 failed: HTTP {exc.code}: {body}") from exc

@@ -247,7 +247,9 @@ PY
 
 has_stylebert_model_assets() {
   [[ -d "${MODEL_DIR}" ]] || return 1
-  find "${MODEL_DIR}" -mindepth 2 \( -name 'config.json' -o -name 'style_vectors.npy' -o -name '*.pth' -o -name '*.pt' -o -name '*.safetensors' -o -name '*.onnx' \) | grep -q .
+  local first_match
+  first_match="$(find "${MODEL_DIR}" -mindepth 2 \( -name 'config.json' -o -name 'style_vectors.npy' -o -name '*.pth' -o -name '*.pt' -o -name '*.safetensors' -o -name '*.onnx' \) -print -quit 2>/dev/null || true)"
+  [[ -n "${first_match}" ]]
 }
 
 ensure_model_assets() {

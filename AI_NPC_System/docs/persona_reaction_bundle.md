@@ -1,119 +1,76 @@
-# Persona Reaction Bundle
+# FastTrack Dataset Pool
 
-This pipeline builds an offline FastTrack reaction bundle from the research
-grid proposed by the advisor:
+작성 기준: 2026-05-27 KST
 
-```text
-4 emotions x 6 response intents x 5 style tags x 5 persona-filtered variants
-= 600 short FastTrack reaction candidates
-```
+## Purpose
 
-The local LLM is used offline only as a filter/re-writer over labeled dataset
-seeds. Before the LLM sees any seed text, the generator removes examples that are
-too specific for reusable live-chat reactions: proper names, brands, places,
-dates, numbers, politics/news terms, URLs, handles, and event-specific details.
-Each cell samples 30 same-emotion GoEmotions examples and 30 same-intent SWDA
-examples from that filtered pool, pairs them, then asks the LLM to
-select/rewrite 5 reactions that match the single dataset-grounded VTuber
-persona. Fish Speech is then used offline to synthesize the selected sentences
-with the configured CREDO reference voice. Runtime should retrieve from the
-resulting manifest instead of calling the LLM or Fish Speech in the live
-FastTrack path.
-
-## Dimensions
+The active FastTrack language path no longer uses a prewritten 500/600-line
+persona reaction manifest. The runtime keeps the two prepared source datasets
+separate, filters them, searches them on demand, and composes a short
+Professor's Lab Maid latency-cover line in real time.
 
 ```text
-emotions: Positive, Negative, Ambiguous, Neutral
-intents: QUESTION, INFORM, ACKNOWLEDGE, DIRECTIVE, EXPRESSIVE, REJECT
-style_tags: high-pitched, playful, energetic, smug, cute
-personality: dataset_grounded_playful_vtuber unless overridden
-variants_per_cell: 5
+GoEmotions filtered pool -> emotion evidence
+SWDA filtered pool       -> response-act evidence
+router v3                -> runtime composition + StyleBERT realtime TTS
 ```
 
-The spoken sentence never contains bracketed style tags. The cell `style_tag`
-represents one personality style axis, and synthesis expands that axis into a
-small chain of Fish Speech prosody cues. Those cues are limited to pitch, energy,
-pace, tension, and attitude. Nonverbal events such as laughs, giggles, sighs,
-sobs, or gasps are excluded from manifest text and inline TTS tags; they should
-be handled by separate timed motion/audio events. The generator also validates
-LLM outputs with the same generic-context filter used for source seeds, so
-proper nouns or event-specific reactions are rejected before entering the
-manifest.
+`QUESTION` is still allowed as an incoming user intent label, but it is
+disallowed as a FastTrack response act because short cover questions often
+conflict with the pending SlowTrack answer.
 
-## Commands
+## Active Data Construction
 
-Start the local LLM server first:
+1. `go_emotions_coarse.jsonl` supplies four emotion buckets:
+   `POSITIVE`, `NEGATIVE`, `SURPRISE`, `NEUTRAL`.
+2. `swda_intent_coarse.jsonl` supplies response-act evidence:
+   `INFORM`, `ACKNOWLEDGE`, `DIRECTIVE`, `EXPRESSIVE`, `REJECT`.
+3. SWDA `QUESTION` is filtered out for FastTrack output.
+4. Source text with proper nouns, brands, dates, numbers, political/news
+   references, profanity, sexual wording, emoticons, long laughter strings,
+   incomplete fragments, or highly specific situations is rejected.
+5. Runtime router v3 retrieves from the relevant separated pool(s), records
+   the source item IDs as metadata, and only then composes the spoken cover.
 
-```bash
-AI_NPC_System/scripts/start_local_llm_server.sh
-```
-
-Generate or refresh the text manifest:
-
-```bash
-vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_persona_reaction_bundle.py --skip-existing
-```
-
-Start Fish Speech before audio synthesis:
-
-```bash
-AI_NPC_System/scripts/start_fish_speech_server.sh
-```
-
-Synthesize missing audio. This is resumable and can be stopped/restarted:
-
-```bash
-FISH_SPEECH_AUTO_PLAY=0 \
-vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_persona_reaction_bundle.py --skip-existing --synthesize
-```
-
-For a small smoke test:
-
-```bash
-vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_persona_reaction_bundle.py --output-dir /tmp/credo_persona_bundle_test --limit-cells 1
-```
-
-```bash
-FISH_SPEECH_AUTO_PLAY=0 \
-vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_persona_reaction_bundle.py --output-dir /tmp/credo_persona_bundle_test --skip-existing --synthesize --audio-limit 2
-```
-
-## Output
+## Runtime Lookup
 
 ```text
-AI_NPC_System/fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/manifest.json
-AI_NPC_System/fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/audio/<emotion>/<response_act>/<style_tag>/*.wav
+viewer chat
+  -> GoEmotions-style emotion classification
+  -> SWDA incoming intent classification
+  -> SWDA transition matrix chooses non-question response act
+  -> contextual mapping policy selects separated pool search
+  -> runtime Professor's Lab Maid composition
+  -> StyleBERT realtime TTS + Live2D motion
 ```
 
-The manifest is intentionally compact. Global metadata such as personality, style-tag definitions, dataset sources, LLM filter settings, and Fish Speech reference settings is stored once at the top level. Each cell stores its dimensions plus `item_ids`; each runtime item stores only item-specific data:
+The primary study disables keyword echo. spaCy keywords may still be logged as
+analysis metadata, but they should not create an extra utterance in the current
+experiment.
+
+## Canonical Files
 
 ```text
-id
-cell_id
-reaction
-audio_path
+AI_NPC_System/fasttrack_assets/datasets/prepared_fasttrack_data/go_emotions_coarse.jsonl
+AI_NPC_System/fasttrack_assets/datasets/prepared_fasttrack_data/swda_intent_coarse.jsonl
+AI_NPC_System/fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json
+AI_NPC_System/scripts/build_fasttrack_dataset_pools.py
+AI_NPC_System/scripts/validate_fasttrack_dataset_pool.py
 ```
 
-`tts_text` is omitted when it is identical to `reaction`. Runtime loaders recover `emotion`, `response_act`, and `style_tag` from the owning cell to avoid duplicating the same dimensions across every item.
+Legacy persona manifests were removed from active documentation. If an old
+manifest is needed for reproducibility, use `AI_NPC_System/archive/` or git
+history rather than treating it as a live source.
 
-`style_tts_cue_chains` records how the five personality style axes expand into multiple Fish Speech prosody cues. The manifest records `use_memory_cache: off` for Fish Speech reference safety.
+## Regenerating Text Evidence
 
-## Runtime Selection
+```bash
+vendor/open-llm-vtuber/.venv/bin/python \
+  AI_NPC_System/scripts/build_fasttrack_dataset_pools.py
 
-Runtime does not treat the detected user intent as the response intent. It first
-classifies the incoming user intent, then samples a response act from the SWDA
-speaker-transition matrix before choosing a prebuilt audio item. This keeps the
-FastTrack reaction probabilistic and conversational:
-
-```text
-viewer text
-  -> emotion label
-  -> user intent label
-  -> sampled response act
-  -> emotion + response act + style tag cell
-  -> cached Fish Speech wav
+vendor/open-llm-vtuber/.venv/bin/python \
+  AI_NPC_System/scripts/validate_fasttrack_dataset_pool.py
 ```
 
-This distinction matters for research validity. The bundle items are
-dataset-grounded response candidates, not direct labels for the viewer's current
-utterance.
+Do not start Fish Speech or synthesize language wav files for the active live
+language FastTrack method.

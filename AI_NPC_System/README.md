@@ -1,106 +1,91 @@
 # AI_NPC_System
 
-Python-side CREDO research code for Open-LLM-VTuber.
+CREDO's Open-LLM-VTuber integration and latency-cover research modules.
 
-## Runtime Modules
+## Live Runtime
 
-```text
-config.py                  Shared config loader.
-project_config.sh          Main editable experiment settings.
-fast_track.py              Stable FastTrack facade.
-fast_track_engine.py       DistilBERT emotion, spaCy keyword, reaction routing.
-slow_track.py              OpenAI-compatible local LLM caller.
-tts_client.py              Fish Speech client for SlowTrack.
-piper_tts_client.py         Legacy Piper experiment client; not current default.
-stylebert_vits2_client.py  Legacy StyleBERT-VITS2 experiment client; not current default.
-tts_cues.py                Fish Speech cue selection helpers.
-memory_store.py            JSON-backed memory for SlowTrack prompts.
-integrations/open_llm_vtuber/ Open-LLM-VTuber adapter and Live2D assets.
-docs/persona_reaction_bundle.md Offline persona-conditioned FastTrack bundle pipeline.
-```
-
-## Data and Models
+The 2026-05-26 live method prioritizes conversational responsiveness over
+reference-voice similarity:
 
 ```text
-hybrid_reactions.json              Legacy/source FastTrack reaction list.
-fish_speech_nonverbal_cues.json    Fish Speech tag candidates.
-fasttrack_assets/                  Canonical FastTrack datasets, models, and prebuilt audio.
-fasttrack_assets/datasets/prepared_fasttrack_data/ Preprocessed GoEmotions and SWDA data.
-fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/ Current generated persona-filtered FastTrack bundle.
-fasttrack_assets/models/setfit_swda_intent_minilm_optimized/ Selected intent model.
-reports/setfit_intent_evaluation.xlsx       SetFit validation/test report.
-VoiceSample/                       Tracked CREDO voice reference source.
+chat buffer / idle trigger
+  -> DistilBERT emotion + SetFit/SWDA response-act routing
+  -> separated GoEmotions/SWDA dataset-pool retrieval
+  -> Professor's Lab Maid runtime cover composition
+  -> prebuilt StyleBERT short interjection+motion and/or StyleBERT language FastTrack
+  || local LLM + StyleBERT SlowTrack/prefetch
 ```
 
-Generated runtime outputs are intentionally ignored by git. Project-owned
-voice/avatar assets are tracked through root `.gitignore` exceptions:
+StyleBERT-VITS2 `credo_voice_sample_en` is the active language TTS model.
+Fish and CosyVoice2 live language synthesis remain excluded; the short
+interjection wav bundle is also generated with StyleBERT to keep voice color
+consistent.
+
+## Main Files
 
 ```text
-tts_outputs/
-latency_benchmarks/
-fast_track_audio_cache*/
-fish_speech_tag_audio/
+config.py                         Shared settings and defaults.
+project_config.sh                 Active editable experiment profile.
+fasttrack_router_v3.py            Emotion, intent, transition, and FAISS routing.
+stylebert_vits2_client.py         StyleBERT-VITS2 audio generation for live speech.
+slow_track.py                     OpenAI-compatible local LLM caller.
+memory_store.py                   Lightweight recent-turn memory.
+latency_observer.py               Module latency CSV/JSONL logging.
+integrations/open_llm_vtuber/    Agent, config activation, Live2D/frontend glue.
+fasttrack_assets/                 Prepared datasets, models, and text/audio artifacts.
 ```
 
-For teammate setup and missing open-source dependency recovery, see
-`../CODEX_SETUP.md`.
+## FastTrack Dataset Pool
+
+`fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json`
+is the active language FastTrack source. It is not a static persona reaction
+manifest. It keeps GoEmotions and SWDA filtered pools separate, then router v3
+searches and composes the Professor's Lab Maid FastTrack line at runtime.
+The selected response act is sampled from SWDA transition evidence instead of
+being copied from the incoming user intent. `QUESTION` is intentionally excluded
+from FastTrack response acts; if transition evidence would select a question,
+the next allowed response act is used instead.
+`fasttrack_assets/audio/expressive_interjection_bundle/manifest.json` supplies
+`65` short StyleBERT interjection clips played with Live2D motion.
 
 ## Run
 
-From WSL, current default run:
-
 ```bash
 cd /mnt/c/Users/CGLAB/Desktop/CREDO
-AI_NPC_System/scripts/start_local_llm_server.sh
-AI_NPC_System/scripts/start_fish_speech_server.sh
-AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
+vendor/open-llm-vtuber/.venv/bin/python \
+  AI_NPC_System/integrations/open_llm_vtuber/apply_integration.py --activate
+vendor/open-llm-vtuber/.venv/bin/python \
+  AI_NPC_System/scripts/check_runtime_readiness.py
+AI_NPC_System/scripts/run_credo_stack.sh --profile live
 ```
 
-Do not start Piper/StyleBERT for the current main path. Realtime FastTrack TTS has been discarded; latency cover should use pre-generated nonverbal audio, the offline persona reaction bundle, and optional residual filler audio.
+The live launcher runs startup warmup by default before accepting the first
+turn: StyleBERT synthesizes one tiny wav, the local LLM completes one tiny
+chat, and Open-LLM-VTuber's CREDO status route is touched. The same warmup
+repeats after a supervised service restart. Use `--no-warmup` only for startup
+debugging.
 
-For a SlowTrack-only ablation, run:
+Open `http://127.0.0.1:12393` and use the `CREDO VTuber Mode` panel. The
+current UI exposes three runtime modes (`YouTube Live`, `Virtual Broadcast`,
+`1:1 Chat`), six `Experiment cases`, and the manual factor buttons
+(`Contextual mapping`, `Scheduling architecture`). For participant trials, use
+`case_1_grounded_serial` through `case_6_slowtrack_only`, then click
+`Start Scenario` to run the shared two-and-a-half-minute `Graduate School Survival Counseling Center` virtual
+broadcast scenario. Short chat events are buffered for later batch reaction;
+long counseling questions are routed as priority donations with a 20-second
+overlay and donation SFX. The selected `experiment_run_id`,
+`experiment_factor`, and `scenario` are recorded with the runtime factors.
+`LLM Settings` can add a broadcast direction prompt for topic steering. Labeled latency rows are
+appended to `AI_NPC_System/latency_logs/module_events.csv`.
 
-```bash
-AI_NPC_System/scripts/run_open_llm_vtuber_credo_no_fasttrack.sh
-```
-
-Open:
+Current usage details are documented in:
 
 ```text
-http://localhost:12393
+AI_NPC_System/docs/credo_live_usage_guide.md
 ```
 
-Legacy Piper/StyleBERT scripts are kept for experiments only. They are not required for the current handoff path.
+## Historical TTS Artifacts
 
-## Persona Reaction Bundle
-
-The offline persona bundle creates:
-
-```text
-4 emotions x 6 response intents x 5 style tags x 5 variants = 600 reactions
-```
-
-The local LLM filters/re-writes labeled GoEmotions and SWDA seed pairs for the configured VTuber personality.
-
-Current files:
-- `fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/manifest.json`: runtime bundle, 120 cells and 600 selected reactions/audio files.
-- `reports/intent_transition_matrix_from_swda.*`: SWDA user-intent to response-act transition evidence.
-
-Full details: `docs/persona_reaction_bundle.md`.
-
-```bash
-vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_persona_reaction_bundle.py --skip-existing --seed-max-words 7 --seed-max-chars 70 --max-tokens 240
-```
-
-Validate the current runtime bundle:
-
-```bash
-vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/validate_persona_bundle.py --expected-reference-id credo_eunice_english_v2
-```
-
-## Evaluate
-
-```bash
-vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/evaluate_and_tune_setfit_intent.py
-vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/benchmark_pipeline_latency.py --runs 3
-```
+Fish Speech is not started for the default live run. Piper, Edge TTS,
+CosyVoice2, and non-active Fish assets remain historical comparison material.
+Do not insert bracketed Fish style tags into spoken text.

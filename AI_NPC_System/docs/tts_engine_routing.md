@@ -1,73 +1,55 @@
 # TTS Engine Routing
 
-CREDO now has one local selector for swapping TTS engines without manually editing
-Open-LLM-VTuber YAML.
+작성 기준: 2026-05-26 KST
+
+## Active Selection
+
+현재 live 언어 경로는 FastTrack과 SlowTrack 모두 StyleBERT-VITS2
+`credo_voice_sample_en`을 사용한다. Fish Speech는 실시간 언어 합성에서
+제외하고, 순수 비언어 감탄사 wav를 오프라인으로 만들 때만 사용한다.
 
 ```bash
 cd /mnt/c/Users/CGLAB/Desktop/CREDO
-AI_NPC_System/scripts/select_tts_engine.py --list
+AI_NPC_System/scripts/select_tts_engine.py stylebert --check
 AI_NPC_System/scripts/select_tts_engine.py --status
 ```
 
-## Main Open-LLM-VTuber TTS
+Active values:
 
-Use this when changing the voice used by the normal Open-LLM-VTuber response.
-
-```bash
-AI_NPC_System/scripts/select_tts_engine.py edge --check
-AI_NPC_System/scripts/select_tts_engine.py cosyvoice2 --check
-AI_NPC_System/scripts/select_tts_engine.py melo --check
-AI_NPC_System/scripts/select_tts_engine.py coqui --check
+```text
+FAST_TRACK_TTS_MODE=stylebert_vits2
+FAST_TRACK_PREBUILT_ONLY=0
+FAST_TRACK_KEYWORD_ECHO_ENABLED=0
+STYLEBERT_VITS2_MODEL_NAME=credo_voice_sample_en
+STYLEBERT_VITS2_LANGUAGE=EN
+STYLEBERT_VITS2_DEVICE=cuda
+OPEN_LLM_VTUBER_TTS_MODEL=stylebert_vits2
+OPEN_LLM_VTUBER_SLOW_TTS_MODE=open_llm
+CREDO_INTERJECTION_AUDIO_BUNDLE_FILE=fasttrack_assets/audio/expressive_interjection_bundle/manifest.json
 ```
 
-Current practical choices:
+## Why StyleBERT-VITS2
 
-- `edge`: fastest stable English fallback. No voice clone, no style tags.
-- `cosyvoice2`: middle-ground experiment. Uses the current English reference
-  voice sample and measured around 4.0 seconds through the Open-LLM-VTuber
-  client on the local setup.
-- `melo` / `coqui`: Open-LLM-VTuber-supported alternatives, but local voice
-  quality and dependency readiness still need separate validation.
+| Candidate | Observed issue | Runtime decision |
+| --- | --- | --- |
+| Fish Speech | about 49.7 s for a 20-word SlowTrack line | exclude from live language path |
+| CosyVoice2 | short sample about 4.0 s; longer bright sample about 27.7 s | exclude from primary live path |
+| Piper | fast local baseline but weaker practical voice quality | optional legacy baseline |
+| Edge TTS | low latency but cannot use the project voice sample pack | historical fallback/comparison |
+| StyleBERT-VITS2 | selected VoiceSample fine-tune, warm path suitable for live turns | current default |
 
-When `cosyvoice2` is selected, start its server before Open-LLM-VTuber:
+StyleBERT-VITS2 is not a perfect voice clone, but it is the current compromise
+between local control, voice consistency, and live latency. It does not interpret
+Fish style tags. Persona style belongs in text selection, prompt policy, and
+Live2D motion metadata rather than bracketed TTS tags.
 
-```bash
-AI_NPC_System/scripts/start_cosyvoice2_server.sh
-```
+Pure nonverbal FastTrack reactions are the exception: `65` Fish wav files are
+generated offline and played with their motion metadata. This bundle remains
+live-readable without running Fish Speech.
 
-Then start Open-LLM-VTuber:
+## Historical Engines
 
-```bash
-AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
-```
-
-The launcher now fails early if `cosyvoice2_tts` is selected but the
-CosyVoice2 web server is not reachable.
-
-## FastTrack TTS
-
-FastTrack is a separate low-latency path. It can be changed with the same
-selector:
-
-```bash
-AI_NPC_System/scripts/select_tts_engine.py piper --check
-AI_NPC_System/scripts/select_tts_engine.py fish --check
-AI_NPC_System/scripts/select_tts_engine.py stylebert --check
-```
-
-Current practical choices:
-
-- `piper`: default FastTrack path. Very fast English speech, no voice clone.
-- `fish`: expressive/reference experiment, but too slow for realtime FastTrack.
-- `stylebert`: kept only as a legacy path until an English model is prepared.
-
-## Stability Rule
-
-For live runs, use:
-
-- Open-LLM main TTS: `edge` for reliability, or `cosyvoice2` for current
-  reference-voice testing.
-- FastTrack TTS: `piper`.
-
-Only switch FastTrack to `fish` for offline cache generation or explicit
-quality experiments.
+`fish`, `cosyvoice2`, `piper`, and `edge` selector entries may remain to
+reproduce older measurements. They must be explicitly selected and are not the
+current primary live configuration. Regenerating the active nonverbal wav bundle
+is a separate offline Fish task.

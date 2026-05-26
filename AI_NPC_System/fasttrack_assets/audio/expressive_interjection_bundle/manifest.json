@@ -1,15 +1,21 @@
 {
-  "created_at": "2026-05-24T09:06:26.957845+00:00",
+  "created_at": "2026-05-26T17:58:25.783968+00:00",
   "generator": "AI_NPC_System/scripts/build_interjection_audio_bundle.py",
   "kind": "pure_interjection_audio_bundle",
   "tts_reference": {
-    "reference_id": "credo_eunice_english_v2",
-    "reference_source": "AI_NPC_System/VoiceSample/first try.m4a;AI_NPC_System/VoiceSample/second try.m4a;AI_NPC_System/VoiceSample/third try.m4a"
+    "engine": "stylebert_vits2",
+    "reference_id": "credo_voice_sample_en",
+    "reference_source": "stylebert_vits2:credo_voice_sample_en",
+    "style": "Neutral",
+    "language": "EN"
   },
   "policy": {
-    "spoken_content": "pure interjection or nonverbal filler only",
+    "spoken_content": "short interjection or filler only",
     "no_dialogue_carriers": true,
-    "pause_cue_policy": "Each synthesized text starts and ends with exactly one [short pause] cue."
+    "no_long_laughter": true,
+    "max_laugh_syllables": 1,
+    "forbidden_carrier_policy": "No repeated laughter strings or multi-syllable laugh tokens.",
+    "pause_cue_policy": "StyleBERT uses plain text only; Fish Speech may add one short pause cue."
   },
   "style_tts_cue_chains": {
     "high-pitched": [
@@ -49,12 +55,10 @@
       "style_tag": "high-pitched",
       "event": "laugh",
       "carriers": [
-        "ha-ha!",
-        "hee-hee!",
-        "ahaha!",
-        "haha!",
-        "oh!",
-        "aw!"
+        "Oh!",
+        "Yay!",
+        "Aw!",
+        "Heh."
       ]
     },
     {
@@ -63,12 +67,10 @@
       "style_tag": "playful",
       "event": "laugh",
       "carriers": [
-        "ha-ha!",
-        "hee-hee!",
-        "ahaha!",
-        "haha!",
-        "oh!",
-        "aw!"
+        "Oh!",
+        "Yay!",
+        "Aw!",
+        "Heh."
       ]
     },
     {
@@ -77,12 +79,10 @@
       "style_tag": "energetic",
       "event": "laugh",
       "carriers": [
-        "ha-ha!",
-        "hee-hee!",
-        "ahaha!",
-        "haha!",
-        "oh!",
-        "aw!"
+        "Oh!",
+        "Yay!",
+        "Aw!",
+        "Heh."
       ]
     },
     {
@@ -91,12 +91,10 @@
       "style_tag": "smug",
       "event": "laugh",
       "carriers": [
-        "ha-ha!",
-        "hee-hee!",
-        "ahaha!",
-        "haha!",
-        "oh!",
-        "aw!"
+        "Oh!",
+        "Yay!",
+        "Aw!",
+        "Heh."
       ]
     },
     {
@@ -105,12 +103,10 @@
       "style_tag": "cute",
       "event": "laugh",
       "carriers": [
-        "ha-ha!",
-        "hee-hee!",
-        "ahaha!",
-        "haha!",
-        "oh!",
-        "aw!"
+        "Oh!",
+        "Yay!",
+        "Aw!",
+        "Heh."
       ]
     },
     {
@@ -119,9 +115,9 @@
       "style_tag": "high-pitched",
       "event": "sigh",
       "carriers": [
-        "ugh.",
-        "hm.",
-        "mm."
+        "Ugh.",
+        "Mm.",
+        "Oh..."
       ]
     },
     {
@@ -130,9 +126,9 @@
       "style_tag": "playful",
       "event": "sigh",
       "carriers": [
-        "ugh.",
-        "hm.",
-        "mm."
+        "Ugh.",
+        "Mm.",
+        "Oh..."
       ]
     },
     {
@@ -141,9 +137,9 @@
       "style_tag": "energetic",
       "event": "sigh",
       "carriers": [
-        "ugh.",
-        "hm.",
-        "mm."
+        "Ugh.",
+        "Mm.",
+        "Oh..."
       ]
     },
     {
@@ -152,9 +148,9 @@
       "style_tag": "smug",
       "event": "sigh",
       "carriers": [
-        "ugh.",
-        "hm.",
-        "mm."
+        "Ugh.",
+        "Mm.",
+        "Oh..."
       ]
     },
     {
@@ -163,9 +159,9 @@
       "style_tag": "cute",
       "event": "sigh",
       "carriers": [
-        "ugh.",
-        "hm.",
-        "mm."
+        "Ugh.",
+        "Mm.",
+        "Oh..."
       ]
     },
     {
@@ -174,8 +170,9 @@
       "style_tag": "high-pitched",
       "event": "surprise",
       "carriers": [
-        "huh?",
-        "oh?"
+        "Huh?",
+        "Oh?",
+        "Eh?"
       ]
     },
     {
@@ -184,8 +181,9 @@
       "style_tag": "playful",
       "event": "surprise",
       "carriers": [
-        "huh?",
-        "oh?"
+        "Huh?",
+        "Oh?",
+        "Eh?"
       ]
     },
     {
@@ -194,8 +192,9 @@
       "style_tag": "energetic",
       "event": "surprise",
       "carriers": [
-        "huh?",
-        "oh?"
+        "Huh?",
+        "Oh?",
+        "Eh?"
       ]
     },
     {
@@ -204,8 +203,9 @@
       "style_tag": "smug",
       "event": "surprise",
       "carriers": [
-        "huh?",
-        "oh?"
+        "Huh?",
+        "Oh?",
+        "Eh?"
       ]
     },
     {
@@ -214,8 +214,9 @@
       "style_tag": "cute",
       "event": "surprise",
       "carriers": [
-        "huh?",
-        "oh?"
+        "Huh?",
+        "Oh?",
+        "Eh?"
       ]
     },
     {
@@ -224,8 +225,9 @@
       "style_tag": "high-pitched",
       "event": "thinking",
       "carriers": [
-        "hm.",
-        "mm."
+        "Hm.",
+        "Mm.",
+        "Oh."
       ]
     },
     {
@@ -234,8 +236,9 @@
       "style_tag": "playful",
       "event": "thinking",
       "carriers": [
-        "hm.",
-        "mm."
+        "Hm.",
+        "Mm.",
+        "Oh."
       ]
     },
     {
@@ -244,8 +247,9 @@
       "style_tag": "energetic",
       "event": "thinking",
       "carriers": [
-        "hm.",
-        "mm."
+        "Hm.",
+        "Mm.",
+        "Oh."
       ]
     },
     {
@@ -254,8 +258,9 @@
       "style_tag": "smug",
       "event": "thinking",
       "carriers": [
-        "hm.",
-        "mm."
+        "Hm.",
+        "Mm.",
+        "Oh."
       ]
     },
     {
@@ -264,8 +269,9 @@
       "style_tag": "cute",
       "event": "thinking",
       "carriers": [
-        "hm.",
-        "mm."
+        "Hm.",
+        "Mm.",
+        "Oh."
       ]
     }
   ],
@@ -276,10 +282,12 @@
       "emotion": "positive",
       "style_tag": "high-pitched",
       "event": "laugh",
-      "carrier": "ha-ha!",
-      "plain_tts_text": "ha-ha!",
-      "tts_text": "[short pause] [happy] [chuckle] [high-pitched] [bright] [youthful] ha-ha! [short pause]",
-      "audio_path": "audio/positive/high-pitched/positive_high-pitched_01.wav"
+      "carrier": "Oh!",
+      "plain_tts_text": "Oh!",
+      "tts_text": "Oh!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/high-pitched/positive_high-pitched_01.wav",
+      "latency_ms": 313.005
     },
     {
       "id": "positive_high-pitched_02",
@@ -287,10 +295,12 @@
       "emotion": "positive",
       "style_tag": "high-pitched",
       "event": "laugh",
-      "carrier": "hee-hee!",
-      "plain_tts_text": "hee-hee!",
-      "tts_text": "[short pause] [happy] [chuckle] [high-pitched] [bright] [youthful] hee-hee! [short pause]",
-      "audio_path": "audio/positive/high-pitched/positive_high-pitched_02.wav"
+      "carrier": "Yay!",
+      "plain_tts_text": "Yay!",
+      "tts_text": "Yay!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/high-pitched/positive_high-pitched_02.wav",
+      "latency_ms": 71.782
     },
     {
       "id": "positive_high-pitched_03",
@@ -298,10 +308,12 @@
       "emotion": "positive",
       "style_tag": "high-pitched",
       "event": "laugh",
-      "carrier": "ahaha!",
-      "plain_tts_text": "ahaha!",
-      "tts_text": "[short pause] [happy] [chuckle] [high-pitched] [bright] [youthful] ahaha! [short pause]",
-      "audio_path": "audio/positive/high-pitched/positive_high-pitched_03.wav"
+      "carrier": "Aw!",
+      "plain_tts_text": "Aw!",
+      "tts_text": "Aw!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/high-pitched/positive_high-pitched_03.wav",
+      "latency_ms": 150.366
     },
     {
       "id": "positive_high-pitched_04",
@@ -309,32 +321,12 @@
       "emotion": "positive",
       "style_tag": "high-pitched",
       "event": "laugh",
-      "carrier": "haha!",
-      "plain_tts_text": "haha!",
-      "tts_text": "[short pause] [happy] [chuckle] [high-pitched] [bright] [youthful] haha! [short pause]",
-      "audio_path": "audio/positive/high-pitched/positive_high-pitched_04.wav"
-    },
-    {
-      "id": "positive_high-pitched_05",
-      "cell_id": "positive_high-pitched",
-      "emotion": "positive",
-      "style_tag": "high-pitched",
-      "event": "laugh",
-      "carrier": "oh!",
-      "plain_tts_text": "oh!",
-      "tts_text": "[short pause] [happy] [chuckle] [high-pitched] [bright] [youthful] oh! [short pause]",
-      "audio_path": "audio/positive/high-pitched/positive_high-pitched_05.wav"
-    },
-    {
-      "id": "positive_high-pitched_06",
-      "cell_id": "positive_high-pitched",
-      "emotion": "positive",
-      "style_tag": "high-pitched",
-      "event": "laugh",
-      "carrier": "aw!",
-      "plain_tts_text": "aw!",
-      "tts_text": "[short pause] [happy] [chuckle] [high-pitched] [bright] [youthful] aw! [short pause]",
-      "audio_path": "audio/positive/high-pitched/positive_high-pitched_06.wav"
+      "carrier": "Heh.",
+      "plain_tts_text": "Heh.",
+      "tts_text": "Heh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/high-pitched/positive_high-pitched_04.wav",
+      "latency_ms": 139.01
     },
     {
       "id": "positive_playful_01",
@@ -342,10 +334,12 @@
       "emotion": "positive",
       "style_tag": "playful",
       "event": "laugh",
-      "carrier": "ha-ha!",
-      "plain_tts_text": "ha-ha!",
-      "tts_text": "[short pause] [happy] [chuckle] [playful] [teasing] [bouncy] [lively] ha-ha! [short pause]",
-      "audio_path": "audio/positive/playful/positive_playful_01.wav"
+      "carrier": "Oh!",
+      "plain_tts_text": "Oh!",
+      "tts_text": "Oh!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/playful/positive_playful_01.wav",
+      "latency_ms": 137.166
     },
     {
       "id": "positive_playful_02",
@@ -353,10 +347,12 @@
       "emotion": "positive",
       "style_tag": "playful",
       "event": "laugh",
-      "carrier": "hee-hee!",
-      "plain_tts_text": "hee-hee!",
-      "tts_text": "[short pause] [happy] [chuckle] [playful] [teasing] [bouncy] [lively] hee-hee! [short pause]",
-      "audio_path": "audio/positive/playful/positive_playful_02.wav"
+      "carrier": "Yay!",
+      "plain_tts_text": "Yay!",
+      "tts_text": "Yay!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/playful/positive_playful_02.wav",
+      "latency_ms": 71.108
     },
     {
       "id": "positive_playful_03",
@@ -364,10 +360,12 @@
       "emotion": "positive",
       "style_tag": "playful",
       "event": "laugh",
-      "carrier": "ahaha!",
-      "plain_tts_text": "ahaha!",
-      "tts_text": "[short pause] [happy] [chuckle] [playful] [teasing] [bouncy] [lively] ahaha! [short pause]",
-      "audio_path": "audio/positive/playful/positive_playful_03.wav"
+      "carrier": "Aw!",
+      "plain_tts_text": "Aw!",
+      "tts_text": "Aw!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/playful/positive_playful_03.wav",
+      "latency_ms": 153.959
     },
     {
       "id": "positive_playful_04",
@@ -375,32 +373,12 @@
       "emotion": "positive",
       "style_tag": "playful",
       "event": "laugh",
-      "carrier": "haha!",
-      "plain_tts_text": "haha!",
-      "tts_text": "[short pause] [happy] [chuckle] [playful] [teasing] [bouncy] [lively] haha! [short pause]",
-      "audio_path": "audio/positive/playful/positive_playful_04.wav"
-    },
-    {
-      "id": "positive_playful_05",
-      "cell_id": "positive_playful",
-      "emotion": "positive",
-      "style_tag": "playful",
-      "event": "laugh",
-      "carrier": "oh!",
-      "plain_tts_text": "oh!",
-      "tts_text": "[short pause] [happy] [chuckle] [playful] [teasing] [bouncy] [lively] oh! [short pause]",
-      "audio_path": "audio/positive/playful/positive_playful_05.wav"
-    },
-    {
-      "id": "positive_playful_06",
-      "cell_id": "positive_playful",
-      "emotion": "positive",
-      "style_tag": "playful",
-      "event": "laugh",
-      "carrier": "aw!",
-      "plain_tts_text": "aw!",
-      "tts_text": "[short pause] [happy] [chuckle] [playful] [teasing] [bouncy] [lively] aw! [short pause]",
-      "audio_path": "audio/positive/playful/positive_playful_06.wav"
+      "carrier": "Heh.",
+      "plain_tts_text": "Heh.",
+      "tts_text": "Heh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/playful/positive_playful_04.wav",
+      "latency_ms": 147.658
     },
     {
       "id": "positive_energetic_01",
@@ -408,10 +386,12 @@
       "emotion": "positive",
       "style_tag": "energetic",
       "event": "laugh",
-      "carrier": "ha-ha!",
-      "plain_tts_text": "ha-ha!",
-      "tts_text": "[short pause] [happy] [chuckle] [excited] [energetic] [loud] [hype] ha-ha! [short pause]",
-      "audio_path": "audio/positive/energetic/positive_energetic_01.wav"
+      "carrier": "Oh!",
+      "plain_tts_text": "Oh!",
+      "tts_text": "Oh!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/energetic/positive_energetic_01.wav",
+      "latency_ms": 75.622
     },
     {
       "id": "positive_energetic_02",
@@ -419,10 +399,12 @@
       "emotion": "positive",
       "style_tag": "energetic",
       "event": "laugh",
-      "carrier": "hee-hee!",
-      "plain_tts_text": "hee-hee!",
-      "tts_text": "[short pause] [happy] [chuckle] [excited] [energetic] [loud] [hype] hee-hee! [short pause]",
-      "audio_path": "audio/positive/energetic/positive_energetic_02.wav"
+      "carrier": "Yay!",
+      "plain_tts_text": "Yay!",
+      "tts_text": "Yay!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/energetic/positive_energetic_02.wav",
+      "latency_ms": 69.017
     },
     {
       "id": "positive_energetic_03",
@@ -430,10 +412,12 @@
       "emotion": "positive",
       "style_tag": "energetic",
       "event": "laugh",
-      "carrier": "ahaha!",
-      "plain_tts_text": "ahaha!",
-      "tts_text": "[short pause] [happy] [chuckle] [excited] [energetic] [loud] [hype] ahaha! [short pause]",
-      "audio_path": "audio/positive/energetic/positive_energetic_03.wav"
+      "carrier": "Aw!",
+      "plain_tts_text": "Aw!",
+      "tts_text": "Aw!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/energetic/positive_energetic_03.wav",
+      "latency_ms": 147.433
     },
     {
       "id": "positive_energetic_04",
@@ -441,32 +425,12 @@
       "emotion": "positive",
       "style_tag": "energetic",
       "event": "laugh",
-      "carrier": "haha!",
-      "plain_tts_text": "haha!",
-      "tts_text": "[short pause] [happy] [chuckle] [excited] [energetic] [loud] [hype] haha! [short pause]",
-      "audio_path": "audio/positive/energetic/positive_energetic_04.wav"
-    },
-    {
-      "id": "positive_energetic_05",
-      "cell_id": "positive_energetic",
-      "emotion": "positive",
-      "style_tag": "energetic",
-      "event": "laugh",
-      "carrier": "oh!",
-      "plain_tts_text": "oh!",
-      "tts_text": "[short pause] [happy] [chuckle] [excited] [energetic] [loud] [hype] oh! [short pause]",
-      "audio_path": "audio/positive/energetic/positive_energetic_05.wav"
-    },
-    {
-      "id": "positive_energetic_06",
-      "cell_id": "positive_energetic",
-      "emotion": "positive",
-      "style_tag": "energetic",
-      "event": "laugh",
-      "carrier": "aw!",
-      "plain_tts_text": "aw!",
-      "tts_text": "[short pause] [happy] [chuckle] [excited] [energetic] [loud] [hype] aw! [short pause]",
-      "audio_path": "audio/positive/energetic/positive_energetic_06.wav"
+      "carrier": "Heh.",
+      "plain_tts_text": "Heh.",
+      "tts_text": "Heh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/energetic/positive_energetic_04.wav",
+      "latency_ms": 69.761
     },
     {
       "id": "positive_smug_01",
@@ -474,10 +438,12 @@
       "emotion": "positive",
       "style_tag": "smug",
       "event": "laugh",
-      "carrier": "ha-ha!",
-      "plain_tts_text": "ha-ha!",
-      "tts_text": "[short pause] [happy] [chuckle] [smug] [playful] [cheeky] [confident] ha-ha! [short pause]",
-      "audio_path": "audio/positive/smug/positive_smug_01.wav"
+      "carrier": "Oh!",
+      "plain_tts_text": "Oh!",
+      "tts_text": "Oh!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/smug/positive_smug_01.wav",
+      "latency_ms": 142.094
     },
     {
       "id": "positive_smug_02",
@@ -485,10 +451,12 @@
       "emotion": "positive",
       "style_tag": "smug",
       "event": "laugh",
-      "carrier": "hee-hee!",
-      "plain_tts_text": "hee-hee!",
-      "tts_text": "[short pause] [happy] [chuckle] [smug] [playful] [cheeky] [confident] hee-hee! [short pause]",
-      "audio_path": "audio/positive/smug/positive_smug_02.wav"
+      "carrier": "Yay!",
+      "plain_tts_text": "Yay!",
+      "tts_text": "Yay!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/smug/positive_smug_02.wav",
+      "latency_ms": 146.336
     },
     {
       "id": "positive_smug_03",
@@ -496,10 +464,12 @@
       "emotion": "positive",
       "style_tag": "smug",
       "event": "laugh",
-      "carrier": "ahaha!",
-      "plain_tts_text": "ahaha!",
-      "tts_text": "[short pause] [happy] [chuckle] [smug] [playful] [cheeky] [confident] ahaha! [short pause]",
-      "audio_path": "audio/positive/smug/positive_smug_03.wav"
+      "carrier": "Aw!",
+      "plain_tts_text": "Aw!",
+      "tts_text": "Aw!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/smug/positive_smug_03.wav",
+      "latency_ms": 70.918
     },
     {
       "id": "positive_smug_04",
@@ -507,32 +477,12 @@
       "emotion": "positive",
       "style_tag": "smug",
       "event": "laugh",
-      "carrier": "haha!",
-      "plain_tts_text": "haha!",
-      "tts_text": "[short pause] [happy] [chuckle] [smug] [playful] [cheeky] [confident] haha! [short pause]",
-      "audio_path": "audio/positive/smug/positive_smug_04.wav"
-    },
-    {
-      "id": "positive_smug_05",
-      "cell_id": "positive_smug",
-      "emotion": "positive",
-      "style_tag": "smug",
-      "event": "laugh",
-      "carrier": "oh!",
-      "plain_tts_text": "oh!",
-      "tts_text": "[short pause] [happy] [chuckle] [smug] [playful] [cheeky] [confident] oh! [short pause]",
-      "audio_path": "audio/positive/smug/positive_smug_05.wav"
-    },
-    {
-      "id": "positive_smug_06",
-      "cell_id": "positive_smug",
-      "emotion": "positive",
-      "style_tag": "smug",
-      "event": "laugh",
-      "carrier": "aw!",
-      "plain_tts_text": "aw!",
-      "tts_text": "[short pause] [happy] [chuckle] [smug] [playful] [cheeky] [confident] aw! [short pause]",
-      "audio_path": "audio/positive/smug/positive_smug_06.wav"
+      "carrier": "Heh.",
+      "plain_tts_text": "Heh.",
+      "tts_text": "Heh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/smug/positive_smug_04.wav",
+      "latency_ms": 68.107
     },
     {
       "id": "positive_cute_01",
@@ -540,10 +490,12 @@
       "emotion": "positive",
       "style_tag": "cute",
       "event": "laugh",
-      "carrier": "ha-ha!",
-      "plain_tts_text": "ha-ha!",
-      "tts_text": "[short pause] [happy] [chuckle] [cute] [soft] [bright] [high-pitched] ha-ha! [short pause]",
-      "audio_path": "audio/positive/cute/positive_cute_01.wav"
+      "carrier": "Oh!",
+      "plain_tts_text": "Oh!",
+      "tts_text": "Oh!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/cute/positive_cute_01.wav",
+      "latency_ms": 145.168
     },
     {
       "id": "positive_cute_02",
@@ -551,10 +503,12 @@
       "emotion": "positive",
       "style_tag": "cute",
       "event": "laugh",
-      "carrier": "hee-hee!",
-      "plain_tts_text": "hee-hee!",
-      "tts_text": "[short pause] [happy] [chuckle] [cute] [soft] [bright] [high-pitched] hee-hee! [short pause]",
-      "audio_path": "audio/positive/cute/positive_cute_02.wav"
+      "carrier": "Yay!",
+      "plain_tts_text": "Yay!",
+      "tts_text": "Yay!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/cute/positive_cute_02.wav",
+      "latency_ms": 67.714
     },
     {
       "id": "positive_cute_03",
@@ -562,10 +516,12 @@
       "emotion": "positive",
       "style_tag": "cute",
       "event": "laugh",
-      "carrier": "ahaha!",
-      "plain_tts_text": "ahaha!",
-      "tts_text": "[short pause] [happy] [chuckle] [cute] [soft] [bright] [high-pitched] ahaha! [short pause]",
-      "audio_path": "audio/positive/cute/positive_cute_03.wav"
+      "carrier": "Aw!",
+      "plain_tts_text": "Aw!",
+      "tts_text": "Aw!",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/cute/positive_cute_03.wav",
+      "latency_ms": 76.44
     },
     {
       "id": "positive_cute_04",
@@ -573,32 +529,12 @@
       "emotion": "positive",
       "style_tag": "cute",
       "event": "laugh",
-      "carrier": "haha!",
-      "plain_tts_text": "haha!",
-      "tts_text": "[short pause] [happy] [chuckle] [cute] [soft] [bright] [high-pitched] haha! [short pause]",
-      "audio_path": "audio/positive/cute/positive_cute_04.wav"
-    },
-    {
-      "id": "positive_cute_05",
-      "cell_id": "positive_cute",
-      "emotion": "positive",
-      "style_tag": "cute",
-      "event": "laugh",
-      "carrier": "oh!",
-      "plain_tts_text": "oh!",
-      "tts_text": "[short pause] [happy] [chuckle] [cute] [soft] [bright] [high-pitched] oh! [short pause]",
-      "audio_path": "audio/positive/cute/positive_cute_05.wav"
-    },
-    {
-      "id": "positive_cute_06",
-      "cell_id": "positive_cute",
-      "emotion": "positive",
-      "style_tag": "cute",
-      "event": "laugh",
-      "carrier": "aw!",
-      "plain_tts_text": "aw!",
-      "tts_text": "[short pause] [happy] [chuckle] [cute] [soft] [bright] [high-pitched] aw! [short pause]",
-      "audio_path": "audio/positive/cute/positive_cute_06.wav"
+      "carrier": "Heh.",
+      "plain_tts_text": "Heh.",
+      "tts_text": "Heh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/positive/cute/positive_cute_04.wav",
+      "latency_ms": 141.151
     },
     {
       "id": "negative_high-pitched_01",
@@ -606,10 +542,12 @@
       "emotion": "negative",
       "style_tag": "high-pitched",
       "event": "sigh",
-      "carrier": "ugh.",
-      "plain_tts_text": "ugh.",
-      "tts_text": "[short pause] [sad] [sigh] [high-pitched] [bright] [youthful] ugh. [short pause]",
-      "audio_path": "audio/negative/high-pitched/negative_high-pitched_01.wav"
+      "carrier": "Ugh.",
+      "plain_tts_text": "Ugh.",
+      "tts_text": "Ugh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/high-pitched/negative_high-pitched_01.wav",
+      "latency_ms": 142.242
     },
     {
       "id": "negative_high-pitched_02",
@@ -617,10 +555,12 @@
       "emotion": "negative",
       "style_tag": "high-pitched",
       "event": "sigh",
-      "carrier": "hm.",
-      "plain_tts_text": "hm.",
-      "tts_text": "[short pause] [sad] [sigh] [high-pitched] [bright] [youthful] hm. [short pause]",
-      "audio_path": "audio/negative/high-pitched/negative_high-pitched_02.wav"
+      "carrier": "Mm.",
+      "plain_tts_text": "Mm.",
+      "tts_text": "Mm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/high-pitched/negative_high-pitched_02.wav",
+      "latency_ms": 85.182
     },
     {
       "id": "negative_high-pitched_03",
@@ -628,10 +568,12 @@
       "emotion": "negative",
       "style_tag": "high-pitched",
       "event": "sigh",
-      "carrier": "mm.",
-      "plain_tts_text": "mm.",
-      "tts_text": "[short pause] [sad] [sigh] [high-pitched] [bright] [youthful] mm. [short pause]",
-      "audio_path": "audio/negative/high-pitched/negative_high-pitched_03.wav"
+      "carrier": "Oh...",
+      "plain_tts_text": "Oh...",
+      "tts_text": "Oh...",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/high-pitched/negative_high-pitched_03.wav",
+      "latency_ms": 93.991
     },
     {
       "id": "negative_playful_01",
@@ -639,10 +581,12 @@
       "emotion": "negative",
       "style_tag": "playful",
       "event": "sigh",
-      "carrier": "ugh.",
-      "plain_tts_text": "ugh.",
-      "tts_text": "[short pause] [sad] [sigh] [playful] [teasing] [bouncy] [lively] ugh. [short pause]",
-      "audio_path": "audio/negative/playful/negative_playful_01.wav"
+      "carrier": "Ugh.",
+      "plain_tts_text": "Ugh.",
+      "tts_text": "Ugh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/playful/negative_playful_01.wav",
+      "latency_ms": 75.34
     },
     {
       "id": "negative_playful_02",
@@ -650,10 +594,12 @@
       "emotion": "negative",
       "style_tag": "playful",
       "event": "sigh",
-      "carrier": "hm.",
-      "plain_tts_text": "hm.",
-      "tts_text": "[short pause] [sad] [sigh] [playful] [teasing] [bouncy] [lively] hm. [short pause]",
-      "audio_path": "audio/negative/playful/negative_playful_02.wav"
+      "carrier": "Mm.",
+      "plain_tts_text": "Mm.",
+      "tts_text": "Mm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/playful/negative_playful_02.wav",
+      "latency_ms": 73.814
     },
     {
       "id": "negative_playful_03",
@@ -661,10 +607,12 @@
       "emotion": "negative",
       "style_tag": "playful",
       "event": "sigh",
-      "carrier": "mm.",
-      "plain_tts_text": "mm.",
-      "tts_text": "[short pause] [sad] [sigh] [playful] [teasing] [bouncy] [lively] mm. [short pause]",
-      "audio_path": "audio/negative/playful/negative_playful_03.wav"
+      "carrier": "Oh...",
+      "plain_tts_text": "Oh...",
+      "tts_text": "Oh...",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/playful/negative_playful_03.wav",
+      "latency_ms": 149.322
     },
     {
       "id": "negative_energetic_01",
@@ -672,10 +620,12 @@
       "emotion": "negative",
       "style_tag": "energetic",
       "event": "sigh",
-      "carrier": "ugh.",
-      "plain_tts_text": "ugh.",
-      "tts_text": "[short pause] [sad] [sigh] [excited] [energetic] [loud] [hype] ugh. [short pause]",
-      "audio_path": "audio/negative/energetic/negative_energetic_01.wav"
+      "carrier": "Ugh.",
+      "plain_tts_text": "Ugh.",
+      "tts_text": "Ugh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/energetic/negative_energetic_01.wav",
+      "latency_ms": 145.118
     },
     {
       "id": "negative_energetic_02",
@@ -683,10 +633,12 @@
       "emotion": "negative",
       "style_tag": "energetic",
       "event": "sigh",
-      "carrier": "hm.",
-      "plain_tts_text": "hm.",
-      "tts_text": "[short pause] [sad] [sigh] [excited] [energetic] [loud] [hype] hm. [short pause]",
-      "audio_path": "audio/negative/energetic/negative_energetic_02.wav"
+      "carrier": "Mm.",
+      "plain_tts_text": "Mm.",
+      "tts_text": "Mm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/energetic/negative_energetic_02.wav",
+      "latency_ms": 69.766
     },
     {
       "id": "negative_energetic_03",
@@ -694,10 +646,12 @@
       "emotion": "negative",
       "style_tag": "energetic",
       "event": "sigh",
-      "carrier": "mm.",
-      "plain_tts_text": "mm.",
-      "tts_text": "[short pause] [sad] [sigh] [excited] [energetic] [loud] [hype] mm. [short pause]",
-      "audio_path": "audio/negative/energetic/negative_energetic_03.wav"
+      "carrier": "Oh...",
+      "plain_tts_text": "Oh...",
+      "tts_text": "Oh...",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/energetic/negative_energetic_03.wav",
+      "latency_ms": 74.424
     },
     {
       "id": "negative_smug_01",
@@ -705,10 +659,12 @@
       "emotion": "negative",
       "style_tag": "smug",
       "event": "sigh",
-      "carrier": "ugh.",
-      "plain_tts_text": "ugh.",
-      "tts_text": "[short pause] [sad] [sigh] [smug] [playful] [cheeky] [confident] ugh. [short pause]",
-      "audio_path": "audio/negative/smug/negative_smug_01.wav"
+      "carrier": "Ugh.",
+      "plain_tts_text": "Ugh.",
+      "tts_text": "Ugh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/smug/negative_smug_01.wav",
+      "latency_ms": 71.271
     },
     {
       "id": "negative_smug_02",
@@ -716,10 +672,12 @@
       "emotion": "negative",
       "style_tag": "smug",
       "event": "sigh",
-      "carrier": "hm.",
-      "plain_tts_text": "hm.",
-      "tts_text": "[short pause] [sad] [sigh] [smug] [playful] [cheeky] [confident] hm. [short pause]",
-      "audio_path": "audio/negative/smug/negative_smug_02.wav"
+      "carrier": "Mm.",
+      "plain_tts_text": "Mm.",
+      "tts_text": "Mm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/smug/negative_smug_02.wav",
+      "latency_ms": 147.284
     },
     {
       "id": "negative_smug_03",
@@ -727,10 +685,12 @@
       "emotion": "negative",
       "style_tag": "smug",
       "event": "sigh",
-      "carrier": "mm.",
-      "plain_tts_text": "mm.",
-      "tts_text": "[short pause] [sad] [sigh] [smug] [playful] [cheeky] [confident] mm. [short pause]",
-      "audio_path": "audio/negative/smug/negative_smug_03.wav"
+      "carrier": "Oh...",
+      "plain_tts_text": "Oh...",
+      "tts_text": "Oh...",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/smug/negative_smug_03.wav",
+      "latency_ms": 74.065
     },
     {
       "id": "negative_cute_01",
@@ -738,10 +698,12 @@
       "emotion": "negative",
       "style_tag": "cute",
       "event": "sigh",
-      "carrier": "ugh.",
-      "plain_tts_text": "ugh.",
-      "tts_text": "[short pause] [sad] [sigh] [cute] [soft] [bright] [high-pitched] ugh. [short pause]",
-      "audio_path": "audio/negative/cute/negative_cute_01.wav"
+      "carrier": "Ugh.",
+      "plain_tts_text": "Ugh.",
+      "tts_text": "Ugh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/cute/negative_cute_01.wav",
+      "latency_ms": 68.88
     },
     {
       "id": "negative_cute_02",
@@ -749,10 +711,12 @@
       "emotion": "negative",
       "style_tag": "cute",
       "event": "sigh",
-      "carrier": "hm.",
-      "plain_tts_text": "hm.",
-      "tts_text": "[short pause] [sad] [sigh] [cute] [soft] [bright] [high-pitched] hm. [short pause]",
-      "audio_path": "audio/negative/cute/negative_cute_02.wav"
+      "carrier": "Mm.",
+      "plain_tts_text": "Mm.",
+      "tts_text": "Mm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/cute/negative_cute_02.wav",
+      "latency_ms": 156.474
     },
     {
       "id": "negative_cute_03",
@@ -760,10 +724,12 @@
       "emotion": "negative",
       "style_tag": "cute",
       "event": "sigh",
-      "carrier": "mm.",
-      "plain_tts_text": "mm.",
-      "tts_text": "[short pause] [sad] [sigh] [cute] [soft] [bright] [high-pitched] mm. [short pause]",
-      "audio_path": "audio/negative/cute/negative_cute_03.wav"
+      "carrier": "Oh...",
+      "plain_tts_text": "Oh...",
+      "tts_text": "Oh...",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/negative/cute/negative_cute_03.wav",
+      "latency_ms": 69.655
     },
     {
       "id": "ambiguous_high-pitched_01",
@@ -771,10 +737,12 @@
       "emotion": "ambiguous",
       "style_tag": "high-pitched",
       "event": "surprise",
-      "carrier": "huh?",
-      "plain_tts_text": "huh?",
-      "tts_text": "[short pause] [surprised] [inhale] [high-pitched] [bright] [youthful] huh? [short pause]",
-      "audio_path": "audio/ambiguous/high-pitched/ambiguous_high-pitched_01.wav"
+      "carrier": "Huh?",
+      "plain_tts_text": "Huh?",
+      "tts_text": "Huh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/high-pitched/ambiguous_high-pitched_01.wav",
+      "latency_ms": 67.366
     },
     {
       "id": "ambiguous_high-pitched_02",
@@ -782,10 +750,25 @@
       "emotion": "ambiguous",
       "style_tag": "high-pitched",
       "event": "surprise",
-      "carrier": "oh?",
-      "plain_tts_text": "oh?",
-      "tts_text": "[short pause] [surprised] [inhale] [high-pitched] [bright] [youthful] oh? [short pause]",
-      "audio_path": "audio/ambiguous/high-pitched/ambiguous_high-pitched_02.wav"
+      "carrier": "Oh?",
+      "plain_tts_text": "Oh?",
+      "tts_text": "Oh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/high-pitched/ambiguous_high-pitched_02.wav",
+      "latency_ms": 74.442
+    },
+    {
+      "id": "ambiguous_high-pitched_03",
+      "cell_id": "ambiguous_high-pitched",
+      "emotion": "ambiguous",
+      "style_tag": "high-pitched",
+      "event": "surprise",
+      "carrier": "Eh?",
+      "plain_tts_text": "Eh?",
+      "tts_text": "Eh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/high-pitched/ambiguous_high-pitched_03.wav",
+      "latency_ms": 70.978
     },
     {
       "id": "ambiguous_playful_01",
@@ -793,10 +776,12 @@
       "emotion": "ambiguous",
       "style_tag": "playful",
       "event": "surprise",
-      "carrier": "huh?",
-      "plain_tts_text": "huh?",
-      "tts_text": "[short pause] [surprised] [inhale] [playful] [teasing] [bouncy] [lively] huh? [short pause]",
-      "audio_path": "audio/ambiguous/playful/ambiguous_playful_01.wav"
+      "carrier": "Huh?",
+      "plain_tts_text": "Huh?",
+      "tts_text": "Huh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/playful/ambiguous_playful_01.wav",
+      "latency_ms": 67.062
     },
     {
       "id": "ambiguous_playful_02",
@@ -804,10 +789,25 @@
       "emotion": "ambiguous",
       "style_tag": "playful",
       "event": "surprise",
-      "carrier": "oh?",
-      "plain_tts_text": "oh?",
-      "tts_text": "[short pause] [surprised] [inhale] [playful] [teasing] [bouncy] [lively] oh? [short pause]",
-      "audio_path": "audio/ambiguous/playful/ambiguous_playful_02.wav"
+      "carrier": "Oh?",
+      "plain_tts_text": "Oh?",
+      "tts_text": "Oh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/playful/ambiguous_playful_02.wav",
+      "latency_ms": 70.026
+    },
+    {
+      "id": "ambiguous_playful_03",
+      "cell_id": "ambiguous_playful",
+      "emotion": "ambiguous",
+      "style_tag": "playful",
+      "event": "surprise",
+      "carrier": "Eh?",
+      "plain_tts_text": "Eh?",
+      "tts_text": "Eh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/playful/ambiguous_playful_03.wav",
+      "latency_ms": 117.371
     },
     {
       "id": "ambiguous_energetic_01",
@@ -815,10 +815,12 @@
       "emotion": "ambiguous",
       "style_tag": "energetic",
       "event": "surprise",
-      "carrier": "huh?",
-      "plain_tts_text": "huh?",
-      "tts_text": "[short pause] [surprised] [inhale] [excited] [energetic] [loud] [hype] huh? [short pause]",
-      "audio_path": "audio/ambiguous/energetic/ambiguous_energetic_01.wav"
+      "carrier": "Huh?",
+      "plain_tts_text": "Huh?",
+      "tts_text": "Huh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/energetic/ambiguous_energetic_01.wav",
+      "latency_ms": 164.344
     },
     {
       "id": "ambiguous_energetic_02",
@@ -826,10 +828,25 @@
       "emotion": "ambiguous",
       "style_tag": "energetic",
       "event": "surprise",
-      "carrier": "oh?",
-      "plain_tts_text": "oh?",
-      "tts_text": "[short pause] [surprised] [inhale] [excited] [energetic] [loud] [hype] oh? [short pause]",
-      "audio_path": "audio/ambiguous/energetic/ambiguous_energetic_02.wav"
+      "carrier": "Oh?",
+      "plain_tts_text": "Oh?",
+      "tts_text": "Oh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/energetic/ambiguous_energetic_02.wav",
+      "latency_ms": 68.756
+    },
+    {
+      "id": "ambiguous_energetic_03",
+      "cell_id": "ambiguous_energetic",
+      "emotion": "ambiguous",
+      "style_tag": "energetic",
+      "event": "surprise",
+      "carrier": "Eh?",
+      "plain_tts_text": "Eh?",
+      "tts_text": "Eh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/energetic/ambiguous_energetic_03.wav",
+      "latency_ms": 66.77
     },
     {
       "id": "ambiguous_smug_01",
@@ -837,10 +854,12 @@
       "emotion": "ambiguous",
       "style_tag": "smug",
       "event": "surprise",
-      "carrier": "huh?",
-      "plain_tts_text": "huh?",
-      "tts_text": "[short pause] [surprised] [inhale] [smug] [playful] [cheeky] [confident] huh? [short pause]",
-      "audio_path": "audio/ambiguous/smug/ambiguous_smug_01.wav"
+      "carrier": "Huh?",
+      "plain_tts_text": "Huh?",
+      "tts_text": "Huh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/smug/ambiguous_smug_01.wav",
+      "latency_ms": 68.04
     },
     {
       "id": "ambiguous_smug_02",
@@ -848,10 +867,25 @@
       "emotion": "ambiguous",
       "style_tag": "smug",
       "event": "surprise",
-      "carrier": "oh?",
-      "plain_tts_text": "oh?",
-      "tts_text": "[short pause] [surprised] [inhale] [smug] [playful] [cheeky] [confident] oh? [short pause]",
-      "audio_path": "audio/ambiguous/smug/ambiguous_smug_02.wav"
+      "carrier": "Oh?",
+      "plain_tts_text": "Oh?",
+      "tts_text": "Oh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/smug/ambiguous_smug_02.wav",
+      "latency_ms": 70.394
+    },
+    {
+      "id": "ambiguous_smug_03",
+      "cell_id": "ambiguous_smug",
+      "emotion": "ambiguous",
+      "style_tag": "smug",
+      "event": "surprise",
+      "carrier": "Eh?",
+      "plain_tts_text": "Eh?",
+      "tts_text": "Eh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/smug/ambiguous_smug_03.wav",
+      "latency_ms": 70.908
     },
     {
       "id": "ambiguous_cute_01",
@@ -859,10 +893,12 @@
       "emotion": "ambiguous",
       "style_tag": "cute",
       "event": "surprise",
-      "carrier": "huh?",
-      "plain_tts_text": "huh?",
-      "tts_text": "[short pause] [surprised] [inhale] [cute] [soft] [bright] [high-pitched] huh? [short pause]",
-      "audio_path": "audio/ambiguous/cute/ambiguous_cute_01.wav"
+      "carrier": "Huh?",
+      "plain_tts_text": "Huh?",
+      "tts_text": "Huh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/cute/ambiguous_cute_01.wav",
+      "latency_ms": 87.95
     },
     {
       "id": "ambiguous_cute_02",
@@ -870,10 +906,25 @@
       "emotion": "ambiguous",
       "style_tag": "cute",
       "event": "surprise",
-      "carrier": "oh?",
-      "plain_tts_text": "oh?",
-      "tts_text": "[short pause] [surprised] [inhale] [cute] [soft] [bright] [high-pitched] oh? [short pause]",
-      "audio_path": "audio/ambiguous/cute/ambiguous_cute_02.wav"
+      "carrier": "Oh?",
+      "plain_tts_text": "Oh?",
+      "tts_text": "Oh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/cute/ambiguous_cute_02.wav",
+      "latency_ms": 67.538
+    },
+    {
+      "id": "ambiguous_cute_03",
+      "cell_id": "ambiguous_cute",
+      "emotion": "ambiguous",
+      "style_tag": "cute",
+      "event": "surprise",
+      "carrier": "Eh?",
+      "plain_tts_text": "Eh?",
+      "tts_text": "Eh?",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/ambiguous/cute/ambiguous_cute_03.wav",
+      "latency_ms": 68.431
     },
     {
       "id": "neutral_high-pitched_01",
@@ -881,10 +932,12 @@
       "emotion": "neutral",
       "style_tag": "high-pitched",
       "event": "thinking",
-      "carrier": "hm.",
-      "plain_tts_text": "hm.",
-      "tts_text": "[short pause] [calm] [soft sigh] [high-pitched] [bright] [youthful] hm. [short pause]",
-      "audio_path": "audio/neutral/high-pitched/neutral_high-pitched_01.wav"
+      "carrier": "Hm.",
+      "plain_tts_text": "Hm.",
+      "tts_text": "Hm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/high-pitched/neutral_high-pitched_01.wav",
+      "latency_ms": 67.062
     },
     {
       "id": "neutral_high-pitched_02",
@@ -892,10 +945,25 @@
       "emotion": "neutral",
       "style_tag": "high-pitched",
       "event": "thinking",
-      "carrier": "mm.",
-      "plain_tts_text": "mm.",
-      "tts_text": "[short pause] [calm] [soft sigh] [high-pitched] [bright] [youthful] mm. [short pause]",
-      "audio_path": "audio/neutral/high-pitched/neutral_high-pitched_02.wav"
+      "carrier": "Mm.",
+      "plain_tts_text": "Mm.",
+      "tts_text": "Mm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/high-pitched/neutral_high-pitched_02.wav",
+      "latency_ms": 145.965
+    },
+    {
+      "id": "neutral_high-pitched_03",
+      "cell_id": "neutral_high-pitched",
+      "emotion": "neutral",
+      "style_tag": "high-pitched",
+      "event": "thinking",
+      "carrier": "Oh.",
+      "plain_tts_text": "Oh.",
+      "tts_text": "Oh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/high-pitched/neutral_high-pitched_03.wav",
+      "latency_ms": 68.429
     },
     {
       "id": "neutral_playful_01",
@@ -903,10 +971,12 @@
       "emotion": "neutral",
       "style_tag": "playful",
       "event": "thinking",
-      "carrier": "hm.",
-      "plain_tts_text": "hm.",
-      "tts_text": "[short pause] [calm] [soft sigh] [playful] [teasing] [bouncy] [lively] hm. [short pause]",
-      "audio_path": "audio/neutral/playful/neutral_playful_01.wav"
+      "carrier": "Hm.",
+      "plain_tts_text": "Hm.",
+      "tts_text": "Hm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/playful/neutral_playful_01.wav",
+      "latency_ms": 68.564
     },
     {
       "id": "neutral_playful_02",
@@ -914,10 +984,25 @@
       "emotion": "neutral",
       "style_tag": "playful",
       "event": "thinking",
-      "carrier": "mm.",
-      "plain_tts_text": "mm.",
-      "tts_text": "[short pause] [calm] [soft sigh] [playful] [teasing] [bouncy] [lively] mm. [short pause]",
-      "audio_path": "audio/neutral/playful/neutral_playful_02.wav"
+      "carrier": "Mm.",
+      "plain_tts_text": "Mm.",
+      "tts_text": "Mm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/playful/neutral_playful_02.wav",
+      "latency_ms": 66.001
+    },
+    {
+      "id": "neutral_playful_03",
+      "cell_id": "neutral_playful",
+      "emotion": "neutral",
+      "style_tag": "playful",
+      "event": "thinking",
+      "carrier": "Oh.",
+      "plain_tts_text": "Oh.",
+      "tts_text": "Oh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/playful/neutral_playful_03.wav",
+      "latency_ms": 74.823
     },
     {
       "id": "neutral_energetic_01",
@@ -925,10 +1010,12 @@
       "emotion": "neutral",
       "style_tag": "energetic",
       "event": "thinking",
-      "carrier": "hm.",
-      "plain_tts_text": "hm.",
-      "tts_text": "[short pause] [calm] [soft sigh] [excited] [energetic] [loud] [hype] hm. [short pause]",
-      "audio_path": "audio/neutral/energetic/neutral_energetic_01.wav"
+      "carrier": "Hm.",
+      "plain_tts_text": "Hm.",
+      "tts_text": "Hm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/energetic/neutral_energetic_01.wav",
+      "latency_ms": 65.349
     },
     {
       "id": "neutral_energetic_02",
@@ -936,10 +1023,25 @@
       "emotion": "neutral",
       "style_tag": "energetic",
       "event": "thinking",
-      "carrier": "mm.",
-      "plain_tts_text": "mm.",
-      "tts_text": "[short pause] [calm] [soft sigh] [excited] [energetic] [loud] [hype] mm. [short pause]",
-      "audio_path": "audio/neutral/energetic/neutral_energetic_02.wav"
+      "carrier": "Mm.",
+      "plain_tts_text": "Mm.",
+      "tts_text": "Mm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/energetic/neutral_energetic_02.wav",
+      "latency_ms": 69.842
+    },
+    {
+      "id": "neutral_energetic_03",
+      "cell_id": "neutral_energetic",
+      "emotion": "neutral",
+      "style_tag": "energetic",
+      "event": "thinking",
+      "carrier": "Oh.",
+      "plain_tts_text": "Oh.",
+      "tts_text": "Oh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/energetic/neutral_energetic_03.wav",
+      "latency_ms": 74.939
     },
     {
       "id": "neutral_smug_01",
@@ -947,10 +1049,12 @@
       "emotion": "neutral",
       "style_tag": "smug",
       "event": "thinking",
-      "carrier": "hm.",
-      "plain_tts_text": "hm.",
-      "tts_text": "[short pause] [calm] [soft sigh] [smug] [playful] [cheeky] [confident] hm. [short pause]",
-      "audio_path": "audio/neutral/smug/neutral_smug_01.wav"
+      "carrier": "Hm.",
+      "plain_tts_text": "Hm.",
+      "tts_text": "Hm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/smug/neutral_smug_01.wav",
+      "latency_ms": 64.683
     },
     {
       "id": "neutral_smug_02",
@@ -958,10 +1062,25 @@
       "emotion": "neutral",
       "style_tag": "smug",
       "event": "thinking",
-      "carrier": "mm.",
-      "plain_tts_text": "mm.",
-      "tts_text": "[short pause] [calm] [soft sigh] [smug] [playful] [cheeky] [confident] mm. [short pause]",
-      "audio_path": "audio/neutral/smug/neutral_smug_02.wav"
+      "carrier": "Mm.",
+      "plain_tts_text": "Mm.",
+      "tts_text": "Mm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/smug/neutral_smug_02.wav",
+      "latency_ms": 65.377
+    },
+    {
+      "id": "neutral_smug_03",
+      "cell_id": "neutral_smug",
+      "emotion": "neutral",
+      "style_tag": "smug",
+      "event": "thinking",
+      "carrier": "Oh.",
+      "plain_tts_text": "Oh.",
+      "tts_text": "Oh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/smug/neutral_smug_03.wav",
+      "latency_ms": 74.739
     },
     {
       "id": "neutral_cute_01",
@@ -969,10 +1088,12 @@
       "emotion": "neutral",
       "style_tag": "cute",
       "event": "thinking",
-      "carrier": "hm.",
-      "plain_tts_text": "hm.",
-      "tts_text": "[short pause] [calm] [soft sigh] [cute] [soft] [bright] [high-pitched] hm. [short pause]",
-      "audio_path": "audio/neutral/cute/neutral_cute_01.wav"
+      "carrier": "Hm.",
+      "plain_tts_text": "Hm.",
+      "tts_text": "Hm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/cute/neutral_cute_01.wav",
+      "latency_ms": 66.947
     },
     {
       "id": "neutral_cute_02",
@@ -980,10 +1101,25 @@
       "emotion": "neutral",
       "style_tag": "cute",
       "event": "thinking",
-      "carrier": "mm.",
-      "plain_tts_text": "mm.",
-      "tts_text": "[short pause] [calm] [soft sigh] [cute] [soft] [bright] [high-pitched] mm. [short pause]",
-      "audio_path": "audio/neutral/cute/neutral_cute_02.wav"
+      "carrier": "Mm.",
+      "plain_tts_text": "Mm.",
+      "tts_text": "Mm.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/cute/neutral_cute_02.wav",
+      "latency_ms": 64.079
+    },
+    {
+      "id": "neutral_cute_03",
+      "cell_id": "neutral_cute",
+      "emotion": "neutral",
+      "style_tag": "cute",
+      "event": "thinking",
+      "carrier": "Oh.",
+      "plain_tts_text": "Oh.",
+      "tts_text": "Oh.",
+      "tts_engine": "stylebert_vits2",
+      "audio_path": "audio/neutral/cute/neutral_cute_03.wav",
+      "latency_ms": 76.983
     }
   ]
 }

@@ -1,0 +1,7 @@
+sample	latency_s	bytes	text	path
+01_train_like_fun	11.701	253996	Wow, today is going to be so much fun!	/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/reports/stylebert_vits2_voice_sample_finetune_2026-05-26/e160_s323/01_train_like_fun.wav
+02_train_like_day	0.176	164908	Hey, how is your day going?	/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/reports/stylebert_vits2_voice_sample_finetune_2026-05-26/e160_s323/02_train_like_day.wav
+03_short_react	0.162	162860	Please don't tease me like that.	/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/reports/stylebert_vits2_voice_sample_finetune_2026-05-26/e160_s323/03_short_react.wav
+04_keep_going	0.181	287788	Let's keep going and enjoy every minute together!	/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/reports/stylebert_vits2_voice_sample_finetune_2026-05-26/e160_s323/04_keep_going.wav
+05_come_back	0.156	144428	Will you come back next time?	/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/reports/stylebert_vits2_voice_sample_finetune_2026-05-26/e160_s323/05_come_back.wav
+06_stream_line	0.170	309292	You are finally here. Let's make this stream fun today.	/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/reports/stylebert_vits2_voice_sample_finetune_2026-05-26/e160_s323/06_stream_line.wav

@@ -15,6 +15,7 @@ from typing import Mapping
 
 
 INTENTS = ("QUESTION", "INFORM", "ACKNOWLEDGE", "DIRECTIVE", "EXPRESSIVE", "REJECT", "UNKNOWN")
+DISALLOWED_RESPONSE_INTENTS = {"QUESTION"}
 ROOT = Path(__file__).resolve().parent
 DATA_DERIVED_MATRIX_PATH = ROOT / "reports" / "intent_transition_matrix_from_swda.json"
 
@@ -81,8 +82,9 @@ TRANSITION_MATRIX: dict[str, dict[str, float]] = {
 
 EMOTION_BIAS: dict[str, dict[str, float]] = {
     "positive": {"EXPRESSIVE": 1.25, "ACKNOWLEDGE": 1.10},
-    "negative": {"ACKNOWLEDGE": 1.20, "QUESTION": 1.10, "REJECT": 0.75},
-    "ambiguous": {"QUESTION": 1.25, "ACKNOWLEDGE": 1.10},
+    "negative": {"ACKNOWLEDGE": 1.20, "REJECT": 0.75},
+    "ambiguous": {"ACKNOWLEDGE": 1.10},
+    "surprise": {"EXPRESSIVE": 1.15, "ACKNOWLEDGE": 1.10},
     "neutral": {"INFORM": 1.10, "ACKNOWLEDGE": 1.10},
 }
 
@@ -118,6 +120,12 @@ class IntentTransitionPlanner:
         for intent, multiplier in EMOTION_BIAS.get(emotion.lower(), {}).items():
             if intent in weights:
                 weights[intent] *= multiplier
+
+        for intent in DISALLOWED_RESPONSE_INTENTS:
+            weights.pop(intent, None)
+
+        if not any(max(value, 0.0) for value in weights.values()):
+            weights = {"ACKNOWLEDGE": 1.0}
 
         total = sum(max(value, 0.0) for value in weights.values()) or 1.0
         distribution = {intent: max(value, 0.0) / total for intent, value in weights.items()}

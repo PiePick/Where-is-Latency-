@@ -1,0 +1,34 @@
+{
+  "status": "OK",
+  "active_text_source": "separated_dataset_pool",
+  "pool": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json",
+  "static_persona_manifest_enabled": false,
+  "personality_id": "professor_lab_maid_v1",
+  "go_emotions": {
+    "total": 1131,
+    "counts": {
+      "POSITIVE": 320,
+      "NEGATIVE": 320,
+      "SURPRISE": 171,
+      "NEUTRAL": 320
+    }
+  },
+  "swda": {
+    "total": 1049,
+    "counts": {
+      "INFORM": 320,
+      "ACKNOWLEDGE": 158,
+      "DIRECTIVE": 173,
+      "EXPRESSIVE": 320,
+      "REJECT": 78
+    },
+    "excluded_response_acts": [
+      "QUESTION"
+    ]
+  },
+  "validation": {
+    "separate_source_datasets": true,
+    "question_response_act_items": 0,
+    "blocked_text_hits": 0
+  }
+}

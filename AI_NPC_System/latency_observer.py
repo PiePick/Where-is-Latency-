@@ -20,8 +20,9 @@ DEFAULT_MARKDOWN = DEFAULT_LOG_DIR / "latest_summary.md"
 
 MODULE_BY_STAGE = {
     "fast_track_analysis": "fasttrack_analysis",
-    "fast_track_interjection": "fasttrack_interjection",
+    "fast_track_interjection": "fasttrack_interjection_dispatch",
     "fast_track_tts_or_cache": "fasttrack_audio",
+    "fast_track_keyword_echo": "fasttrack_keyword_echo",
     "fast_track_waiting_audio": "fasttrack_waiting_audio",
     "latency_cover_plan": "cover_plan",
     "slow_track_llm": "slowtrack_llm",
@@ -36,6 +37,12 @@ MODULE_BY_STAGE = {
 MODULE_CSV_FIELDS = [
     "ts_local",
     "turn_id",
+    "experiment_run_id",
+    "experiment_factor",
+    "scenario",
+    "component_mode",
+    "selection_policy",
+    "scheduling_mode",
     "module",
     "stage",
     "elapsed_ms",
@@ -106,6 +113,7 @@ class LatencyLogger:
 
     def write_module_csv_row(self, record: dict[str, Any]) -> None:
         """Append one compact module-level CSV row for live inspection."""
+        self._ensure_module_csv_schema()
         metadata = record.get("metadata") if isinstance(record.get("metadata"), dict) else {}
         stage = str(record.get("stage", ""))
         text = str(record.get("text", "") or "").replace("\r", " ").replace("\n", " ")
@@ -116,6 +124,12 @@ class LatencyLogger:
         row = {
             "ts_local": datetime.now().astimezone().isoformat(timespec="seconds"),
             "turn_id": metadata.get("turn_id", ""),
+            "experiment_run_id": metadata.get("experiment_run_id", ""),
+            "experiment_factor": metadata.get("experiment_factor", ""),
+            "scenario": metadata.get("scenario", ""),
+            "component_mode": metadata.get("component_mode", ""),
+            "selection_policy": metadata.get("selection_policy", ""),
+            "scheduling_mode": metadata.get("scheduling_mode", ""),
             "module": MODULE_BY_STAGE.get(stage, stage),
             "stage": stage,
             "elapsed_ms": record.get("elapsed_ms", 0.0),
@@ -137,6 +151,23 @@ class LatencyLogger:
             if write_header:
                 writer.writeheader()
             writer.writerow(row)
+
+    def _ensure_module_csv_schema(self) -> None:
+        """Upgrade existing CSV logs when experiment-factor columns are introduced."""
+        if not self.module_csv_path.exists() or self.module_csv_path.stat().st_size == 0:
+            return
+        with self.module_csv_path.open("r", encoding="utf-8", newline="") as stream:
+            reader = csv.DictReader(stream)
+            if reader.fieldnames == MODULE_CSV_FIELDS:
+                return
+            existing_rows = list(reader)
+        temporary_path = self.module_csv_path.with_suffix(".csv.tmp")
+        with temporary_path.open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=MODULE_CSV_FIELDS)
+            writer.writeheader()
+            for existing_row in existing_rows:
+                writer.writerow({field: existing_row.get(field, "") for field in MODULE_CSV_FIELDS})
+        temporary_path.replace(self.module_csv_path)
 
     def write_summary(self) -> None:
         """Write the most recent events as a compact Markdown table."""

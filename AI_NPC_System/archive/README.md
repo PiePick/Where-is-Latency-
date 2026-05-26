@@ -9,5 +9,5 @@ This directory keeps assets that are not part of the current default runtime pat
 
 Current runtime assets remain outside this archive, especially:
 
-- `AI_NPC_System/persona_reaction_bundle_response_act_v1/`
-- `AI_NPC_System/expressive_interjection_bundle/`
+- `AI_NPC_System/fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/`
+- `AI_NPC_System/fasttrack_assets/audio/expressive_interjection_bundle/`

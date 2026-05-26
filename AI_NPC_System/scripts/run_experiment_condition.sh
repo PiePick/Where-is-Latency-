@@ -16,23 +16,25 @@ Usage:
   AI_NPC_System/scripts/run_experiment_condition.sh <condition> [run_credo_stack args...]
 
 Conditions:
-  no-cover
-    Disable FastTrack. SlowTrack LLM/TTS is the first response.
+  stylebert-no-fasttrack
+    Disable FastTrack. StyleBERT SlowTrack is the first audible response.
 
-  affective-cached-fish
-    Default condition. Use emotion/intent/response-act selection with the
-    pre-generated Fish Speech persona bundle.
+  stylebert-grounded-parallel
+    Use grounded emotion + SWDA response-act FastTrack with background prefetch.
 
-  piper-realtime
-    Use Piper as a lightweight realtime FastTrack TTS baseline.
+  stylebert-grounded-serial
+    Use grounded FastTrack, then start the next SlowTrack after playback.
 
-  slow-only-text-fallback
-    Disable FastTrack and allow Open-LLM-VTuber fallback TTS for debugging only.
+  stylebert-emotion-only
+    Use GoEmotions-only FastTrack mapping with background prefetch.
+
+  stylebert-response-act-only
+    Use SWDA response-act-only FastTrack mapping with background prefetch.
 
 Examples:
-  AI_NPC_System/scripts/run_experiment_condition.sh affective-cached-fish --profile live
-  AI_NPC_System/scripts/run_experiment_condition.sh no-cover --profile live
-  AI_NPC_System/scripts/run_experiment_condition.sh piper-realtime --profile live-piper
+  AI_NPC_System/scripts/run_experiment_condition.sh stylebert-no-fasttrack --profile live
+  AI_NPC_System/scripts/run_experiment_condition.sh stylebert-grounded-parallel --profile live
+  AI_NPC_System/scripts/run_experiment_condition.sh stylebert-response-act-only --profile live
 USAGE
 }
 
@@ -42,34 +44,82 @@ if [[ -z "${CONDITION}" || "${CONDITION}" == "-h" || "${CONDITION}" == "--help" 
 fi
 
 case "${CONDITION}" in
-  no-cover)
-    export CREDO_EXPERIMENT_CONDITION="no-cover"
+  stylebert-no-fasttrack|edge-no-cover)
+    export CREDO_EXPERIMENT_CONDITION="stylebert-no-fasttrack"
     export FAST_TRACK_ENABLED="0"
+    export FAST_TRACK_TTS_MODE="stylebert_vits2"
     export FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
-    export SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
-    ;;
-  affective-cached-fish)
-    export CREDO_EXPERIMENT_CONDITION="affective-cached-fish"
-    export FAST_TRACK_ENABLED="1"
-    export FAST_TRACK_TTS_MODE="cached_fish_bundle"
-    export FAST_TRACK_PERSONA_BUNDLE_ENABLED="1"
-    export FAST_TRACK_PERSONA_BUNDLE_FILE="fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/manifest.json"
-    export FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
-    export SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
-    ;;
-  piper-realtime)
-    export CREDO_EXPERIMENT_CONDITION="piper-realtime"
-    export FAST_TRACK_ENABLED="1"
-    export FAST_TRACK_TTS_MODE="piper_tts"
-    export FAST_TRACK_PERSONA_BUNDLE_ENABLED="0"
-    export FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
-    export SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
-    ;;
-  slow-only-text-fallback)
-    export CREDO_EXPERIMENT_CONDITION="slow-only-text-fallback"
-    export FAST_TRACK_ENABLED="0"
-    export FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
+    export OPEN_LLM_VTUBER_TTS_MODEL="stylebert_vits2"
+    export OPEN_LLM_VTUBER_SLOW_TTS_MODE="open_llm"
     export SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="1"
+    export CREDO_FASTTRACK_COMPONENT_MODE="none"
+    export CREDO_FASTTRACK_SELECTION_POLICY="grounded"
+    export CREDO_CONTEXT_SCHEDULING_MODE="serial"
+    export CREDO_VTUBER_SLOW_PREFETCH_ENABLED="0"
+    ;;
+  stylebert-grounded-serial|edge-fasttrack)
+    export CREDO_EXPERIMENT_CONDITION="stylebert-grounded-serial"
+    export FAST_TRACK_ENABLED="1"
+    export FAST_TRACK_TTS_MODE="stylebert_vits2"
+    export FAST_TRACK_PERSONA_BUNDLE_ENABLED="0"
+    export FAST_TRACK_DATASET_POOL_FILE="fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json"
+    export FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
+    export FAST_TRACK_PREBUILT_ONLY="0"
+    export OPEN_LLM_VTUBER_TTS_MODEL="stylebert_vits2"
+    export OPEN_LLM_VTUBER_SLOW_TTS_MODE="open_llm"
+    export SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="1"
+    export CREDO_FASTTRACK_COMPONENT_MODE="both"
+    export CREDO_FASTTRACK_SELECTION_POLICY="grounded"
+    export CREDO_CONTEXT_SCHEDULING_MODE="serial"
+    export CREDO_VTUBER_SLOW_PREFETCH_ENABLED="0"
+    ;;
+  stylebert-grounded-parallel|edge-async-cover)
+    export CREDO_EXPERIMENT_CONDITION="stylebert-grounded-parallel"
+    export FAST_TRACK_ENABLED="1"
+    export FAST_TRACK_TTS_MODE="stylebert_vits2"
+    export FAST_TRACK_PERSONA_BUNDLE_ENABLED="0"
+    export FAST_TRACK_DATASET_POOL_FILE="fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json"
+    export FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
+    export FAST_TRACK_PREBUILT_ONLY="0"
+    export OPEN_LLM_VTUBER_TTS_MODEL="stylebert_vits2"
+    export OPEN_LLM_VTUBER_SLOW_TTS_MODE="open_llm"
+    export SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="1"
+    export CREDO_FASTTRACK_COMPONENT_MODE="both"
+    export CREDO_FASTTRACK_SELECTION_POLICY="grounded"
+    export CREDO_CONTEXT_SCHEDULING_MODE="parallel"
+    export CREDO_VTUBER_SLOW_PREFETCH_ENABLED="1"
+    ;;
+  stylebert-emotion-only)
+    export CREDO_EXPERIMENT_CONDITION="stylebert-emotion-only"
+    export FAST_TRACK_ENABLED="1"
+    export FAST_TRACK_TTS_MODE="stylebert_vits2"
+    export FAST_TRACK_PERSONA_BUNDLE_ENABLED="0"
+    export FAST_TRACK_DATASET_POOL_FILE="fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json"
+    export FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
+    export FAST_TRACK_PREBUILT_ONLY="0"
+    export OPEN_LLM_VTUBER_TTS_MODEL="stylebert_vits2"
+    export OPEN_LLM_VTUBER_SLOW_TTS_MODE="open_llm"
+    export SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="1"
+    export CREDO_FASTTRACK_COMPONENT_MODE="both"
+    export CREDO_FASTTRACK_SELECTION_POLICY="emotion_only"
+    export CREDO_CONTEXT_SCHEDULING_MODE="parallel"
+    export CREDO_VTUBER_SLOW_PREFETCH_ENABLED="1"
+    ;;
+  stylebert-response-act-only)
+    export CREDO_EXPERIMENT_CONDITION="stylebert-response-act-only"
+    export FAST_TRACK_ENABLED="1"
+    export FAST_TRACK_TTS_MODE="stylebert_vits2"
+    export FAST_TRACK_PERSONA_BUNDLE_ENABLED="0"
+    export FAST_TRACK_DATASET_POOL_FILE="fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json"
+    export FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"
+    export FAST_TRACK_PREBUILT_ONLY="0"
+    export OPEN_LLM_VTUBER_TTS_MODEL="stylebert_vits2"
+    export OPEN_LLM_VTUBER_SLOW_TTS_MODE="open_llm"
+    export SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="1"
+    export CREDO_FASTTRACK_COMPONENT_MODE="both"
+    export CREDO_FASTTRACK_SELECTION_POLICY="response_act_only"
+    export CREDO_CONTEXT_SCHEDULING_MODE="parallel"
+    export CREDO_VTUBER_SLOW_PREFETCH_ENABLED="1"
     ;;
   *)
     echo "Unknown condition: ${CONDITION}" >&2

@@ -16,6 +16,7 @@ import socket
 import subprocess
 import sys
 import time
+import urllib.parse
 import urllib.request
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -28,6 +29,7 @@ RUNTIME_DIR = AI_NPC_DIR / "runtime"
 LOG_DIR = RUNTIME_DIR / "logs"
 PID_DIR = RUNTIME_DIR / "pids"
 STATE_PATH = RUNTIME_DIR / "credo_stack_state.json"
+PROJECT_CONFIG_PATH = AI_NPC_DIR / "project_config.sh"
 
 
 @dataclass(frozen=True)
@@ -62,6 +64,12 @@ SERVICES: dict[str, StackService] = {
         health_url="http://127.0.0.1:8001/v1/models",
         startup_timeout=600.0,
     ),
+    "stylebert": StackService(
+        name="stylebert",
+        command=("AI_NPC_System/scripts/start_stylebert_vits2_server.sh",),
+        health_url="http://127.0.0.1:5000/docs",
+        startup_timeout=240.0,
+    ),
     "piper": StackService(
         name="piper",
         command=("AI_NPC_System/scripts/start_piper_fasttrack_tts_server.sh",),
@@ -79,10 +87,12 @@ SERVICES: dict[str, StackService] = {
 }
 
 PROFILES = {
-    "live": ("fish", "llm", "open-llm"),
-    "live-piper": ("fish", "llm", "piper", "open-llm"),
-    "live-no-piper": ("fish", "llm", "open-llm"),
+    "live": ("stylebert", "llm", "open-llm"),
+    "live-piper": ("llm", "piper", "open-llm"),
+    "live-no-piper": ("llm", "open-llm"),
+    "live-stylebert": ("stylebert", "llm", "open-llm"),
     "cache": ("fish",),
+    "stylebert-only": ("stylebert",),
     "llm-only": ("llm",),
 }
 
@@ -97,6 +107,126 @@ def health_ok(url: str, timeout: float = 15.0) -> bool:
             return 200 <= response.status < 500
     except Exception:
         return False
+
+
+def load_project_env() -> dict[str, str]:
+    """Read simple `export KEY=value` entries from project_config.sh."""
+    env = dict(os.environ)
+    if not PROJECT_CONFIG_PATH.exists():
+        return env
+    for raw_line in PROJECT_CONFIG_PATH.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line.startswith("export ") or "=" not in line:
+            continue
+        key, value = line[len("export ") :].split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            env[key] = value
+    return env
+
+
+def post_json(url: str, payload: dict[str, object], *, timeout: float) -> dict[str, object]:
+    """POST JSON and parse a JSON response when present."""
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as response:
+        body = response.read().decode("utf-8", errors="replace")
+    if not body.strip():
+        return {}
+    return json.loads(body)
+
+
+def warmup_stylebert(*, timeout: float) -> None:
+    """Eliminate StyleBERT cold first-synthesis latency before live use."""
+    env = load_project_env()
+    voice_url = env.get("STYLEBERT_VITS2_VOICE_URL") or f"{env.get('STYLEBERT_VITS2_BASE_URL', 'http://127.0.0.1:5000')}/voice"
+    params = {
+        "text": env.get("CREDO_STYLEBERT_WARMUP_TEXT", "Warmup."),
+        "model_id": env.get("STYLEBERT_VITS2_MODEL_ID", "0"),
+        "speaker_id": env.get("STYLEBERT_VITS2_SPEAKER_ID", "0"),
+        "style": env.get("STYLEBERT_VITS2_STYLE", "Neutral"),
+        "style_weight": env.get("STYLEBERT_VITS2_STYLE_WEIGHT", "1.0"),
+        "sdp_ratio": env.get("STYLEBERT_VITS2_SDP_RATIO", "0.2"),
+        "noise": env.get("STYLEBERT_VITS2_NOISE", "0.55"),
+        "noisew": env.get("STYLEBERT_VITS2_NOISEW", "0.7"),
+        "length": env.get("STYLEBERT_VITS2_LENGTH", "0.95"),
+        "language": env.get("STYLEBERT_VITS2_LANGUAGE", "EN"),
+    }
+    model_name = env.get("STYLEBERT_VITS2_MODEL_NAME", "")
+    if model_name:
+        params["model_name"] = model_name
+    separator = "&" if "?" in voice_url else "?"
+    url = f"{voice_url}{separator}{urllib.parse.urlencode(params)}"
+    req = urllib.request.Request(url, headers={"Accept": "audio/wav"}, method="POST")
+    started = time.perf_counter()
+    with urllib.request.urlopen(req, timeout=timeout) as response:
+        audio = response.read()
+    elapsed = (time.perf_counter() - started) * 1000.0
+    if response.status >= 400 or len(audio) < 128:
+        raise RuntimeError(f"StyleBERT warmup returned status={response.status}, bytes={len(audio)}")
+    log(f"stylebert: warmup synthesized {len(audio)} bytes in {elapsed:.1f} ms")
+
+
+def warmup_llm(*, timeout: float) -> None:
+    """Eliminate local LLM cold first-token/model-load latency before live use."""
+    env = load_project_env()
+    base_url = env.get("LOCAL_LLM_BASE_URL", "http://127.0.0.1:8001/v1").rstrip("/")
+    model = env.get("LOCAL_LLM_MODEL", "qwen2.5:7b")
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": "You are a startup warmup probe. Reply with OK only."},
+            {"role": "user", "content": "warmup"},
+        ],
+        "max_tokens": 4,
+        "temperature": 0.0,
+        "stream": False,
+    }
+    started = time.perf_counter()
+    response = post_json(f"{base_url}/chat/completions", payload, timeout=timeout)
+    elapsed = (time.perf_counter() - started) * 1000.0
+    choices = response.get("choices") if isinstance(response, dict) else None
+    if not choices:
+        raise RuntimeError("LLM warmup returned no choices")
+    log(f"llm: warmup chat completion finished in {elapsed:.1f} ms")
+
+
+def warmup_open_llm(*, timeout: float) -> None:
+    """Touch the Open-LLM-VTuber CREDO status route after server startup."""
+    url = "http://127.0.0.1:12393/credo/vtuber-mode/status"
+    started = time.perf_counter()
+    with urllib.request.urlopen(url, timeout=timeout) as response:
+        response.read()
+    elapsed = (time.perf_counter() - started) * 1000.0
+    if response.status >= 400:
+        raise RuntimeError(f"Open-LLM status warmup returned HTTP {response.status}")
+    log(f"open-llm: warmup status route finished in {elapsed:.1f} ms")
+
+
+def warmup_service(name: str, *, timeout: float, required: bool) -> None:
+    """Run service-specific warmup probes so first live turn is not cold."""
+    warmers = {
+        "stylebert": warmup_stylebert,
+        "llm": warmup_llm,
+        "open-llm": warmup_open_llm,
+    }
+    warmer = warmers.get(name)
+    if warmer is None:
+        return
+    log(f"{name}: warmup starting")
+    try:
+        warmer(timeout=timeout)
+    except Exception as exc:
+        detail = f"{type(exc).__name__}: {exc}"
+        if required:
+            raise RuntimeError(f"{name}: warmup failed ({detail})") from exc
+        log(f"{name}: optional warmup failed ({detail})")
 
 
 def tcp_open(url: str, timeout: float = 1.0) -> bool:
@@ -193,6 +323,8 @@ def monitor(
     max_restarts: int,
     no_restart: bool,
     http_timeout: float,
+    warmup_enabled: bool,
+    warmup_timeout: float,
 ) -> int:
     log("stack: entering monitor loop")
     while True:
@@ -227,6 +359,8 @@ def monitor(
             runtime.restarts += 1
             log(f"{name}: restarting ({runtime.restarts}/{max_restarts})")
             restarted = start_service(service, http_timeout=http_timeout)
+            if warmup_enabled:
+                warmup_service(name, timeout=warmup_timeout, required=service.required)
             restarted.restarts = runtime.restarts
             runtimes[name] = restarted
         time.sleep(interval)
@@ -257,7 +391,18 @@ def main() -> int:
         "--health-timeout",
         type=float,
         default=30.0,
-        help="Per-health-check timeout. Keep this above Fish Speech single-request latency to avoid busy/dead confusion.",
+        help="Per-health-check timeout. Increase this only for archived cache generation while Fish Speech is busy.",
+    )
+    parser.add_argument(
+        "--warmup-timeout",
+        type=float,
+        default=120.0,
+        help="Timeout for first-request warmup probes after service health is ready.",
+    )
+    parser.add_argument(
+        "--no-warmup",
+        action="store_true",
+        help="Skip first-request warmup probes. Not recommended for live experiments.",
     )
     args = parser.parse_args()
 
@@ -281,12 +426,16 @@ def main() -> int:
     try:
         for name in services:
             runtimes[name] = start_service(SERVICES[name], http_timeout=args.health_timeout)
+            if not args.no_warmup:
+                warmup_service(name, timeout=args.warmup_timeout, required=SERVICES[name].required)
         return monitor(
             runtimes,
             interval=args.monitor_interval,
             max_restarts=args.max_restarts,
             no_restart=args.no_restart,
             http_timeout=args.health_timeout,
+            warmup_enabled=not args.no_warmup,
+            warmup_timeout=args.warmup_timeout,
         )
     except KeyboardInterrupt:
         log("stack: interrupted")

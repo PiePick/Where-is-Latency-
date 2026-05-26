@@ -40,8 +40,8 @@ ENGINES: dict[str, Engine] = {
     "edge": Engine(
         name="edge",
         open_llm_tts_model="edge_tts",
-        fast_track_tts_mode=None,
-        description="Open-LLM-VTuber 기본 권장권에 가까운 Microsoft Edge TTS. 빠르고 영어 안정성이 좋지만 voice clone은 안 된다.",
+        fast_track_tts_mode="edge_tts",
+        description="Open-LLM-VTuber 기본 TTS인 Microsoft Edge TTS. FastTrack/SlowTrack 실시간 영어 경로이며 voice clone은 안 된다.",
     ),
     "cosyvoice2": Engine(
         name="cosyvoice2",
@@ -69,9 +69,9 @@ ENGINES: dict[str, Engine] = {
     ),
     "stylebert": Engine(
         name="stylebert",
-        open_llm_tts_model=None,
+        open_llm_tts_model="stylebert_vits2",
         fast_track_tts_mode="stylebert_vits2",
-        description="Legacy FastTrack TTS. 현재 로컬 자산은 JP 성향이라 English 실험 기본값으로는 비권장.",
+        description="CREDO VoiceSample-finetuned English StyleBERT voice for both FastTrack and Open-LLM SlowTrack.",
         health_url="http://127.0.0.1:5000/docs",
         start_command="AI_NPC_System/scripts/start_stylebert_vits2_server.sh",
     ),
@@ -158,6 +158,20 @@ def replace_yaml_key_in_block(conf_text: str, block_name: str, key: str, value: 
     return conf_text[:block_start] + block + conf_text[block_end:]
 
 
+def ensure_yaml_block_in_tts_config(conf_text: str, block_name: str) -> str:
+    if re.search(rf"(?m)^    {re.escape(block_name)}:\n", conf_text):
+        return conf_text
+    marker = "  tts_config:\n"
+    start = conf_text.find(marker)
+    if start < 0:
+        raise SystemExit(f"Could not find tts_config block in {CONF_PATH}")
+    tts_model = re.search(r"(?m)^    tts_model:\s*.*$", conf_text[start:])
+    if not tts_model:
+        raise SystemExit(f"Could not find tts_model line in {CONF_PATH}")
+    insert_at = start + tts_model.end()
+    return conf_text[:insert_at] + f"\n    {block_name}:\n" + conf_text[insert_at:]
+
+
 def set_project_export(text: str, key: str, value: str) -> str:
     line = f'export {key}="{value}"'
     pattern = re.compile(rf"(?m)^export {re.escape(key)}=.*$")
@@ -242,17 +256,52 @@ def apply_selection(args: argparse.Namespace, engine: Engine) -> dict[str, objec
             conf_text = replace_yaml_key_in_block(conf_text, "cosyvoice2_tts", "stream", "false")
             conf_text = replace_yaml_key_in_block(conf_text, "cosyvoice2_tts", "seed", "20260520")
             conf_text = replace_yaml_key_in_block(conf_text, "cosyvoice2_tts", "speed", "1.0")
+        if engine.open_llm_tts_model == "stylebert_vits2":
+            conf_text = ensure_yaml_block_in_tts_config(conf_text, "stylebert_vits2")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "base_url", "http://127.0.0.1:5000")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "voice_url", "http://127.0.0.1:5000/voice")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "health_url", "http://127.0.0.1:5000/docs")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "output_dir", str(AI_NPC_DIR / "tts_outputs" / "stylebert_fast"))
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "timeout", "30.0")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "model_id", "0")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "model_name", "credo_voice_sample_en")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "speaker_id", "0")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "style", "Neutral")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "style_weight", "1.0")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "sdp_ratio", "0.2")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "noise", "0.55")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "noisew", "0.7")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "length", "0.95")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "language", "EN")
         if write_text_if_changed(CONF_PATH, conf_text, args.dry_run):
             changed.append(str(CONF_PATH))
 
         project_text = read_text(PROJECT_CONFIG_PATH)
         project_text = set_project_export(project_text, "OPEN_LLM_VTUBER_TTS_MODEL", engine.open_llm_tts_model)
+        if engine.open_llm_tts_model == "edge_tts":
+            project_text = set_project_export(project_text, "OPEN_LLM_VTUBER_SLOW_TTS_MODE", "edge_tts")
+            project_text = set_project_export(project_text, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", "0")
+        elif engine.open_llm_tts_model == "stylebert_vits2":
+            project_text = set_project_export(project_text, "OPEN_LLM_VTUBER_SLOW_TTS_MODE", "open_llm")
+            project_text = set_project_export(project_text, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", "1")
         if write_text_if_changed(PROJECT_CONFIG_PATH, project_text, args.dry_run):
             changed.append(str(PROJECT_CONFIG_PATH))
 
     if engine.fast_track_tts_mode:
         project_text = read_text(PROJECT_CONFIG_PATH)
         project_text = set_project_export(project_text, "FAST_TRACK_TTS_MODE", engine.fast_track_tts_mode)
+        if engine.fast_track_tts_mode == "stylebert_vits2":
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_MODEL_NAME", "credo_voice_sample_en")
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_LANGUAGE", "EN")
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_DEVICE", "cuda")
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_STYLE_WEIGHT", "1.0")
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_SDP_RATIO", "0.2")
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_NOISE", "0.55")
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_NOISEW", "0.7")
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_LENGTH", "0.95")
+        if engine.fast_track_tts_mode == "edge_tts":
+            project_text = set_project_export(project_text, "FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", "0")
+            project_text = set_project_export(project_text, "FAST_TRACK_PREBUILT_ONLY", "0")
         if write_text_if_changed(PROJECT_CONFIG_PATH, project_text, args.dry_run):
             changed.append(str(PROJECT_CONFIG_PATH))
 

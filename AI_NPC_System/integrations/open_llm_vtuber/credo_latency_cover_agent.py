@@ -28,6 +28,7 @@ DEFAULT_EXPRESSION_TAGS = {
     "positive": ["joy", "happy", "smile", "positive_01"],
     "negative": ["sadness", "sad", "worried", "negative_01"],
     "ambiguous": ["surprise", "confused", "ambiguous_01"],
+    "surprise": ["surprise", "confused", "ambiguous_01"],
     "neutral": ["neutral", "idle", "neutral_01"],
 }
 
@@ -46,6 +47,7 @@ MOTION_PROFILE_BY_EMOTION = {
     "positive": "bright",
     "negative": "low",
     "ambiguous": "alert",
+    "surprise": "alert",
     "neutral": "steady",
 }
 
@@ -73,10 +75,10 @@ class CredoLatencyCoverAgent(AgentInterface):
         self.system_prompt = system_prompt
         self.live2d_model = live2d_model
         self.character_avatar = character_avatar
-        self.character_name = str(self.settings.get("character_name", "AI"))
+        self.character_name = str(self.settings.get("character_name", "Professor's Lab Maid"))
         self.use_fast_audio = bool(self.settings.get("use_fast_audio", True))
         self.slow_enabled = bool(self.settings.get("slow_enabled", True))
-        self.slow_tts_mode = str(self.settings.get("slow_tts_mode", "credo_fish_speech"))
+        self.slow_tts_mode = str(self.settings.get("slow_tts_mode", "open_llm"))
         self.speech_emotion_motion_enabled = bool(self.settings.get("speech_emotion_motion_enabled", True))
         self.record_memory = bool(self.settings.get("record_memory", True))
         self.expression_map = self.settings.get("expression_map") or DEFAULT_EXPRESSION_TAGS
@@ -106,6 +108,9 @@ class CredoLatencyCoverAgent(AgentInterface):
         self._slow_fish_tts_lock = asyncio.Lock()
         if self.slow_tts_mode == "credo_fish_speech":
             self.fish_tts = self._tts_client.FishSpeechTTSClient()
+        self.edge_tts = None
+        if self.slow_tts_mode == "edge_tts" or self._credo_config.FAST_TRACK_TTS_MODE == "edge_tts":
+            self.edge_tts = self._edge_tts_client.EdgeTTSClient()
         self.fast_stylebert_tts = None
         if self._credo_config.FAST_TRACK_TTS_MODE == "stylebert_vits2":
             self.fast_stylebert_tts = self._stylebert_vits2_client.StyleBertVITS2Client()
@@ -124,6 +129,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             enabled=getattr(self._credo_config, "FAST_TRACK_PERSONA_BUNDLE_ENABLED", False),
             seed=self.settings.get("seed"),
             expected_reference_id=self._credo_config.FAST_TRACK_AUDIO_CACHE_REFERENCE_ID,
+            strict_reference=self._credo_config.FAST_TRACK_TTS_MODE == "cached_fish_bundle",
             personality_id=getattr(self._credo_config, "FAST_TRACK_PERSONA_ID", None),
         )
         if self.fast_track_enabled:
@@ -137,6 +143,23 @@ class CredoLatencyCoverAgent(AgentInterface):
         if isinstance(value, bool):
             return value
         return str(value).strip().lower() not in {"0", "false", "no", "off", "none"}
+
+    def _fasttrack_component_mode(self) -> str:
+        """Return whether the fixed FastTrack sequence is enabled."""
+        mode = str(getattr(self._credo_config, "CREDO_FASTTRACK_COMPONENT_MODE", "both")).lower()
+        return mode if mode in {"both", "none"} else "both"
+
+    def _language_fasttrack_enabled(self) -> bool:
+        return self._fasttrack_component_mode() == "both"
+
+    def _nonverbal_fasttrack_enabled(self) -> bool:
+        # Sealed for the current experiment set: FastTrack must not emit
+        # standalone interjection audio. Speech may still carry emotion motion.
+        return False
+
+    def _fasttrack_selection_policy(self) -> str:
+        policy = str(getattr(self._credo_config, "CREDO_FASTTRACK_SELECTION_POLICY", "grounded")).lower()
+        return policy if policy in {"grounded", "emotion_only", "response_act_only", "neutral_random", "none"} else "grounded"
 
     def _warm_fast_track_models(self) -> None:
         """Load FastTrack classifiers during server startup, before live turns arrive."""
@@ -171,22 +194,26 @@ class CredoLatencyCoverAgent(AgentInterface):
         import fast_track
         import slow_track
         import tts_client
+        import edge_tts_client
         import stylebert_vits2_client
         import piper_tts_client
         import fast_track_audio_cache
         import cover_composer
         import latency_observer
+        import fasttrack_router_v3
         from memory_store import MemoryStore
 
         self._credo_config = credo_config
         self._fast_track = fast_track
         self._slow_track = slow_track
         self._tts_client = tts_client
+        self._edge_tts_client = edge_tts_client
         self._stylebert_vits2_client = stylebert_vits2_client
         self._piper_tts_client = piper_tts_client
         self._fast_track_audio_cache = fast_track_audio_cache
         self._cover_composer = cover_composer
         self._latency_observer = latency_observer
+        self._fasttrack_router_v3 = fasttrack_router_v3
         self._memory_store = type("_MemoryModule", (), {"MemoryStore": MemoryStore})
 
     async def chat(self, input_data: BaseInput) -> AsyncIterator[AudioOutput | SentenceOutput]:
@@ -204,7 +231,20 @@ class CredoLatencyCoverAgent(AgentInterface):
                 f"event={metadata.get('vtuber_event')}, surface={user_text[:80]!r}"
             )
 
-        if not self.fast_track_enabled:
+        early_prefetched_slow = self._take_ready_vtuber_slow_prefetch(metadata)
+        if early_prefetched_slow is not None:
+            async for output in self._emit_prefetched_slow_bypass(
+                early_prefetched_slow,
+                user_text=user_text,
+                metadata=metadata,
+                turn_started=turn_started,
+                turn_id=turn_id,
+                reason="prefetch_queue_ready_at_turn_start",
+            ):
+                yield output
+            return
+
+        if not self.fast_track_enabled or self._fasttrack_component_mode() == "none":
             logger.info("CREDO FastTrack disabled; running SlowTrack-only turn.")
             async for output in self._chat_slow_only(
                 user_text,
@@ -227,22 +267,34 @@ class CredoLatencyCoverAgent(AgentInterface):
             yield output
             return
 
-        prefetched_task = self._vtuber_slow_prefetch_task
-        prefetch_ready_for_turn = bool(
-            self._vtuber_slow_prefetch_enabled(metadata)
-            and prefetched_task is not None
-            and prefetched_task.done()
-        )
-        initial_interjection_sent = False
-        if metadata.get("vtuber_mode") and metadata.get("emotion") and not prefetch_ready_for_turn:
-            early_emotion = self._normalize_emotion(str(metadata.get("emotion")))
-            early_interjections = self._build_initial_interjection_outputs(early_emotion, turn_id)
-            for interjection in early_interjections:
-                yield interjection
-            initial_interjection_sent = bool(early_interjections)
-
         fast_started = time.perf_counter()
-        fast_result = await asyncio.to_thread(self._fast_track.analyze_and_react, user_text)
+        route_v3 = None
+        if getattr(self._credo_config, "FASTTRACK_ROUTER_V3_ENABLED", True):
+            try:
+                route_v3 = await self._fasttrack_router_v3.analyze_and_route_chat_v3(
+                    user_text,
+                    self._vtuber_slow_prefetch_task,
+                )
+            except Exception as exc:
+                logger.warning(f"CREDO FastTrack router v3 unavailable; falling back to legacy route: {exc}")
+        if route_v3 and route_v3.get("bypass"):
+            prefetched_slow = self._take_ready_vtuber_slow_prefetch(metadata)
+            if prefetched_slow is not None:
+                async for output in self._emit_prefetched_slow_bypass(
+                    prefetched_slow,
+                    user_text=user_text,
+                    metadata=metadata,
+                    turn_started=turn_started,
+                    turn_id=turn_id,
+                    reason="router_v3_prefetch_queue",
+                ):
+                    yield output
+                return
+        fast_result = (
+            self._fast_result_from_route_v3(route_v3)
+            if route_v3
+            else await asyncio.to_thread(self._fast_track.analyze_and_react, user_text)
+        )
         self._log_latency(
             "fast_track_analysis",
             fast_started,
@@ -272,24 +324,63 @@ class CredoLatencyCoverAgent(AgentInterface):
         if metadata.get("vtuber_mode") and metadata.get("emotion"):
             emotion = self._normalize_emotion(str(metadata.get("emotion")))
             fast_result["emotion_label"] = emotion
-        intent = self._classify_intent(user_text)
-        style_tag = self._style_tag_for_emotion(emotion)
-        if metadata.get("vtuber_mode") and metadata.get("style_tag"):
-            style_tag = str(metadata.get("style_tag")).strip().lower() or style_tag
-        persona_cover = self.persona_reaction_bundle.choose(emotion, intent, style_tag)
+        intent = str(fast_result.get("intent_label") or self._classify_intent(user_text)).upper()
+        style_tag = ""
+        selection_policy = self._fasttrack_selection_policy()
+        response_act = str(fast_result.get("response_act") or (route_v3 or {}).get("response_act") or "").upper()
+        if not response_act:
+            response_act = self.persona_reaction_bundle.sample_response_act(intent)
+        response_act = self._fast_track_audio_cache.normalize_response_act(response_act)
+        persona_cover = None
+        if selection_policy == "emotion_only":
+            persona_cover = self.persona_reaction_bundle.choose_by_emotion(emotion)
+        elif selection_policy == "response_act_only":
+            persona_cover = self.persona_reaction_bundle.choose_by_response_act_only(response_act)
+        elif selection_policy == "neutral_random":
+            persona_cover = self.persona_reaction_bundle.choose_neutral_random()
+        elif route_v3 and route_v3.get("top3_reactions"):
+            first = route_v3["top3_reactions"][0]
+            persona_cover = self._cover_from_route_candidate(first) or persona_cover
+        if persona_cover is None:
+            persona_cover = self.persona_reaction_bundle.choose(emotion, intent)
         if persona_cover:
             fast_plain_text = self._clean_spoken_text(persona_cover.plain_tts_text)
             fast_raw_tts_text = persona_cover.tts_text
             fast_tts_text = self._prepare_fast_tts_text(fast_raw_tts_text, fast_plain_text)
             fast_display_text = self._with_response_gap(fast_plain_text)
             fast_result["reaction_source"] = persona_cover.source
-            fast_result["fast_audio_path"] = str(persona_cover.audio_path) if persona_cover.audio_path else None
-            fast_result["fast_audio_cache_path"] = str(persona_cover.audio_path) if persona_cover.audio_path else None
-            fast_result["fast_audio_cache_hit"] = bool(persona_cover.audio_path and persona_cover.audio_path.exists())
+            use_cached_audio = self._credo_config.FAST_TRACK_TTS_MODE == "cached_fish_bundle"
+            fast_result["fast_audio_path"] = (
+                str(persona_cover.audio_path) if use_cached_audio and persona_cover.audio_path else None
+            )
+            fast_result["fast_audio_cache_path"] = fast_result["fast_audio_path"]
+            fast_result["fast_audio_cache_hit"] = bool(
+                use_cached_audio and persona_cover.audio_path and persona_cover.audio_path.exists()
+            )
             fast_result["persona_bundle_id"] = persona_cover.cache_id
             fast_result["persona_style_tag"] = style_tag
             fast_result["persona_response_act"] = persona_cover.response_act
+            fast_result["persona_text_pool_used"] = True
+        fast_result["selection_policy"] = selection_policy
+        fast_result["response_act"] = response_act
         speech_actions = self._speech_actions(emotion, style_tag=style_tag, text=fast_plain_text)
+        self.latency_logger.log(
+            self._latency_observer.LatencyEvent(
+                stage="emotion_motion_payload",
+                elapsed_ms=0.0,
+                text="",
+                engine="live2d_speech_emotion_motion",
+                metadata={
+                    **self._experiment_metadata(),
+                    "turn_id": turn_id,
+                    "emotion": emotion,
+                    "intent": intent,
+                    "actions": list(speech_actions.expressions or []),
+                    "mouth_owner": "audio_lipsync",
+                    "nonverbal_fasttrack_enabled": self._nonverbal_fasttrack_enabled(),
+                },
+            )
+        )
 
         logger.info(
             "CREDO FastTrack cover: "
@@ -333,7 +424,7 @@ class CredoLatencyCoverAgent(AgentInterface):
                 "vtuber_slow_prefetch_fasttrack_skip",
                 turn_started,
                 text=slow_text,
-                engine="prefetched_fish_speech",
+                engine="prefetched_edge_tts" if slow_audio else "prefetched_text",
                 metadata={
                     "audio_path": str(slow_audio) if slow_audio else None,
                     "emotion": emotion,
@@ -404,12 +495,12 @@ class CredoLatencyCoverAgent(AgentInterface):
             )
             return
 
-        if not initial_interjection_sent:
-            for interjection in self._build_initial_interjection_outputs(emotion, turn_id):
-                yield interjection
-
         fast_audio_started = time.perf_counter()
-        fast_audio_path = await self._resolve_fast_audio(fast_result, fast_tts_text, emotion=emotion)
+        fast_audio_path = (
+            await self._resolve_fast_audio(fast_result, fast_tts_text, emotion=emotion)
+            if self._language_fasttrack_enabled()
+            else None
+        )
         self._log_latency(
             "fast_track_tts_or_cache",
             fast_audio_started,
@@ -419,11 +510,16 @@ class CredoLatencyCoverAgent(AgentInterface):
                 "audio_path": str(fast_audio_path) if fast_audio_path else None,
                 "emotion": emotion,
                 "intent": intent,
+                "component_mode": self._fasttrack_component_mode(),
+                "selection_policy": selection_policy,
                 "style_tag": style_tag,
                 "persona_style_tag": fast_result.get("persona_style_tag"),
                 "response_act": fast_result.get("persona_response_act"),
                 "persona_response_act": fast_result.get("persona_response_act"),
-                "fast_audio_cache_hit": bool(fast_audio_path and Path(str(fast_audio_path)).exists()),
+                "fast_audio_cache_hit": bool(fast_result.get("fast_audio_cache_hit")),
+                "realtime_synthesized": bool(
+                    fast_audio_path and self._credo_config.FAST_TRACK_TTS_MODE == "edge_tts"
+                ),
                 "turn_id": turn_id,
                 "vtuber_mode": bool(metadata.get("vtuber_mode")),
                 "vtuber_event": metadata.get("vtuber_event"),
@@ -444,18 +540,24 @@ class CredoLatencyCoverAgent(AgentInterface):
                     elapsed_ms=0.0,
                     text=user_text,
                     engine="composer_faiss_knn",
-                    metadata={**cover_plan, "turn_id": turn_id, "emotion": emotion, "intent": intent},
+                    metadata={
+                        **self._experiment_metadata(),
+                        **cover_plan,
+                        "turn_id": turn_id,
+                        "emotion": emotion,
+                        "intent": intent,
+                    },
                 )
             )
 
-        if self.use_fast_audio and fast_audio_path and Path(str(fast_audio_path)).exists():
+        if self._language_fasttrack_enabled() and self.use_fast_audio and fast_audio_path and Path(str(fast_audio_path)).exists():
             yield AudioOutput(
                 audio_path=str(fast_audio_path),
                 display_text=self._display_for_turn(fast_display_text, metadata),
                 transcript=fast_display_text,
                 actions=speech_actions,
             )
-        elif self._credo_config.FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK:
+        elif self._language_fasttrack_enabled() and self._credo_config.FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK:
             yield SentenceOutput(
                 display_text=self._display_for_turn(fast_display_text, metadata),
                 tts_text=fast_tts_text,
@@ -464,6 +566,21 @@ class CredoLatencyCoverAgent(AgentInterface):
         else:
             logger.warning(
                 "Skipping FastTrack Open-LLM TTS fallback because dedicated FastTrack audio is unavailable."
+            )
+
+        keyword_echo = self._keyword_echo_text(fast_result, fast_plain_text) if self._language_fasttrack_enabled() else ""
+        if keyword_echo:
+            self._log_latency(
+                "fast_track_keyword_echo",
+                fast_audio_started,
+                text=keyword_echo,
+                engine="edge_tts_queued",
+                metadata={"emotion": emotion, "intent": intent, "turn_id": turn_id},
+            )
+            yield SentenceOutput(
+                display_text=self._display_for_turn("", metadata),
+                tts_text=keyword_echo,
+                actions=self._speech_actions(emotion, style_tag=style_tag, text=keyword_echo),
             )
 
         if slow_task is not None:
@@ -483,7 +600,7 @@ class CredoLatencyCoverAgent(AgentInterface):
                 "vtuber_slow_prefetch_hit",
                 turn_started,
                 text=slow_text,
-                engine="prefetched_fish_speech",
+                engine="prefetched_edge_tts" if slow_audio else "prefetched_text",
                 metadata={
                     "audio_path": str(slow_audio) if slow_audio else None,
                     "emotion": emotion,
@@ -588,7 +705,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             "slow_track_tts",
             slow_tts_started,
             text=slow_text,
-            engine="fish_speech" if slow_audio else "open_llm_tts_fallback",
+            engine=self._slow_audio_engine(slow_audio),
             metadata={
                 "audio_path": str(slow_audio) if slow_audio else None,
                 "emotion": emotion,
@@ -616,14 +733,14 @@ class CredoLatencyCoverAgent(AgentInterface):
                 actions=speech_actions,
             )
         elif getattr(self._credo_config, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", False):
-            logger.warning("Fish Speech slow audio unavailable; using configured Open-LLM fallback TTS.")
+            logger.warning("Dedicated SlowTrack audio unavailable; using configured Open-LLM TTS fallback.")
             yield SentenceOutput(
                 display_text=self._display_for_turn(slow_text, metadata),
                 tts_text=slow_text,
                 actions=speech_actions,
             )
         else:
-            logger.warning("Fish Speech slow audio unavailable; suppressing Open-LLM fallback TTS to avoid wrong voice.")
+            logger.warning("Dedicated SlowTrack audio unavailable and fallback is disabled.")
             yield SentenceOutput(
                 display_text=self._display_for_turn(slow_text, metadata),
                 tts_text="",
@@ -669,10 +786,157 @@ class CredoLatencyCoverAgent(AgentInterface):
             return False
         if not getattr(self._credo_config, "CREDO_VTUBER_SLOW_PREFETCH_ENABLED", True):
             return False
+        if str(getattr(self._credo_config, "CREDO_CONTEXT_SCHEDULING_MODE", "parallel")).lower() != "parallel":
+            return False
         event = str(metadata.get("vtuber_event") or "idle")
         # Live chat and donations must be generated from the newest batch; using an old
         # prepared monologue there would feel like ignoring chat.
         return event not in {"live_chat_batch", "donation"}
+
+    def _fast_result_from_route_v3(self, route: dict[str, Any] | None) -> dict[str, Any]:
+        """Convert router-v3 output into the existing FastTrack result shape."""
+        route = route or {}
+        top3 = route.get("top3_reactions") or []
+        first = top3[0] if top3 else {}
+        text = str(first.get("text") or "I see.").strip()
+        emotion_label = str((route.get("emotion") or {}).get("label") or "NEUTRAL").lower()
+        if emotion_label == "surprise":
+            category_scores = {"positive": 0.0, "negative": 0.0, "surprise": 1.0, "neutral": 0.0}
+        else:
+            category_scores = {emotion_label: 1.0}
+        return {
+            "emotion_label": emotion_label,
+            "emotion_detail": emotion_label,
+            "intent_label": str((route.get("intent") or {}).get("label") or "INFORM").upper(),
+            "response_act": self._fast_track_audio_cache.normalize_response_act(
+                str(route.get("response_act") or "ACKNOWLEDGE")
+            ),
+            "reaction": text,
+            "tts_text": text,
+            "plain_tts_text": text,
+            "reaction_source": "separated_dataset_pool_router_v3",
+            "strategy": "router_v3_dataset_pool",
+            "keywords": [],
+            "keyword": None,
+            "top1": float((route.get("emotion") or {}).get("confidence") or 0.0),
+            "margin": 0.0,
+            "category_scores": category_scores,
+            "fast_audio_path": None,
+            "fast_audio_cache_hit": False,
+            "router_v3": route,
+        }
+
+    def _cover_from_route_candidate(self, candidate: dict[str, Any] | None):
+        """Wrap one router-v3 candidate as a CachedCover-compatible object."""
+        if not candidate:
+            return None
+        text = self._clean_spoken_text(str(candidate.get("text") or ""))
+        if not text:
+            return None
+        return self._fast_track_audio_cache.CachedCover(
+            cache_id=str(candidate.get("item_id") or candidate.get("index") or "router_v3"),
+            category=str(candidate.get("emotion") or "Neutral"),
+            source="separated_dataset_pool_router_v3",
+            reaction=text,
+            plain_tts_text=text,
+            tts_text=text,
+            audio_path=None,
+            cue=None,
+            response_act=self._fast_track_audio_cache.normalize_response_act(str(candidate.get("response_act") or "")),
+            style_tag="",
+        )
+
+    async def _emit_prefetched_slow_bypass(
+        self,
+        prefetched_slow: dict[str, Any],
+        *,
+        user_text: str,
+        metadata: dict[str, Any],
+        turn_started: float,
+        turn_id: str,
+        reason: str,
+    ) -> AsyncIterator[AudioOutput | SentenceOutput]:
+        """Bypass FastTrack completely when the next SlowTrack audio is ready."""
+        slow_text = str(prefetched_slow.get("text") or "").strip() or "I hear you."
+        slow_audio_raw = prefetched_slow.get("audio_path")
+        slow_audio = Path(str(slow_audio_raw)) if slow_audio_raw else None
+        if slow_audio and not slow_audio.exists():
+            slow_audio = None
+        emotion = self._normalize_emotion(str(prefetched_slow.get("emotion") or metadata.get("emotion") or "neutral"))
+        actions = self._speech_actions(emotion, text=slow_text)
+        self._log_latency(
+            "vtuber_slow_prefetch_fasttrack_bypass",
+            turn_started,
+            text=slow_text,
+            engine="prefetched_edge_tts" if slow_audio else "prefetched_text",
+            metadata={
+                "audio_path": str(slow_audio) if slow_audio else None,
+                "emotion": emotion,
+                "turn_id": turn_id,
+                "vtuber_mode": bool(metadata.get("vtuber_mode")),
+                "vtuber_event": metadata.get("vtuber_event"),
+                "prefetch_age_ms": int((time.perf_counter() - float(prefetched_slow.get("created_at", turn_started))) * 1000),
+                "skipped_fasttrack_audio": True,
+                "bypass_reason": reason,
+            },
+        )
+        self._start_vtuber_slow_prefetch(
+            user_text=user_text,
+            metadata=metadata,
+            fast_reaction="",
+            strategy=f"prefetch_bypass:{reason}",
+            memory_context=self._build_memory_context(),
+            emotion=emotion,
+            turn_id=turn_id,
+        )
+        if slow_audio:
+            yield AudioOutput(
+                audio_path=str(slow_audio),
+                display_text=self._display_for_turn(slow_text, metadata),
+                transcript=slow_text,
+                actions=actions,
+            )
+        elif getattr(self._credo_config, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", False):
+            yield SentenceOutput(
+                display_text=self._display_for_turn(slow_text, metadata),
+                tts_text=slow_text,
+                actions=actions,
+            )
+        else:
+            yield SentenceOutput(
+                display_text=self._display_for_turn(slow_text, metadata),
+                tts_text="",
+                actions=actions,
+            )
+        self._remember_runtime_context(
+            user_text=user_text,
+            assistant_text=slow_text,
+            emotion=emotion,
+            event=str(metadata.get("vtuber_event") or "prefetch_bypass"),
+        )
+        if self.memory and not metadata.get("skip_memory"):
+            self.memory.record_turn(
+                user_text=user_text,
+                assistant_text=slow_text,
+                fast_reaction="",
+                emotion=emotion,
+                keywords=[str(metadata.get("topic") or ""), str(metadata.get("vtuber_event") or "")],
+            )
+        self._log_latency(
+            "turn_total",
+            turn_started,
+            text=slow_text,
+            engine="open_llm_vtuber_credo",
+            metadata={
+                "emotion": emotion,
+                "turn_id": turn_id,
+                "vtuber_mode": bool(metadata.get("vtuber_mode")),
+                "vtuber_event": metadata.get("vtuber_event"),
+                "used_slow_prefetch": True,
+                "skipped_fasttrack_audio": True,
+                "bypass_reason": reason,
+            },
+        )
 
     def _take_ready_vtuber_slow_prefetch(self, metadata: dict[str, Any]) -> dict[str, Any] | None:
         """Consume a prepared SlowTrack audio bundle if it is fresh enough."""
@@ -789,7 +1053,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             "vtuber_slow_prefetch_tts",
             tts_started,
             text=slow_text,
-            engine="fish_speech" if slow_audio else "open_llm_tts_fallback",
+            engine=self._slow_audio_engine(slow_audio),
             metadata={
                 "audio_path": str(slow_audio) if slow_audio else None,
                 "emotion": emotion,
@@ -845,7 +1109,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             "vtuber_mode_tts",
             slow_tts_started,
             text=slow_text,
-            engine="fish_speech" if slow_audio else "open_llm_tts_fallback",
+            engine=self._slow_audio_engine(slow_audio),
             metadata={
                 "event": event,
                 "emotion": emotion,
@@ -915,7 +1179,7 @@ class CredoLatencyCoverAgent(AgentInterface):
                 user = turn.get("user") or ""
                 assistant = turn.get("assistant") or ""
                 lines.append(f"- {event}/{emotion} viewer context: {user}")
-                lines.append(f"  Lera Mei said: {assistant}")
+                lines.append(f"  {self.character_name} said: {assistant}")
             blocks.append("\n".join(lines))
         return "\n\n".join(blocks) if blocks else None
 
@@ -947,11 +1211,18 @@ class CredoLatencyCoverAgent(AgentInterface):
         topic = str(metadata.get("topic") or "").strip()
         silence = metadata.get("silence_seconds")
         last_chat = str(metadata.get("last_chat") or "").strip()
+        broadcast_direction = str(metadata.get("broadcast_direction") or "").strip()
         event = str(metadata.get("vtuber_event") or "idle")
         instruction = str(metadata.get("vtuber_instruction") or "").strip()
         parts = [instruction or str(text or "").strip()]
         if topic:
             parts.append(f"Current stream topic anchor: {topic}.")
+        if broadcast_direction:
+            parts.append(
+                "Operator broadcast direction: "
+                f"{broadcast_direction} "
+                "Use this to steer topic and tone unless it conflicts with the persona or safety policy."
+            )
         if last_chat and last_chat != text:
             parts.append(f"Most recent viewer/chat context: {last_chat}")
         if silence is not None:
@@ -1000,7 +1271,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             "slow_track_tts",
             slow_tts_started,
             text=slow_text,
-            engine="fish_speech" if slow_audio else "open_llm_tts_fallback",
+            engine=self._slow_audio_engine(slow_audio),
             metadata={
                 "audio_path": str(slow_audio) if slow_audio else None,
                 "fast_track_enabled": False,
@@ -1016,14 +1287,14 @@ class CredoLatencyCoverAgent(AgentInterface):
                 actions=speech_actions,
             )
         elif getattr(self._credo_config, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", False):
-            logger.warning("Fish Speech slow audio unavailable; using configured Open-LLM fallback TTS.")
+            logger.warning("Dedicated SlowTrack audio unavailable; using configured Open-LLM TTS fallback.")
             yield SentenceOutput(
                 display_text=self._display("" if hide_display else slow_text),
                 tts_text=slow_text,
                 actions=speech_actions,
             )
         else:
-            logger.warning("Fish Speech slow audio unavailable; suppressing Open-LLM fallback TTS to avoid wrong voice.")
+            logger.warning("Dedicated SlowTrack audio unavailable and fallback is disabled.")
             yield SentenceOutput(
                 display_text=self._display("" if hide_display else slow_text),
                 tts_text="",
@@ -1142,14 +1413,16 @@ class CredoLatencyCoverAgent(AgentInterface):
         )
 
     def _clean_spoken_text(self, text: str) -> str:
-        """Remove Fish Speech control tags before display or fallback TTS."""
+        """Remove control tags and forced persona suffixes before speech."""
         text = FISH_STYLE_TAG_RE.sub(" ", str(text or ""))
+        text = re.sub(r"\s*,?\s*\bpeko\b(?=\s*[.!?]|\s*$)", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\bpeko\b", "", text, flags=re.IGNORECASE)
         text = re.sub(r"\s+", " ", text).strip()
         text = re.sub(r"\s+([,.!?])", r"\1", text)
         return text
 
     def _clean_vtuber_slow_text(self, text: str) -> str:
-        """Keep live Fish segments short, speakable, and bounded in latency."""
+        """Keep generated VTuber segments short, speakable, and live-safe."""
         text = self._clean_spoken_text(text)
         text = (
             text.replace("\u2018", "'")
@@ -1188,6 +1461,22 @@ class CredoLatencyCoverAgent(AgentInterface):
             return text
         return text if text.endswith((" ", "\n")) else f"{text} "
 
+    def _keyword_echo_text(self, fast_result: dict[str, Any], fast_text: str) -> str:
+        """Build an optional short echo from a viewer noun extracted by spaCy."""
+        if not getattr(self._credo_config, "FAST_TRACK_KEYWORD_ECHO_ENABLED", False):
+            return ""
+        probability = float(getattr(self._credo_config, "FAST_TRACK_KEYWORD_ECHO_PROBABILITY", 0.0))
+        if self.rng.random() >= max(0.0, min(1.0, probability)):
+            return ""
+        max_chars = max(8, int(getattr(self._credo_config, "FAST_TRACK_KEYWORD_ECHO_MAX_CHARS", 36)))
+        spoken_lower = str(fast_text or "").lower()
+        for raw_keyword in fast_result.get("keywords") or []:
+            keyword = re.sub(r"[^A-Za-z' -]", "", str(raw_keyword or "")).strip(" -'")
+            if not keyword or len(keyword) > max_chars or keyword.lower() in spoken_lower:
+                continue
+            return f"{keyword}?"
+        return ""
+
     def _prepare_fast_tts_text(self, raw_text: str, plain_text: str) -> str:
         """Keep cue tags only for engines that support inline style cues."""
         raw_text = str(raw_text or "").strip()
@@ -1210,7 +1499,7 @@ class CredoLatencyCoverAgent(AgentInterface):
         style_tag: str | None = None,
         text: str | None = None,
     ) -> Actions:
-        """Use Open-LLM-VTuber expressions plus speech-safe CREDO motion cues."""
+        """Keep the whole spoken answer in the viewer-emotion motion layer."""
         base_actions = self._build_actions(emotion)
         expressions = list(base_actions.expressions or [])
         if self.speech_emotion_motion_enabled:
@@ -1220,7 +1509,6 @@ class CredoLatencyCoverAgent(AgentInterface):
             if style_motion:
                 expressions.insert(0, f"credo_style_motion:{style_motion}")
             expressions.insert(0, f"credo_motion_profile:{self._motion_profile(normalized, style_motion)}")
-            expressions.extend(self._speech_event_tags(text))
         return Actions(expressions=expressions or None)
 
     def _normalize_emotion(self, emotion: str) -> str:
@@ -1299,6 +1587,7 @@ class CredoLatencyCoverAgent(AgentInterface):
             "positive": getattr(self._credo_config, "FAST_TRACK_STYLE_POSITIVE", "playful"),
             "negative": getattr(self._credo_config, "FAST_TRACK_STYLE_NEGATIVE", "cute"),
             "ambiguous": getattr(self._credo_config, "FAST_TRACK_STYLE_AMBIGUOUS", "energetic"),
+            "surprise": getattr(self._credo_config, "FAST_TRACK_STYLE_AMBIGUOUS", "energetic"),
             "neutral": getattr(self._credo_config, "FAST_TRACK_STYLE_NEUTRAL", "smug"),
         }
         return str(mapping.get(key, mapping["neutral"])).lower()
@@ -1328,11 +1617,14 @@ class CredoLatencyCoverAgent(AgentInterface):
             "positive": "laugh",
             "negative": "sigh",
             "ambiguous": "surprise",
+            "surprise": "surprise",
             "neutral": "thinking",
         }.get(emotion, "thinking")
 
     def _build_initial_interjection_outputs(self, emotion: str, turn_id: str) -> list[AudioOutput]:
-        """Return initial FastTrack beats: pure interjection audio plus Live2D motion."""
+        """Legacy prebuilt interjection path; disabled in the active speech-first runtime."""
+        if not self._nonverbal_fasttrack_enabled():
+            return []
         if not getattr(self._credo_config, "CREDO_ENABLE_INITIAL_INTERJECTION_AUDIO", True):
             return []
         count = max(1, int(getattr(self._credo_config, "CREDO_INITIAL_INTERJECTION_MAX_BLOCKS", 2)))
@@ -1340,28 +1632,30 @@ class CredoLatencyCoverAgent(AgentInterface):
         event = self._event_for_emotion(emotion)
         outputs: list[AudioOutput] = []
         for index, item in enumerate(items, start=1):
-            audio_path = Path(str(item.get("audio_path") or ""))
-            if not audio_path.exists():
-                continue
             carrier = self._clean_spoken_text(str(item.get("carrier") or ""))
+            audio_path = str(item.get("audio_path") or "").strip()
+            if not carrier or not audio_path or not Path(audio_path).exists():
+                continue
             self.latency_logger.log(
                 self._latency_observer.LatencyEvent(
                     stage="fast_track_interjection",
                     elapsed_ms=0.0,
                     text=carrier,
-                    engine="interjection_audio_bundle",
+                    engine="prebuilt_fish_audio",
                     metadata={
+                        **self._experiment_metadata(),
                         "turn_id": turn_id,
                         "emotion": self._normalize_emotion(emotion),
                         "event": event,
                         "interjection_index": index,
-                        "audio_path": str(audio_path),
+                        "audio_path": audio_path,
+                        "realtime_synthesis": False,
                     },
                 )
             )
             outputs.append(
                 AudioOutput(
-                    audio_path=str(audio_path),
+                    audio_path=audio_path,
                     display_text=self._display(""),
                     transcript="",
                     actions=self._expressive_cover_actions(
@@ -1378,8 +1672,10 @@ class CredoLatencyCoverAgent(AgentInterface):
         pending_task: asyncio.Task,
         emotion: str,
         turn_id: str,
-    ) -> AsyncIterator[AudioOutput]:
-        """Play one spoken thinking bridge after FastTrack if SlowTrack is still pending."""
+    ) -> AsyncIterator[SentenceOutput]:
+        """Queue one realtime spoken thinking bridge if SlowTrack is still pending."""
+        if not self._language_fasttrack_enabled():
+            return
         if not getattr(self._credo_config, "CREDO_ENABLE_THINKING_BRIDGE_AUDIO", True):
             return
         if pending_task.done():
@@ -1392,28 +1688,27 @@ class CredoLatencyCoverAgent(AgentInterface):
         item = self.cover_composer.choose_thinking_bridge_audio_item(self._normalize_emotion(emotion))
         if not item:
             return
-        audio_path = Path(str(item.get("audio_path") or ""))
-        if not audio_path.exists():
-            return
         text = self._clean_spoken_text(str(item.get("carrier") or item.get("text") or "Let me think about it."))
+        if not text:
+            return
         self.latency_logger.log(
             self._latency_observer.LatencyEvent(
                 stage="fast_track_thinking_bridge",
                 elapsed_ms=0.0,
                 text=text,
-                engine="thinking_bridge_bundle",
+                engine="edge_tts_queued",
                 metadata={
+                    **self._experiment_metadata(),
                     "turn_id": turn_id,
                     "emotion": self._normalize_emotion(emotion),
                     "event": "thinking",
-                    "audio_path": str(audio_path),
+                    "realtime_synthesis": True,
                 },
             )
         )
-        yield AudioOutput(
-            audio_path=str(audio_path),
+        yield SentenceOutput(
             display_text=self._display(""),
-            transcript="",
+            tts_text=text,
             actions=self._expressive_cover_actions("neutral", "thinking", style_tag=str(item.get("style_tag") or "")),
         )
 
@@ -1425,7 +1720,9 @@ class CredoLatencyCoverAgent(AgentInterface):
         *,
         reason: str,
     ) -> AsyncIterator[AudioOutput]:
-        """Play short hm/mm waiting audio while SlowTrack is not ready."""
+        """Play a prebuilt Fish hm/mm filler while SlowTrack is not ready."""
+        if not self._nonverbal_fasttrack_enabled():
+            return
         if not getattr(self._credo_config, "CREDO_ENABLE_WAITING_COVER_AUDIO", True):
             return
 
@@ -1441,27 +1738,29 @@ class CredoLatencyCoverAgent(AgentInterface):
             item = self.cover_composer.choose_waiting_audio_item()
             if not item:
                 break
-            audio_path = Path(str(item.get("audio_path") or ""))
-            if not audio_path.exists():
-                break
             text = self._clean_spoken_text(str(item.get("carrier") or item.get("text") or "hm."))
+            audio_path = str(item.get("audio_path") or "").strip()
+            if not text or not audio_path or not Path(audio_path).exists():
+                break
             self.latency_logger.log(
                 self._latency_observer.LatencyEvent(
                     stage="fast_track_waiting_audio",
                     elapsed_ms=0.0,
                     text=text,
-                    engine="interjection_audio_bundle",
+                    engine="prebuilt_fish_audio",
                     metadata={
+                        **self._experiment_metadata(),
                         "turn_id": turn_id,
                         "emotion": self._normalize_emotion(emotion),
                         "event": "thinking",
                         "reason": reason,
-                        "audio_path": str(audio_path),
+                        "audio_path": audio_path,
+                        "realtime_synthesis": False,
                     },
                 )
             )
             yield AudioOutput(
-                audio_path=str(audio_path),
+                audio_path=audio_path,
                 display_text=self._display(""),
                 transcript="",
                 actions=self._expressive_cover_actions("neutral", "thinking"),
@@ -1472,8 +1771,10 @@ class CredoLatencyCoverAgent(AgentInterface):
         cover_plan: dict[str, Any],
         slow_task: asyncio.Task,
         emotion: str,
-    ) -> AsyncIterator[AudioOutput]:
-        """Send prebuilt expressive blocks while SlowTrack is still pending."""
+    ) -> AsyncIterator[SentenceOutput]:
+        """Send realtime expressive text beats while SlowTrack is still pending."""
+        if not self._language_fasttrack_enabled():
+            return
         if not self._credo_config.CREDO_ENABLE_EXTRA_COVER_AUDIO:
             return
 
@@ -1486,15 +1787,12 @@ class CredoLatencyCoverAgent(AgentInterface):
             if slow_task.done():
                 break
 
-            audio_path = block.get("audio_path")
-            if not audio_path or not Path(str(audio_path)).exists():
-                continue
-
             text = self._clean_spoken_text(str(block.get("text") or ""))
-            yield AudioOutput(
-                audio_path=str(audio_path),
+            if not text:
+                continue
+            yield SentenceOutput(
                 display_text=self._display(text),
-                transcript=text,
+                tts_text=text,
                 actions=self._nonverbal_cover_actions(emotion),
             )
 
@@ -1547,23 +1845,53 @@ class CredoLatencyCoverAgent(AgentInterface):
         metadata: dict[str, Any] | None = None,
     ) -> None:
         """Append one latency event for experiment analysis."""
+        event_metadata = {**self._experiment_metadata(), **(metadata or {})}
         self.latency_logger.log(
             self._latency_observer.LatencyEvent(
                 stage=stage,
                 elapsed_ms=(time.perf_counter() - started) * 1000.0,
                 text=text,
                 engine=engine,
-                metadata=metadata or {},
+                metadata=event_metadata,
             )
         )
 
-    async def _try_synthesize_slow_audio(self, text: str) -> Path | None:
-        """Use CREDO's local Fish Speech client for SlowTrack when configured.
+    def _experiment_metadata(self) -> dict[str, str]:
+        """Identify the active ablation levels on every runtime latency row."""
+        return {
+            "experiment_run_id": str(getattr(self._credo_config, "CREDO_EXPERIMENT_RUN_ID", "")),
+            "experiment_factor": str(getattr(self._credo_config, "CREDO_EXPERIMENT_FACTOR", "")),
+            "scenario": str(getattr(self._credo_config, "CREDO_EXPERIMENT_SCENARIO", "")),
+            "component_mode": self._fasttrack_component_mode(),
+            "selection_policy": self._fasttrack_selection_policy(),
+            "scheduling_mode": str(
+                getattr(self._credo_config, "CREDO_CONTEXT_SCHEDULING_MODE", "parallel")
+            ).lower(),
+        }
 
-        Fish Speech is GPU-heavy and the local server behaves poorly when multiple
-        long requests are interrupted concurrently. Keep SlowTrack Fish requests
-        single-flight and let an interrupted request drain before allowing the next one.
+    def _slow_audio_engine(self, audio_path: Path | None) -> str:
+        """Label the configured SlowTrack synthesis route for experiment logs."""
+        if audio_path and self.slow_tts_mode == "edge_tts":
+            return "edge_tts"
+        if audio_path and self.slow_tts_mode == "credo_fish_speech":
+            return "fish_speech"
+        return "open_llm_tts_fallback"
+
+    async def _try_synthesize_slow_audio(self, text: str) -> Path | None:
+        """Generate SlowTrack audio in the selected live or legacy quality route.
+
+        Edge TTS is the live path and allows VTuber prefetch to include ready audio.
+        Fish is retained only as a non-live historical quality route.
         """
+        if self.slow_tts_mode == "edge_tts" and self.edge_tts is not None:
+            try:
+                return await asyncio.wait_for(
+                    asyncio.to_thread(self.edge_tts.synthesize_to_file, text, prefix="olv_slow"),
+                    timeout=float(getattr(self._credo_config, "EDGE_TTS_REQUEST_TIMEOUT_SECONDS", 12.0)),
+                )
+            except Exception as exc:
+                logger.warning(f"CREDO Edge SlowTrack synthesis unavailable: {exc}")
+                return None
         if self.slow_tts_mode != "credo_fish_speech" or self.fish_tts is None:
             return None
         queued_at = time.perf_counter()
@@ -1596,16 +1924,33 @@ class CredoLatencyCoverAgent(AgentInterface):
         *,
         emotion: str = "neutral",
     ) -> Path | None:
-        """Return only prebuilt FastTrack audio unless legacy fallback is explicitly enabled."""
+        """Generate realtime FastTrack audio, or use an explicit legacy cache mode."""
         cached_path = fast_result.get("fast_audio_path")
-        if cached_path and Path(str(cached_path)).exists():
+        if (
+            self._credo_config.FAST_TRACK_TTS_MODE == "cached_fish_bundle"
+            and cached_path
+            and Path(str(cached_path)).exists()
+        ):
             return Path(str(cached_path))
 
-        if getattr(self._credo_config, "FAST_TRACK_PREBUILT_ONLY", True):
+        if (
+            self._credo_config.FAST_TRACK_TTS_MODE == "cached_fish_bundle"
+            and getattr(self._credo_config, "FAST_TRACK_PREBUILT_ONLY", True)
+        ):
             logger.warning(
                 "CREDO FastTrack prebuilt audio missing; realtime FastTrack TTS is disabled by FAST_TRACK_PREBUILT_ONLY."
             )
             return None
+
+        if self._credo_config.FAST_TRACK_TTS_MODE == "edge_tts" and self.edge_tts is not None:
+            try:
+                return await asyncio.wait_for(
+                    asyncio.to_thread(self.edge_tts.synthesize_to_file, text, prefix="olv_fast"),
+                    timeout=float(getattr(self._credo_config, "EDGE_TTS_REQUEST_TIMEOUT_SECONDS", 12.0)),
+                )
+            except Exception as exc:
+                logger.warning(f"CREDO Edge FastTrack synthesis unavailable: {exc}")
+                return None
 
         if self._credo_config.FAST_TRACK_TTS_MODE == "fish_speech":
             audio = await self._try_synthesize_fast_fish_audio(text)

@@ -1,7 +1,9 @@
-"""Prebuilt FastTrack audio cache lookup.
+"""Legacy FastTrack cache and static-manifest compatibility helpers.
 
-The cache is generated offline so runtime FastTrack can return a ready audio
-file instead of calling a slow tag-aware TTS model inside the live path.
+The active live path uses ``fasttrack_router_v3`` and the separated
+GoEmotions/SWDA dataset pool. These classes remain only for disabled cached
+audio experiments and for small compatibility helpers used by the Open-LLM
+adapter.
 """
 
 from __future__ import annotations
@@ -15,56 +17,61 @@ from typing import Any
 
 USER_INTENT_TO_RESPONSE_ACT_WEIGHTS: dict[str, tuple[tuple[str, float], ...]] = {
     # Incoming user intent is not the response intent. Runtime samples a response
-    # act from these distributions, then picks a prebuilt audio candidate.
+    # act from these distributions, then picks a prebuilt audio/text candidate.
+    # QUESTION is intentionally excluded from response acts because a FastTrack
+    # follow-up question often conflicts with the pending SlowTrack answer.
     "QUESTION": (
-        ("INFORM", 0.38),
-        ("ACKNOWLEDGE", 0.22),
-        ("QUESTION", 0.20),
-        ("EXPRESSIVE", 0.12),
-        ("DIRECTIVE", 0.06),
+        ("INFORM", 0.48),
+        ("ACKNOWLEDGE", 0.28),
+        ("EXPRESSIVE", 0.15),
+        ("DIRECTIVE", 0.07),
         ("REJECT", 0.02),
     ),
     "INFORM": (
-        ("ACKNOWLEDGE", 0.34),
-        ("EXPRESSIVE", 0.24),
-        ("QUESTION", 0.22),
-        ("INFORM", 0.12),
-        ("DIRECTIVE", 0.06),
-        ("REJECT", 0.02),
+        ("ACKNOWLEDGE", 0.44),
+        ("EXPRESSIVE", 0.30),
+        ("INFORM", 0.16),
+        ("DIRECTIVE", 0.07),
+        ("REJECT", 0.03),
     ),
     "ACKNOWLEDGE": (
-        ("ACKNOWLEDGE", 0.42),
-        ("EXPRESSIVE", 0.22),
-        ("QUESTION", 0.16),
-        ("INFORM", 0.12),
-        ("DIRECTIVE", 0.06),
-        ("REJECT", 0.02),
+        ("ACKNOWLEDGE", 0.50),
+        ("EXPRESSIVE", 0.26),
+        ("INFORM", 0.14),
+        ("DIRECTIVE", 0.07),
+        ("REJECT", 0.03),
     ),
     "DIRECTIVE": (
-        ("ACKNOWLEDGE", 0.30),
-        ("DIRECTIVE", 0.24),
-        ("INFORM", 0.18),
-        ("QUESTION", 0.14),
-        ("EXPRESSIVE", 0.10),
-        ("REJECT", 0.04),
+        ("ACKNOWLEDGE", 0.35),
+        ("DIRECTIVE", 0.28),
+        ("INFORM", 0.21),
+        ("EXPRESSIVE", 0.11),
+        ("REJECT", 0.05),
     ),
     "EXPRESSIVE": (
-        ("EXPRESSIVE", 0.38),
-        ("ACKNOWLEDGE", 0.26),
-        ("QUESTION", 0.18),
-        ("INFORM", 0.10),
-        ("DIRECTIVE", 0.06),
+        ("EXPRESSIVE", 0.46),
+        ("ACKNOWLEDGE", 0.32),
+        ("INFORM", 0.13),
+        ("DIRECTIVE", 0.07),
         ("REJECT", 0.02),
     ),
     "REJECT": (
-        ("ACKNOWLEDGE", 0.28),
-        ("REJECT", 0.24),
-        ("QUESTION", 0.18),
-        ("INFORM", 0.14),
-        ("EXPRESSIVE", 0.10),
-        ("DIRECTIVE", 0.06),
+        ("ACKNOWLEDGE", 0.34),
+        ("REJECT", 0.29),
+        ("INFORM", 0.17),
+        ("EXPRESSIVE", 0.12),
+        ("DIRECTIVE", 0.08),
     ),
 }
+
+DISALLOWED_RESPONSE_ACTS = {"QUESTION"}
+FALLBACK_RESPONSE_ACT = "ACKNOWLEDGE"
+
+
+def normalize_response_act(response_act: str) -> str:
+    """Return a runtime-safe FastTrack response act."""
+    act = str(response_act or FALLBACK_RESPONSE_ACT).upper()
+    return FALLBACK_RESPONSE_ACT if act in DISALLOWED_RESPONSE_ACTS else act
 
 
 @dataclass(frozen=True)
@@ -166,11 +173,11 @@ class FastTrackAudioCache:
             self._by_category_source.setdefault((cover.category, cover.source), []).append(cover)
 
 class PersonaReactionBundle:
-    """Persona-filtered FastTrack reaction bundle lookup.
+    """Legacy static persona manifest lookup.
 
-    This manifest can be text-only while Fish Speech audio is still being
-    generated. When audio_path exists, runtime can use it as a prebuilt cover;
-    otherwise it can fall back to the configured realtime FastTrack TTS.
+    Active runtime sets ``FAST_TRACK_PERSONA_BUNDLE_ENABLED=0`` and receives
+    text from router v3. This class is kept so older cached-manifest
+    experiments can still be reproduced deliberately.
     """
 
     def __init__(
@@ -201,11 +208,13 @@ class PersonaReactionBundle:
         """Return true when the bundle has at least one usable item."""
         return bool(self._by_emotion)
 
-    def choose(self, emotion: str, intent: str, style_tag: str) -> CachedCover | None:
+    def choose(self, emotion: str, intent: str, style_tag: str = "") -> CachedCover | None:
         """Choose by emotion plus a sampled response act for the incoming user intent."""
         if not self.enabled or not self.available:
             return None
         emotion_key = str(emotion or "Neutral").lower()
+        if emotion_key == "ambiguous":
+            emotion_key = "surprise"
         user_intent = str(intent or "ACKNOWLEDGE").upper()
         response_act = self._sample_response_act(user_intent)
         style_key = str(style_tag or "bright").lower()
@@ -220,12 +229,78 @@ class PersonaReactionBundle:
             return None
         return self.rng.choice(candidates)
 
+    def choose_by_response_act(self, emotion: str, response_act: str, *, top_k: int = 3) -> list[CachedCover]:
+        """Return candidate reactions from the compressed emotion/response-act cell."""
+        if not self.enabled or not self.available:
+            return []
+        emotion_key = str(emotion or "Neutral").lower()
+        if emotion_key == "ambiguous":
+            emotion_key = "surprise"
+        act_key = normalize_response_act(response_act)
+        candidates = list(self._by_emotion_response_act.get((emotion_key, act_key), []))
+        if not candidates:
+            candidates = list(self._by_emotion.get(emotion_key, []))
+        if not candidates:
+            candidates = list(self._by_emotion.get("neutral", []))
+        self.rng.shuffle(candidates)
+        return candidates[: max(1, int(top_k))]
+
+    def choose_by_emotion(self, emotion: str) -> CachedCover | None:
+        """Choose from one GoEmotions bucket without conditioning on response act."""
+        if not self.enabled or not self.available:
+            return None
+        emotion_key = str(emotion or "Neutral").lower()
+        if emotion_key == "ambiguous":
+            emotion_key = "surprise"
+        candidates = list(self._by_emotion.get(emotion_key, []))
+        if not candidates:
+            candidates = list(self._by_emotion.get("neutral", []))
+        return self.rng.choice(candidates) if candidates else None
+
+    def choose_neutral_random(self) -> CachedCover | None:
+        """Choose randomly from the neutral pool while ignoring detected context."""
+        if not self.enabled or not self.available:
+            return None
+        candidates = list(self._by_emotion.get("neutral", []))
+        return self.rng.choice(candidates) if candidates else None
+
+    def choose_by_response_act_only(self, response_act: str) -> CachedCover | None:
+        """Choose by SWDA response act while ignoring the detected emotion bucket."""
+        if not self.enabled or not self.available:
+            return None
+        act_key = normalize_response_act(response_act)
+        candidates = [
+            cover
+            for (_emotion, candidate_act), items in self._by_emotion_response_act.items()
+            if candidate_act == act_key
+            for cover in items
+        ]
+        if not candidates:
+            candidates = [cover for items in self._by_emotion.values() for cover in items]
+        return self.rng.choice(candidates) if candidates else None
+
+    def choose_random(self) -> CachedCover | None:
+        """Choose a label-agnostic candidate for the random-selection ablation."""
+        if not self.enabled or not self.available:
+            return None
+        candidates = [cover for items in self._by_emotion.values() for cover in items]
+        return self.rng.choice(candidates) if candidates else None
+
+    def sample_response_act(self, user_intent: str) -> str:
+        """Expose SWDA adjacent-turn response-act sampling for ablations."""
+        return self._sample_response_act(user_intent)
+
     def _sample_response_act(self, user_intent: str) -> str:
         """Sample how CREDO should respond to the detected incoming intent."""
-        weights = USER_INTENT_TO_RESPONSE_ACT_WEIGHTS.get(
+        raw_weights = USER_INTENT_TO_RESPONSE_ACT_WEIGHTS.get(
             str(user_intent or "ACKNOWLEDGE").upper(),
             USER_INTENT_TO_RESPONSE_ACT_WEIGHTS["ACKNOWLEDGE"],
         )
+        weights = tuple(
+            (normalize_response_act(act), weight)
+            for act, weight in raw_weights
+            if str(act or "").upper() not in DISALLOWED_RESPONSE_ACTS
+        ) or ((FALLBACK_RESPONSE_ACT, 1.0),)
         threshold = self.rng.random() * sum(weight for _act, weight in weights)
         cumulative = 0.0
         for act, weight in weights:
@@ -267,6 +342,8 @@ class PersonaReactionBundle:
 
             cell_meta = cell_meta_by_id.get(str(item.get("cell_id")), {})
             emotion = str(item.get("emotion") or cell_meta.get("emotion") or item.get("category") or "Neutral")
+            if emotion.lower() == "ambiguous":
+                emotion = "Surprise"
             response_act = str(
                 item.get("response_act")
                 or cell_meta.get("response_act")
@@ -274,7 +351,10 @@ class PersonaReactionBundle:
                 or cell_meta.get("intent")
                 or "ACKNOWLEDGE"
             ).upper()
-            style_tag = str(item.get("style_tag") or cell_meta.get("style_tag") or "bright").lower()
+            if response_act in DISALLOWED_RESPONSE_ACTS:
+                continue
+            response_act = normalize_response_act(response_act)
+            style_tag = str(item.get("style_tag") or cell_meta.get("style_tag") or "").lower()
             reaction = str(item.get("reaction") or item.get("plain_tts_text") or "")
             plain_tts_text = str(item.get("plain_tts_text") or reaction)
             tts_text = str(item.get("tts_text") or plain_tts_text)
@@ -293,6 +373,7 @@ class PersonaReactionBundle:
             if not cover.plain_tts_text:
                 continue
             emotion_key = emotion.lower()
-            self._by_cell.setdefault((emotion_key, response_act, style_tag), []).append(cover)
+            if style_tag:
+                self._by_cell.setdefault((emotion_key, response_act, style_tag), []).append(cover)
             self._by_emotion_response_act.setdefault((emotion_key, response_act), []).append(cover)
             self._by_emotion.setdefault(emotion_key, []).append(cover)

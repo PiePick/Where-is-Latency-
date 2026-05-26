@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a pre-generated pure interjection audio bundle for FastTrack."""
+"""Build a pre-generated short interjection audio bundle for FastTrack."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import config  # noqa: E402
+from stylebert_vits2_client import StyleBertVITS2Client  # noqa: E402
 from tts_client import FishSpeechTTSClient, FishSpeechTTSConfig  # noqa: E402
 
 
@@ -29,7 +30,7 @@ EMOTION_CUES = {
 }
 
 EVENT_CUES = {
-    "positive": "[chuckle]",
+    "positive": "[delight]",
     "negative": "[sigh]",
     "ambiguous": "[inhale]",
     "neutral": "[soft sigh]",
@@ -44,10 +45,10 @@ STYLE_CUE_CHAINS = {
 }
 
 PURE_CARRIERS = {
-    "positive": ("ha-ha!", "hee-hee!", "ahaha!", "haha!", "oh!", "aw!"),
-    "negative": ("ugh.", "hm.", "mm."),
-    "ambiguous": ("huh?", "oh?"),
-    "neutral": ("hm.", "mm."),
+    "positive": ("Oh!", "Yay!", "Aw!", "Heh."),
+    "negative": ("Ugh.", "Mm.", "Oh..."),
+    "ambiguous": ("Huh?", "Oh?", "Eh?"),
+    "neutral": ("Hm.", "Mm.", "Oh."),
 }
 
 EVENT_BY_EMOTION = {
@@ -59,8 +60,9 @@ EVENT_BY_EMOTION = {
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Build pure interjection Fish Speech audio for CREDO FastTrack.")
+    parser = argparse.ArgumentParser(description="Build short interjection audio for CREDO FastTrack.")
     parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR)
+    parser.add_argument("--engine", choices=("stylebert_vits2", "fish_speech"), default="stylebert_vits2")
     parser.add_argument("--synthesize", action="store_true")
     parser.add_argument("--skip-existing", action="store_true")
     parser.add_argument("--force", action="store_true")
@@ -69,8 +71,10 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def synthesis_text(emotion: str, style_tag: str, carrier: str) -> str:
-    """Build Fish Speech text with one pause cue before and after the carrier."""
+def synthesis_text(engine: str, emotion: str, style_tag: str, carrier: str) -> str:
+    """Build engine-appropriate synthesis text without long laughter chains."""
+    if engine == "stylebert_vits2":
+        return carrier
     cues = [
         "[short pause]",
         EMOTION_CUES[emotion],
@@ -81,7 +85,7 @@ def synthesis_text(emotion: str, style_tag: str, carrier: str) -> str:
     return " ".join([*cues, carrier, "[short pause]"]).strip()
 
 
-def make_items() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def make_items(engine: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Create deterministic manifest cells and items."""
     cells: list[dict[str, Any]] = []
     items: list[dict[str, Any]] = []
@@ -108,7 +112,8 @@ def make_items() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
                         "event": EVENT_BY_EMOTION[emotion],
                         "carrier": carrier,
                         "plain_tts_text": carrier,
-                        "tts_text": synthesis_text(emotion, style_tag, carrier),
+                        "tts_text": synthesis_text(engine, emotion, style_tag, carrier),
+                        "tts_engine": engine,
                     }
                 )
     return cells, items
@@ -126,18 +131,32 @@ def load_existing_audio(manifest_path: Path) -> dict[str, str]:
 
 
 def write_manifest(args: argparse.Namespace, cells: list[dict[str, Any]], items: list[dict[str, Any]]) -> Path:
+    if args.engine == "stylebert_vits2":
+        tts_reference = {
+            "engine": "stylebert_vits2",
+            "reference_id": config.STYLEBERT_VITS2_MODEL_NAME,
+            "reference_source": f"stylebert_vits2:{config.STYLEBERT_VITS2_MODEL_NAME}",
+            "style": config.STYLEBERT_VITS2_STYLE,
+            "language": config.STYLEBERT_VITS2_LANGUAGE,
+        }
+    else:
+        tts_reference = {
+            "engine": "fish_speech",
+            "reference_id": config.FISH_SPEECH_REFERENCE_ID,
+            "reference_source": config.FISH_SPEECH_REFERENCE_SOURCE,
+        }
     manifest = {
         "created_at": datetime.now(timezone.utc).isoformat(),
         "generator": "AI_NPC_System/scripts/build_interjection_audio_bundle.py",
         "kind": "pure_interjection_audio_bundle",
-        "tts_reference": {
-            "reference_id": config.FISH_SPEECH_REFERENCE_ID,
-            "reference_source": config.FISH_SPEECH_REFERENCE_SOURCE,
-        },
+        "tts_reference": tts_reference,
         "policy": {
-            "spoken_content": "pure interjection or nonverbal filler only",
+            "spoken_content": "short interjection or filler only",
             "no_dialogue_carriers": True,
-            "pause_cue_policy": "Each synthesized text starts and ends with exactly one [short pause] cue.",
+            "no_long_laughter": True,
+            "max_laugh_syllables": 1,
+            "forbidden_carrier_policy": "No repeated laughter strings or multi-syllable laugh tokens.",
+            "pause_cue_policy": "StyleBERT uses plain text only; Fish Speech may add one short pause cue.",
         },
         "style_tts_cue_chains": STYLE_CUE_CHAINS,
         "cells": cells,
@@ -151,11 +170,16 @@ def write_manifest(args: argparse.Namespace, cells: list[dict[str, Any]], items:
 
 def synthesize(args: argparse.Namespace, items: list[dict[str, Any]], manifest_path: Path) -> int:
     """Synthesize missing wav files and update the manifest after every item."""
-    client = FishSpeechTTSClient(
-        FishSpeechTTSConfig(max_new_tokens=args.max_new_tokens, auto_play=False)
-    )
-    if not client.is_healthy():
-        raise RuntimeError(f"Fish Speech server is not reachable at {client.cfg.health_url}")
+    if args.engine == "stylebert_vits2":
+        client = StyleBertVITS2Client()
+        if not client.is_healthy():
+            raise RuntimeError(f"StyleBERT-VITS2 server is not reachable at {client.cfg.health_url}")
+    else:
+        client = FishSpeechTTSClient(
+            FishSpeechTTSConfig(max_new_tokens=args.max_new_tokens, auto_play=False)
+        )
+        if not client.is_healthy():
+            raise RuntimeError(f"Fish Speech server is not reachable at {client.cfg.health_url}")
 
     made = 0
     for item in items:
@@ -175,7 +199,10 @@ def synthesize(args: argparse.Namespace, items: list[dict[str, Any]], manifest_p
             continue
 
         started = time.perf_counter()
-        generated = client.synthesize_to_file(str(item["tts_text"]), prefix=item["id"])
+        if args.engine == "stylebert_vits2":
+            generated = client.synthesize_to_file(str(item["tts_text"]), prefix=item["id"], style="Neutral")
+        else:
+            generated = client.synthesize_to_file(str(item["tts_text"]), prefix=item["id"])
         generated.replace(target)
         made += 1
         item["audio_path"] = target.relative_to(args.output_dir).as_posix()
@@ -191,7 +218,7 @@ def synthesize(args: argparse.Namespace, items: list[dict[str, Any]], manifest_p
 
 def main() -> int:
     args = parse_args()
-    cells, items = make_items()
+    cells, items = make_items(args.engine)
     existing_audio = load_existing_audio(args.output_dir / "manifest.json") if args.skip_existing else {}
     for item in items:
         if item["id"] in existing_audio:

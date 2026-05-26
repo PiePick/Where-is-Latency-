@@ -1,165 +1,99 @@
-# Team Codex Setup Prompt for CREDO
+# CREDO Team Codex Context
 
-You are working on the CREDO AI VTuber/NPC latency-cover research project.
+이 프로젝트는 Open-LLM-VTuber 위에 실시간 VTuber latency-cover agent를
+구현하는 연구 코드다. `CODEX_SETUP.md`를 설치/실행 기준 문서로 사용한다.
 
-Before editing code, restore local resources that are excluded by `.gitignore`.
-The project will not run correctly unless these assets, checkpoints, references,
-and virtual environments are installed or linked.
+## Shared Worklog
 
-Use `CODEX_SETUP.md` as the canonical install checklist for missing open-source
-runtimes, checkpoints, Python dependencies, and readiness verification.
+새 Codex 채팅은 작업 전에 반드시 `CODEX_SHARED_WORKLOG.md`를 먼저 읽는다.
+작업을 마치거나 중요한 결정을 내리면 같은 파일에 최신 항목을 추가한다.
+Notion 접근이 불안정할 때는 이 파일을 채팅 간 핸드오프 기준으로 사용한다.
 
-CREDO's audience-facing speech is English-only. Understand multilingual viewer
-input as context, but keep FastTrack, SlowTrack, proactive VTuber mode, donation
-reactions, captions, and TTS text in natural English. Do not mention this policy
-to viewers.
+## Current Decision: 2026-05-27
 
-## Required Local Resources
+실시간 언어 TTS는 StyleBERT-VITS2 `credo_voice_sample_en`이다.
+Fish Speech와 CosyVoice2의 실시간 언어 합성은 라이브 런타임에서 제외한다.
+순수 감탄사+모션도 현재 live 자산은 StyleBERT 기반 사전 생성 음원이다.
 
-1. Fish Speech
-- Expected path: `vendor/fish-speech`
-- Required checkpoint: `vendor/fish-speech/checkpoints/s2-pro`
-- `codec.pth` must exist inside the checkpoint directory.
-- Required runtime voice reference: `vendor/fish-speech/references/credo_eunice_english_v2`
-- The reference directory must contain matching `.wav` and `.lab` pairs.
-- If missing, regenerate it from:
-  - `AI_NPC_System/VoiceSample/VoicePack1_Morning.wav`
-  - `AI_NPC_System/scripts/prepare_fish_reference_voice.py`
+- Fish Speech: 20단어 SlowTrack 합성 약 `49.7 s`, 전체 턴 약 `51.1 s`.
+- CosyVoice2: 짧은 샘플은 약 `4.0 s`였으나 긴 밝은 샘플은 약 `27.7 s`.
+- 결론: 음색 복제보다 지속적인 방송 대화 응답성을 우선한다.
 
-2. Open-LLM-VTuber
-- Expected path: `vendor/open-llm-vtuber`
-- Required runtime: `vendor/open-llm-vtuber/.venv`
-- Re-apply the CREDO integration after editing integration files:
-  - `AI_NPC_System/integrations/open_llm_vtuber/apply_integration.py --activate`
+StyleBERT-VITS2는 현재 선택된 빠른 영어 음성 경로이고 Fish 스타일 태그를
+사용하지 않는다. 순수 감탄사는 미리 생성하며, 실제 실시간 latency는
+라이브 실행 로그로 측정한다.
 
-3. Python ML Dependencies
-Open-LLM-VTuber `.venv` must support:
-- `transformers`
-- `torch`
-- `spacy`
-- `datasets`
-- `setfit`
-- `faiss`
-- `en_core_web_sm`
-
-If FastTrack fails with `FastTrack ML runtime dependencies are missing`, install
-dependencies into `vendor/open-llm-vtuber/.venv`.
-
-```bash
-vendor/open-llm-vtuber/.venv/bin/python -m pip install -r AI_NPC_System/scripts/requirements.txt
-vendor/open-llm-vtuber/.venv/bin/python -m spacy download en_core_web_sm
-```
-
-4. Local LLM
-- OpenAI-compatible endpoint: `http://127.0.0.1:8001/v1`
-- Default served model: `qwen2.5:7b`
-- Start script: `AI_NPC_System/scripts/start_local_llm_server.sh`
-
-5. Runtime Config
-Main config file:
-- `AI_NPC_System/project_config.sh`
-
-Important current decisions:
-- Realtime FastTrack TTS is discarded for the main handoff path. Do not require Piper or StyleBERT to run CREDO.
-- The latency-cover path is real-time selection/sequencing of prepared assets, not real-time synthesis.
-- `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK="0"` should remain disabled so the wrong cute fallback voice does not appear.
-- `FISH_SPEECH_REFERENCE_ID="credo_eunice_english_v2"`
-- `FISH_SPEECH_GLOBAL_STYLE_TAG=""`
-- `OPEN_LLM_VTUBER_SLOW_TTS_MODE="credo_fish_speech"`
-- Fish Speech is for SlowTrack high-quality TTS and offline audio/bundle generation.
-- Strong CREDO emotion motions should be attached only to prebuilt nonverbal latency-cover audio; normal speech should stay on Idle/Talk/lip-sync.
-- Latency-cover planning must use the artifact-backed kNN predictor in `AI_NPC_System/latency_predictor.py`; rebuild `AI_NPC_System/reports/latency_prediction_model.json` from `latency_logs/events.jsonl` after new benchmark/runtime measurements.
-
-Do not put bracketed style tags such as `[chuckle]`, `[sigh]`, `[playful]`, or `[pause]` inside spoken text. Fish Speech may read them aloud. Store style tags as metadata only.
-
-
-## Current Research State
-
-Current block pipeline:
-1. DistilBERT emotion selects a pre-generated nonverbal Fish Speech interjection audio clip.
-2. The matching emotion AvatarMotion plays with that nonverbal audio.
-3. The offline persona reaction bundle supplies a short text/audio reaction candidate.
-4. If predicted SlowTrack latency remains, a pre-generated residual filler such as a long “Hmm...” clip may be inserted.
-5. SlowTrack local LLM + Fish Speech produces the main answer.
-
-Persona reaction bundle files:
-- `AI_NPC_System/fasttrack_assets/audio/persona_reaction_bundle_response_act_v1/manifest.json`: runtime file with 120 cells and 600 selected reactions/audio files.
-- `AI_NPC_System/scripts/build_persona_reaction_bundle.py`: generator for the compact dataset-grounded bundle.
-
-FastTrack realtime TTS status:
-- Discarded for the main research path.
-- Piper/StyleBERT files may remain in the repo as legacy experiments, but a new Codex should not make them required startup dependencies.
-
-## Startup Order
-
-Start local LLM:
-
-```bash
-cd /mnt/c/Users/CGLAB/Desktop/CREDO
-AI_NPC_System/scripts/start_local_llm_server.sh
-```
-
-Start Fish Speech for SlowTrack on GPU0:
-
-```bash
-cd /mnt/c/Users/CGLAB/Desktop/CREDO
-AI_NPC_System/scripts/start_fish_speech_server.sh
-```
-
-Do not start Piper or StyleBERT for the current default path. They are legacy experiment scripts only.
-
-Start Open-LLM-VTuber with CREDO:
-
-```bash
-cd /mnt/c/Users/CGLAB/Desktop/CREDO
-AI_NPC_System/scripts/run_open_llm_vtuber_credo.sh
-```
-
-Open:
+## Active Architecture
 
 ```text
-http://localhost:12393
+buffered virtual/YouTube chat or idle trigger
+  -> FastTrack analysis
+     DistilBERT emotion + SetFit/SWDA response-act sampling
+     + separated GoEmotions/SWDA dataset-pool retrieval
+     + Professor's Lab Maid runtime cover composition
+  -> prebuilt StyleBERT nonverbal+motion and/or StyleBERT realtime language speech
+  || SlowTrack local LLM generation + StyleBERT synthesis/prefetch
+  -> SlowTrack playback
+  -> while speaking, buffer chat and prefetch the next idle segment
 ```
 
-Hard refresh the browser after frontend changes.
+FastTrack 언어 반응은 더 이상 미리 생성한 wav를 검색해 재생하지 않는다.
+기존 persona manifest 방식도 active runtime에서 비활성화했다.
+`professor_lab_maid_dataset_pool_v1/pool.json`은 GoEmotions와 SWDA를
+분리 보존한 데이터셋 기반 evidence pool이며, 선택된 evidence를 현재 persona
+cover composer로 감싼 뒤 매 턴 실시간 합성한다.
+`spaCy` keyword echo는 primary study에서 비활성화되어 있고, 키워드는 분석
+metadata로만 남긴다.
+순수 감탄사는 `expressive_interjection_bundle`의 StyleBERT wav를 바로 재생하며,
+실시간 언어 TTS 합성 대상으로 보내지 않는다.
 
-## Debug Checklist
+## Runtime Rules
 
-Run readiness check:
+- 관객에게 발화하는 문장은 영어만 사용한다.
+- `[happy]`, `[playful]`, `[pause]` 같은 태그를 TTS text에 삽입하지 않는다.
+- Live2D motion은 감정/스타일 메타데이터로 처리한다.
+- `FAST_TRACK_TTS_MODE=stylebert_vits2`
+- `FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=0`
+- `OPEN_LLM_VTUBER_TTS_MODEL=stylebert_vits2`
+- `OPEN_LLM_VTUBER_SLOW_TTS_MODE=open_llm`
+- `SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK=0`
+- `FAST_TRACK_PREBUILT_ONLY=0`
+- `FAST_TRACK_KEYWORD_ECHO_ENABLED=0`
+- `CREDO_VTUBER_SLOW_PREFETCH_ENABLED=1`
+
+## Required Runtime
+
+- `vendor/open-llm-vtuber/.venv` with `transformers`, `spacy`,
+  `setfit`, and `en_core_web_sm`
+- `vendor/Style-Bert-VITS2` with `credo_voice_sample_en`
+- local OpenAI-compatible LLM at `http://127.0.0.1:8001/v1`, default
+  served name `qwen2.5:7b`
+- CREDO integration activated into the vendored Open-LLM-VTuber tree
+
+Fish Speech 서버와 checkpoint는 live 실행 중 불필요하지만,
+`expressive_interjection_bundle` wav 파일은 비언어 factor의 필수 자산이다.
+
+## Run And Verify
 
 ```bash
-vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/check_runtime_readiness.py
+cd /mnt/c/Users/CGLAB/Desktop/CREDO
+vendor/open-llm-vtuber/.venv/bin/python \
+  AI_NPC_System/integrations/open_llm_vtuber/apply_integration.py --activate
+vendor/open-llm-vtuber/.venv/bin/python \
+  AI_NPC_System/scripts/check_runtime_readiness.py
+AI_NPC_System/scripts/run_credo_stack.sh --profile live
 ```
 
-Check these first when broken:
-- Fish Speech health: `http://127.0.0.1:8080/v1/health`
-- Local LLM models: `http://127.0.0.1:8001/v1/models`
-- `credo_eunice_english_v2` contains `.wav/.lab` pairs.
-- `transformers.pipeline` imports inside Open-LLM-VTuber `.venv`.
-- `spacy.load("en_core_web_sm")` works.
-- CREDO integration was re-applied after integration edits.
+브라우저에서 `http://127.0.0.1:12393`을 열고 CREDO VTuber panel에서
+두 실험 요인을 선택한다. 기본 후보는 `Grounded` contextual mapping과
+`Parallel` scheduling이다. 모듈 단위 측정은
+선택 요인 라벨과 함께 `AI_NPC_System/latency_logs/module_events.csv`에 누적된다.
 
-## Git-Tracked Project Assets
+## Engineering Guardrails
 
-These project-owned assets should be tracked even if broader ignore rules hide
-binary files:
-- `AI_NPC_System/VoiceSample`
-- `vendor/fish-speech/references/credo_voice_sample`
-- `vendor/fish-speech/references/credo_eunice_english_v2` when distributing the current Eunice runtime voice outside this workstation
-- `AI_NPC_System/integrations/open_llm_vtuber/live2d_models/credo_avatar`
-- `vendor/open-llm-vtuber/live2d-models/credo_avatar`
-- `vendor/open-llm-vtuber/avatars/credo_avatar.png`
-- `reaction_sources/AvatarMotion`
-
-Do not track:
-- Python `.venv`
-- model checkpoints
-- Hugging Face caches
-- generated TTS output caches
-- temporary experiment logs
-
-## Development Rule
-
-Do not assume git-tracked files are enough. This project depends on local model
-checkpoints, generated voice references, vendored repositories, and Python
-virtual environments that may be intentionally excluded from git.
+- 통합 source를 수정한 후 반드시 `apply_integration.py --activate`를 실행한다.
+- 현재 연구 조건에서 Fish/Piper 서버를 `live` 프로필의 요구사항으로 되돌리지 않는다.
+- separated dataset pool의 라벨/문장 필터링 근거는 보존한다. 비언어 factor가
+  활성화된 경우에는 StyleBERT 감탄사 wav 존재 여부를 readiness로 검사한다.
+- 메모리는 최근 턴을 prompt에 삽입하는 lightweight JSON memory이며 장기
+  지식 저장소로 과장하지 않는다.

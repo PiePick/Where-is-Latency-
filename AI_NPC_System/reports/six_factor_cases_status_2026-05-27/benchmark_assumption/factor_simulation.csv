@@ -1,0 +1,9 @@
+component_mode,mapping_level,selection_policy,scheduling_mode,trials,first_audio_median_ms,slow_ready_median_ms,next_turn_wait_median_ms
+both,grounded,grounded,parallel,100,79.927,3387.471,0.0
+both,grounded,grounded,serial,100,80.749,3390.84,3390.84
+both,emotion_only,emotion_only,parallel,100,79.87,3328.987,0.0
+both,emotion_only,emotion_only,serial,100,81.155,3392.1,3392.1
+both,response_act_only,response_act_only,parallel,100,80.515,3387.075,0.0
+both,response_act_only,response_act_only,serial,100,82.17,3376.661,3376.661
+both,none,neutral_random,parallel,100,80.239,3375.228,0.0
+both,none,neutral_random,serial,100,80.983,3360.828,3360.828

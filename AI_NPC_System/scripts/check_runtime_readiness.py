@@ -28,6 +28,18 @@ DEFAULT_JSON = ROOT / "reports" / "runtime_readiness_latest.json"
 DEFAULT_MD = ROOT / "reports" / "runtime_readiness_latest.md"
 
 
+def ensure_runtime_python() -> None:
+    """Run checks in the Open-LLM venv so dependency checks match the demo."""
+    if os.getenv("CREDO_READINESS_NO_REEXEC"):
+        return
+    runtime_python = PROJECT_ROOT / "vendor" / "open-llm-vtuber" / ".venv" / "bin" / "python"
+    if not runtime_python.exists():
+        return
+    if Path(sys.executable).absolute() == runtime_python.absolute():
+        return
+    os.execv(str(runtime_python), [str(runtime_python), *sys.argv])
+
+
 @dataclass
 class CheckResult:
     """One readiness check result."""
@@ -146,6 +158,24 @@ def check_youtube_bridge_dependency() -> CheckResult:
         return fail("YouTube bridge dependency", proc.stderr.strip() or "websockets import failed", required=False)
     return ok("YouTube bridge dependency", f"websockets {proc.stdout.strip()}", required=False)
 
+def check_open_llm_module(module: str, *, required: bool = True) -> CheckResult:
+    """Verify a Python dependency in the Open-LLM-VTuber runtime environment."""
+    venv_python = PROJECT_ROOT / "vendor" / "open-llm-vtuber" / ".venv" / "bin" / "python"
+    if not venv_python.exists():
+        return fail(f"Open-LLM module: {module}", f"missing python: {venv_python}", required=required)
+    import subprocess
+
+    proc = subprocess.run(
+        [str(venv_python), "-c", f"import {module}"],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if proc.returncode != 0:
+        return fail(f"Open-LLM module: {module}", proc.stderr.strip() or "import failed", required=required)
+    return ok(f"Open-LLM module: {module}", "importable", required=required)
+
 
 
 def check_piper_tts(cfg: object) -> list[CheckResult]:
@@ -246,7 +276,24 @@ def check_fast_track_audio_cache(cfg: Any) -> CheckResult:
 
 
 def check_persona_reaction_bundle(cfg: Any) -> CheckResult:
-    """Verify that the configured persona bundle can serve prebuilt FastTrack audio."""
+    """Verify that the configured FastTrack text source can serve selection."""
+    pool_path = getattr(cfg, "FAST_TRACK_DATASET_POOL_PATH", None)
+    if pool_path and Path(pool_path).exists():
+        payload = json.loads(Path(pool_path).read_text(encoding="utf-8"))
+        go_buckets = payload.get("go_emotions", {}).get("buckets", {})
+        swda_buckets = payload.get("swda", {}).get("buckets", {})
+        go_count = sum(len(items) for items in go_buckets.values() if isinstance(items, list))
+        swda_count = sum(len(items) for items in swda_buckets.values() if isinstance(items, list))
+        question_count = len(swda_buckets.get("QUESTION", [])) if isinstance(swda_buckets, dict) else 0
+        if go_count == 0 or swda_count == 0:
+            return fail("FastTrack separated dataset pool", f"empty source pool: {pool_path}")
+        if question_count:
+            return fail("FastTrack separated dataset pool", f"QUESTION response-act items are not allowed: {question_count}")
+        return ok(
+            "FastTrack separated dataset pool",
+            f"{pool_path}; go_emotions={go_count}; swda={swda_count}; separated_sources=true",
+        )
+
     if not getattr(cfg, "FAST_TRACK_PERSONA_BUNDLE_ENABLED", False):
         return skip("FastTrack persona bundle", "disabled by FAST_TRACK_PERSONA_BUNDLE_ENABLED=0", required=False)
     manifest_path = cfg.FAST_TRACK_PERSONA_BUNDLE_PATH
@@ -256,8 +303,9 @@ def check_persona_reaction_bundle(cfg: Any) -> CheckResult:
     payload = json.loads(manifest_path.read_text(encoding="utf-8"))
     metadata = payload.get("tts_reference", {}) if isinstance(payload, dict) else {}
     reference_id = str(metadata.get("reference_id", "")).strip()
+    uses_cached_audio = str(getattr(cfg, "FAST_TRACK_TTS_MODE", "")) == "cached_fish_bundle"
     expected = str(getattr(cfg, "FAST_TRACK_AUDIO_CACHE_REFERENCE_ID", "") or "").strip()
-    if expected and reference_id != expected:
+    if uses_cached_audio and expected and reference_id != expected:
         return fail(
             "FastTrack persona bundle",
             f"reference mismatch: manifest={reference_id!r}, expected={expected!r}",
@@ -273,34 +321,95 @@ def check_persona_reaction_bundle(cfg: Any) -> CheckResult:
 
     root = manifest_path.parent
     total = 0
-    usable = 0
+    usable_audio = 0
+    usable_text = 0
     for item in payload.get("items", []):
         total += 1
-        audio_path = Path(str(item.get("audio_path", "")))
-        if not audio_path.is_absolute():
-            audio_path = root / audio_path
-        if audio_path.exists():
-            usable += 1
+        if str(item.get("plain_tts_text") or item.get("reaction") or "").strip():
+            usable_text += 1
+        raw_audio_path = str(item.get("audio_path") or "").strip()
+        if raw_audio_path:
+            audio_path = Path(raw_audio_path)
+            if not audio_path.is_absolute():
+                audio_path = root / audio_path
+            if audio_path.exists():
+                usable_audio += 1
 
-    if usable == 0:
+    if uses_cached_audio and usable_audio == 0:
         return fail("FastTrack persona bundle", f"no usable audio_path files in {manifest_path}")
-    return ok("FastTrack persona bundle", f"{manifest_path}; reference={reference_id}; usable_items={usable}/{total}")
+    if usable_text == 0:
+        return fail("FastTrack persona text pool", f"no usable text items in {manifest_path}")
+    return ok(
+        "FastTrack persona text pool",
+        f"{manifest_path}; usable_text={usable_text}/{total}; legacy_audio={usable_audio}/{total}",
+    )
+
+
+def check_interjection_audio_bundle(cfg: Any) -> CheckResult:
+    """Verify legacy prebuilt interjection audio only when the live path enables it."""
+    manifest_path = getattr(
+        cfg,
+        "CREDO_INTERJECTION_AUDIO_BUNDLE_PATH",
+        ROOT / "fasttrack_assets" / "audio" / "expressive_interjection_bundle" / "manifest.json",
+    )
+    component_mode = str(getattr(cfg, "CREDO_FASTTRACK_COMPONENT_MODE", "both")).strip().lower()
+    enabled = bool(getattr(cfg, "CREDO_NONVERBAL_FASTTRACK_ENABLED", False))
+    required = enabled and component_mode in {"both", "nonverbal_only"}
+    if not enabled:
+        return skip(
+            "Interjection audio bundle",
+            "disabled by CREDO_NONVERBAL_FASTTRACK_ENABLED=0; live FastTrack uses speech + emotion motion",
+        )
+    if not manifest_path.exists():
+        return fail("Interjection audio bundle", f"missing: {manifest_path}", required=required)
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    items = payload.get("items", [])
+    tts_reference = payload.get("tts_reference") or {}
+    reference_id = str(tts_reference.get("reference_id") or "")
+    reference_engine = str(tts_reference.get("engine") or "fish_speech")
+    expected_reference_id = str(getattr(cfg, "FISH_SPEECH_REFERENCE_ID", "") or "")
+    if required and reference_engine == "fish_speech" and expected_reference_id and reference_id != expected_reference_id:
+        return fail(
+            "Interjection audio bundle",
+            f"{manifest_path}; reference mismatch: manifest={reference_id!r}, "
+            f"expected={expected_reference_id!r}",
+            required=True,
+        )
+    carriers = [str(item.get("carrier") or "").strip() for item in items]
+    if not any(carriers):
+        return fail("Interjection audio bundle", f"no carrier text in {manifest_path}", required=required)
+    audio_count = 0
+    for item in items:
+        audio_path = Path(str(item.get("audio_path") or ""))
+        if not audio_path.is_absolute():
+            audio_path = manifest_path.parent / audio_path
+        if audio_path.exists():
+            audio_count += 1
+    if required and audio_count != len(items):
+        return fail(
+            "Interjection audio bundle",
+            f"{manifest_path}; prebuilt_audio={audio_count}/{len(items)}",
+            required=True,
+        )
+    return ok(
+        "Interjection audio bundle",
+        f"{manifest_path}; prebuilt_audio={audio_count}/{len(items)}; "
+        f"engine={reference_engine}; reference_id={reference_id}",
+        required=required,
+    )
 
 
 def collect_checks() -> list[CheckResult]:
     cfg = load_config()
     open_llm_dir = PROJECT_ROOT / "vendor" / "open-llm-vtuber"
-    fish_dir = PROJECT_ROOT / "vendor" / "fish-speech"
     stylebert_dir = PROJECT_ROOT / "vendor" / "Style-Bert-VITS2"
-    fish_reference_dir = fish_dir / "references" / str(cfg.FISH_SPEECH_REFERENCE_ID)
 
     checks = [
         check_path("Open-LLM-VTuber runtime", open_llm_dir / ".venv" / "bin" / "python", executable=True),
-        check_path("Fish Speech checkpoint", fish_dir / "checkpoints" / os.getenv("FISH_SPEECH_CHECKPOINT_NAME", "s2-pro")),
-        check_fish_reference_voice(fish_reference_dir),
+        check_open_llm_module("edge_tts"),
         check_path("SetFit optimized intent model", ROOT / "fasttrack_assets" / "models" / "setfit_swda_intent_minilm_optimized" / "model_head.pkl"),
         check_path("Hybrid reaction list", ROOT / "hybrid_reactions.json"),
-        check_path("Interjection audio bundle", getattr(cfg, "CREDO_INTERJECTION_AUDIO_BUNDLE_PATH", ROOT / "fasttrack_assets" / "audio" / "expressive_interjection_bundle" / "manifest.json"), required=False),
+        check_interjection_audio_bundle(cfg),
         check_path("Legacy expressive audio manifest", ROOT / "archive" / "legacy_audio" / "expressive_audio_pool" / "manifest.json", required=False),
         check_fast_track_audio_cache(cfg),
         check_persona_reaction_bundle(cfg),
@@ -313,12 +422,13 @@ def collect_checks() -> list[CheckResult]:
         check_import("websockets", required=False),
         check_youtube_bridge_dependency(),
         check_http("Local LLM endpoint", f"{cfg.LOCAL_LLM_BASE_URL.rstrip('/')}/models", required=False),
-        check_http("Fish Speech endpoint", cfg.FISH_SPEECH_HEALTH_URL, required=False),
         check_tcp("Open-LLM-VTuber web server", "127.0.0.1", 12393, required=False),
     ]
     if not getattr(cfg, "FAST_TRACK_ENABLED", True):
         checks.append(skip("FastTrack", "disabled by FAST_TRACK_ENABLED=0 for SlowTrack-only experiment"))
         checks.append(skip("FastTrack realtime TTS", "not required when FastTrack is disabled"))
+    elif cfg.FAST_TRACK_TTS_MODE == "edge_tts":
+        checks.append(ok("FastTrack realtime TTS", f"Edge TTS voice={cfg.OPEN_LLM_VTUBER_EDGE_TTS_VOICE}"))
     elif cfg.FAST_TRACK_TTS_MODE == "piper_tts":
         checks.extend(check_piper_tts(cfg))
         checks.append(skip("Style-Bert-VITS2", "legacy backend disabled by FAST_TRACK_TTS_MODE=piper_tts"))
@@ -392,6 +502,7 @@ def write_markdown(path: Path, summary: dict[str, Any], checks: list[CheckResult
 
 
 def main() -> None:
+    ensure_runtime_python()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", type=Path, default=DEFAULT_JSON)
     parser.add_argument("--markdown", type=Path, default=DEFAULT_MD)

@@ -1,4 +1,4 @@
-"""Compose latency-cover blocks from emotion, intent, keywords, TTS style controls, and motion."""
+"""Compose latency-cover text and prebuilt nonverbal beats from runtime signals."""
 
 from __future__ import annotations
 
@@ -27,14 +27,14 @@ MOTION_MAP = {
 }
 
 PURE_INTERJECTION_CARRIERS = {
-    "positive": {"ha-ha!", "hee-hee!", "ahaha!", "oh!", "haha!", "yay!", "aw!"},
-    "negative": {"oh.", "mm.", "ugh.", "ah.", "hm.", "ugh?"},
-    "ambiguous": {"huh?", "oh?", "hm?", "oh."},
-    "neutral": {"mm.", "hm."},
+    "positive": {"oh!", "yay!", "aw!", "heh."},
+    "negative": {"ugh.", "mm.", "oh..."},
+    "ambiguous": {"huh?", "oh?", "eh?"},
+    "neutral": {"hm.", "mm.", "oh."},
 }
 
 FISH_SPEECH_CUE_BUNDLES = {
-    "positive": ["[laughing]", "[chuckle]", "[delight]", "[excited]"],
+    "positive": ["[delight]", "[excited]", "[bright]"],
     "negative": ["[sigh]", "[sad sigh]", "[exhale]", "[whisper]"],
     "ambiguous": ["[surprised]", "[shocked]", "[inhale]", "[curious]"],
     "neutral": ["[short pause]", "[soft sigh]", "[exhale]", "[whisper]"],
@@ -49,6 +49,14 @@ INTENT_FALLBACKS = {
     "REJECT": ["No way.", "I don't think so."],
     "UNKNOWN": ["Let me think.", "I see."],
 }
+
+REALTIME_THINKING_BRIDGES = [
+    {"emotion": "neutral", "carrier": "Let me think about that.", "style_tag": "cute"},
+    {"emotion": "neutral", "carrier": "Hmm, give me a second.", "style_tag": "playful"},
+    {"emotion": "positive", "carrier": "Ooh, let me think about that!", "style_tag": "energetic"},
+    {"emotion": "ambiguous", "carrier": "Wait, let me figure that out.", "style_tag": "playful"},
+    {"emotion": "negative", "carrier": "Hmm, let me think carefully.", "style_tag": "cute"},
+]
 
 
 @dataclass(frozen=True)
@@ -105,7 +113,7 @@ class CoverComposer:
             if audio_path and not Path(audio_path).is_absolute():
                 item = dict(item)
                 item["audio_path"] = str((root / audio_path).resolve())
-            if item.get("audio_path"):
+            if item.get("carrier") or item.get("text"):
                 items.append(item)
         return items
 
@@ -125,7 +133,7 @@ class CoverComposer:
         category_scores = fast_result.get("category_scores") or {}
         transition = self.intent_transition.choose(intent, emotion=emotion, rng=self.rng)
         slow_probe = expected_slow_text or self._estimate_slow_probe(user_text)
-        predicted = self.predictor.predict(slow_probe, engine="fish_speech", stage="slow_track_tts")
+        predicted = self.predictor.predict(slow_probe, engine="edge_tts", stage="slow_track_tts")
 
         target_ms = max(1200.0, predicted.predicted_ms)
         blocks: list[CoverBlock] = []
@@ -163,8 +171,10 @@ class CoverComposer:
         }
 
     def choose_extreme_audio_items(self, emotion: str, count: int = 1) -> list[dict[str, Any]]:
-        """Pick prebuilt pure interjection audio items for the emotion."""
+        """Pick pure interjection clips for immediate playback."""
         emotion = str(emotion or "neutral").lower()
+        if emotion == "surprise":
+            emotion = "ambiguous"
         allowed = PURE_INTERJECTION_CARRIERS.get(emotion, PURE_INTERJECTION_CARRIERS["neutral"])
         candidates = [
             item for item in self.extreme_audio
@@ -185,13 +195,49 @@ class CoverComposer:
         self.rng.shuffle(candidates)
         return candidates[: max(0, count)]
 
+    def choose_interjection_items(self, emotion: str, count: int = 1) -> list[dict[str, Any]]:
+        """Pick pure interjection text metadata for realtime synthesis."""
+        emotion = str(emotion or "neutral").lower()
+        if emotion == "surprise":
+            emotion = "ambiguous"
+        allowed = PURE_INTERJECTION_CARRIERS.get(emotion, PURE_INTERJECTION_CARRIERS["neutral"])
+        candidates = [
+            dict(item)
+            for item in self.extreme_audio
+            if str(item.get("emotion", "")).lower() == emotion
+            and str(item.get("carrier", "")).lower().strip() in allowed
+        ]
+        if not candidates:
+            candidates = [
+                {
+                    "emotion": emotion,
+                    "carrier": carrier,
+                    "event": self._event_for_emotion(emotion),
+                    "style_tag": "steady",
+                }
+                for carrier in allowed
+            ]
+        self.rng.shuffle(candidates)
+        return candidates[: max(0, count)]
+
+    @staticmethod
+    def _event_for_emotion(emotion: str) -> str:
+        if str(emotion or "").lower() == "surprise":
+            emotion = "ambiguous"
+        return {
+            "positive": "laugh",
+            "negative": "sigh",
+            "ambiguous": "surprise",
+            "neutral": "thinking",
+        }.get(emotion, "thinking")
+
     def choose_extreme_audio_item(self, emotion: str) -> dict[str, Any] | None:
-        """Pick one prebuilt pure interjection audio manifest item for the emotion."""
+        """Pick one pure interjection clip for immediate playback."""
         items = self.choose_extreme_audio_items(emotion, count=1)
         return items[0] if items else None
 
     def choose_extreme_audio(self, emotion: str) -> str | None:
-        """Pick one prebuilt extreme nonverbal audio path for the emotion."""
+        """Pick a prebuilt short interjection audio path."""
         item = self.choose_extreme_audio_item(emotion)
         if not item:
             return None
@@ -206,18 +252,24 @@ class CoverComposer:
             and item.get("audio_path")
         ]
         if not candidates:
-            return self.choose_extreme_audio_item("neutral")
+            items = self.choose_extreme_audio_items("neutral", count=1)
+            return items[0] if items else None
         return self.rng.choice(candidates)
 
     def choose_thinking_bridge_audio_item(self, emotion: str = "neutral") -> dict[str, Any] | None:
-        """Pick a short spoken thinking bridge before longer SlowTrack speech."""
+        """Pick a short text bridge for realtime TTS before longer SlowTrack speech."""
         candidates = [
             item for item in self.thinking_bridge_audio
             if str(item.get("emotion", "")).lower() in {str(emotion or "").lower(), "neutral"}
-            and item.get("audio_path")
+            and (item.get("carrier") or item.get("text"))
         ]
         if not candidates:
-            candidates = [item for item in self.thinking_bridge_audio if item.get("audio_path")]
+            candidates = [item for item in self.thinking_bridge_audio if item.get("carrier") or item.get("text")]
+        if not candidates:
+            candidates = [
+                item for item in REALTIME_THINKING_BRIDGES
+                if str(item.get("emotion", "")).lower() in {str(emotion or "").lower(), "neutral"}
+            ]
         if not candidates:
             return None
         return self.rng.choice(candidates)
@@ -290,7 +342,7 @@ class CoverComposer:
                 "noise_w": config.PIPER_TTS_NOISE_W,
             },
             "stylebert_vits2": stylebert_map.get(emotion, config.STYLEBERT_VITS2_STYLE),
-            "fish_speech_cues": FISH_SPEECH_CUE_BUNDLES.get(emotion, FISH_SPEECH_CUE_BUNDLES["neutral"]),
+            "legacy_fish_speech_cues": FISH_SPEECH_CUE_BUNDLES.get(emotion, FISH_SPEECH_CUE_BUNDLES["neutral"]),
             "inline_cues_enabled": config.FAST_TRACK_INLINE_CUES_ENABLED,
         }
 

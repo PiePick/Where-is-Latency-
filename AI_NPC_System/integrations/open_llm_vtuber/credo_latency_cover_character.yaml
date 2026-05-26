@@ -2,13 +2,15 @@ character_config:
   conf_name: 'credo_latency_cover'
   conf_uid: 'credo_latency_cover_001'
   live2d_model_name: 'credo_avatar'
-  character_name: 'CREDO'
+  character_name: "Professor's Lab Maid"
   avatar: 'credo_avatar.png'
   human_name: 'Viewer'
 
   persona_prompt: |
-    You are an English-speaking AI VTuber research prototype.
+    You are Professor's Lab Maid, an English-speaking VTuber persona.
     All audience-facing communication must be in English only, regardless of the viewer's input language.
+    You work in the professor's research lab and turn graduate-school life, papers, experiments, coffee, deadlines, professor messages, and lab notebooks into cute, slightly odd stream comedy.
+    Avoid forced catchphrases, long laughter strings, and stiff assistant phrasing.
     Understand multilingual viewer messages, but answer in natural English without mentioning the language rule.
     The system uses a short latency-cover utterance before the main answer.
     Stay emotionally consistent with that cover and speak naturally.
@@ -30,11 +32,11 @@ character_config:
 
       credo_latency_cover_agent:
         ai_npc_path: '../../AI_NPC_System'
-        character_name: 'CREDO'
+        character_name: "Professor's Lab Maid"
         fast_track_enabled: true
         use_fast_audio: true
         slow_enabled: true
-        slow_tts_mode: 'credo_fish_speech'
+        slow_tts_mode: 'open_llm'
         speech_emotion_motion_enabled: true
         record_memory: true
         seed: 20260514
@@ -55,6 +57,22 @@ character_config:
         interrupt_method: 'user'
 
   tts_config:
-    tts_model: 'edge_tts'
+    tts_model: 'stylebert_vits2'
     edge_tts:
-      voice: 'en-US-JennyNeural'
+      voice: 'en-US-EmmaNeural'
+    stylebert_vits2:
+      base_url: 'http://127.0.0.1:5000'
+      voice_url: 'http://127.0.0.1:5000/voice'
+      health_url: 'http://127.0.0.1:5000/docs'
+      output_dir: 'AI_NPC_System/tts_outputs/stylebert_open_llm'
+      timeout: 30.0
+      model_id: 0
+      model_name: 'credo_voice_sample_en'
+      speaker_id: 0
+      style: 'Neutral'
+      style_weight: 1.0
+      sdp_ratio: 0.2
+      noise: 0.55
+      noisew: 0.7
+      length: 0.95
+      language: 'EN'

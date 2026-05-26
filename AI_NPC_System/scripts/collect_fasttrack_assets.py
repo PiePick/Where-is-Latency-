@@ -39,24 +39,14 @@ def build_entries(asset_root: Path) -> list[AssetEntry]:
             "Baseline SetFit SWDA intent model kept for comparison.",
         ),
         AssetEntry(
-            "persona_reaction_audio",
-            asset_root / "audio" / "persona_reaction_bundle_response_act_v1",
-            "600 prebuilt persona-filtered FastTrack reaction wav files and manifest.",
+            "active_separated_dataset_pool",
+            asset_root / "text" / "professor_lab_maid_dataset_pool_v1",
+            "Active separated GoEmotions/SWDA filtered pool used for runtime FastTrack search and composition.",
         ),
         AssetEntry(
             "interjection_motion_audio",
             asset_root / "audio" / "expressive_interjection_bundle",
             "Pure interjection/filler audio aligned with FastTrack Live2D motion tags.",
-        ),
-        AssetEntry(
-            "thinking_bridge_audio",
-            asset_root / "audio" / "thinking_bridge_bundle",
-            "Short spoken thinking bridges after FastTrack while SlowTrack is pending.",
-        ),
-        AssetEntry(
-            "professor_jinsama_callout_audio",
-            asset_root / "audio" / "professor_jinsama_call_bundle",
-            "Special FastTrack callout bundle for Professor Jinsama.",
         ),
         AssetEntry(
             "runtime_config",
@@ -74,9 +64,9 @@ def build_entries(asset_root: Path) -> list[AssetEntry]:
             "Stable FastTrack facade used by integrations.",
         ),
         AssetEntry(
-            "fast_track_engine",
-            ROOT / "fast_track_engine.py",
-            "Hybrid FastTrack classifier/router implementation.",
+            "fasttrack_router_v3",
+            ROOT / "fasttrack_router_v3.py",
+            "Async FastTrack router with prefetch bypass and separated dataset-pool lookup.",
         ),
     ]
 

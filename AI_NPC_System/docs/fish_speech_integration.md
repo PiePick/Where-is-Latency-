@@ -1,120 +1,67 @@
-# Fish Speech Integration
+# Fish Speech Integration Archive Note
 
-## Purpose
+작성 기준: 2026-05-27 KST
 
-Fish Speech is used as the local TTS layer for the AI NPC prototype. Unity does not need to load Fish Speech directly. The Python side generates FastTrack and SlowTrack text, calls the local Fish Speech HTTP server, saves an audio file, and plays it locally when possible.
+Fish Speech was evaluated for expressive reference-voice generation and
+prebuilt FastTrack assets. It is no longer a live synthesis engine, and the
+active short interjection bundle has been regenerated with StyleBERT-VITS2.
 
-## License Note
+## Reason For Removal From Live Runtime
 
-Fish Speech is distributed under the Fish Audio Research License. Research and non-commercial use are permitted by that license, while commercial use requires a separate Fish Audio license. For experiments and papers, describe the usage as research use and keep attribution/license notices. For voice cloning, only use reference voices with consent.
+Measured live results included:
 
-## Local Layout
+| Measurement | Result |
+| --- | ---: |
+| 20-word Fish SlowTrack synthesis | about `49.7 s` |
+| corresponding completed turn | about `51.1 s` |
+| earlier 26-word synthesis | about `68.7 s` |
+| earlier 43-word synthesis | about `88.2 s` |
+
+This latency cannot be usefully hidden by a short reaction in a conversational
+broadcast loop. The default route therefore uses StyleBERT-VITS2 for language
+FastTrack, SlowTrack, and short prebuilt interjection clips.
+
+## Retained Historical Assets
+
+The following may be kept only to reproduce prior quality/cache work:
 
 ```text
-vendor/fish-speech
+vendor/fish-speech/
+vendor/fish-speech/references/
 AI_NPC_System/tts_client.py
 AI_NPC_System/tts_cues.py
-AI_NPC_System/fish_speech_nonverbal_cues.json
-AI_NPC_System/scripts/start_fish_speech_server.sh
-AI_NPC_System/scripts/build_tts_cues.py
+AI_NPC_System/fasttrack_assets/audio/*/
 ```
 
-## Fish Speech Server
+The active language path no longer depends on a static persona manifest or its
+generated Fish wav files. It uses the separated GoEmotions/SWDA dataset pool at
+`fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json` for
+runtime retrieval and persona-cover composition. The active interjection bundle is
+`fasttrack_assets/audio/expressive_interjection_bundle/manifest.json`; its
+`65` wav files are now StyleBERT-generated and required when interjection
+FastTrack is enabled.
 
-Download weights inside the cloned repo:
+## Reproduction Only
+
+If Fish quality experiments or nonverbal bundle regeneration are required, use
+the bundle builders explicitly; do not add the Fish server to
+`run_credo_stack.sh --profile live`.
+Fish license/voice-consent requirements continue to apply to retained audio.
+
+## Historical Fish Regeneration
 
 ```bash
-cd vendor/fish-speech
-hf download fishaudio/s2-pro --local-dir checkpoints/s2-pro
+cd /mnt/c/Users/CGLAB/Desktop/CREDO
+source AI_NPC_System/project_config.sh
+FISH_SPEECH_AUTO_PLAY=0 vendor/open-llm-vtuber/.venv/bin/python \
+  AI_NPC_System/scripts/build_interjection_audio_bundle.py \
+  --engine fish_speech --synthesize --force --max-new-tokens 96
 ```
 
-Install the local Fish Speech Python runtime:
+This is for reproducing historical Fish assets only. For the active bundle, use
+StyleBERT:
 
 ```bash
-AI_NPC_System/scripts/install_fish_speech_runtime.sh
+python3 AI_NPC_System/scripts/build_interjection_audio_bundle.py \
+  --engine stylebert_vits2 --synthesize --force
 ```
-
-The installer creates `vendor/fish-speech/.venv` and skips PyAudio by default.
-The HTTP API server does not need local microphone capture, while PyAudio often
-requires extra WSL system headers.
-
-Start the server:
-
-```bash
-AI_NPC_System/scripts/start_fish_speech_server.sh
-```
-
-Default endpoint:
-
-```text
-http://127.0.0.1:8080/v1/tts
-```
-
-The base TTS model is selected when the Fish Speech server starts. The request does not include a model name.
-
-## FastTrack Behavior
-
-FastTrack now builds a Fish Speech-ready TTS string:
-
-```text
-[surprised] Ah I had no idea! About today?
-```
-
-The emotional reaction still comes from `hybrid_reactions.json`. The nonverbal cue comes from `fish_speech_nonverbal_cues.json`.
-
-Cue selection is controlled by:
-
-```text
-FISH_SPEECH_CUES_ENABLED=0  # current default; set to 1 only when FastTrack TTS mode is fish_speech
-FISH_SPEECH_CUE_PROBABILITY=0.65
-```
-
-The FastTrack cue list now uses most stable Fish Speech README/WebUI tags. It excludes tags that are too context-bound or risky for automatic short reactions, such as `[singing]`, `[echo]`, `[audience laughter]`, `[with strong accent]`, `[moaning]`, `[interrupting]`, and `[panting]`.
-
-## SlowTrack Behavior
-
-SlowTrack system prompts now tell the local LLM that Fish Speech supports inline tags. The model is allowed to use at most one short tag per sentence from the approved tag set.
-
-Primary local LLM:
-
-```text
-http://127.0.0.1:8001/v1
-qwen2.5:7b
-```
-
-Fallback local LLM:
-
-```text
-http://127.0.0.1:8001/v1
-qwen2.5:7b
-```
-
-## Local Chat Test
-
-```bash
-FAST_TRACK_DEVICE=cpu python3 AI_NPC_System/main.py
-```
-
-If the Fish Speech server is reachable, the script writes audio files under:
-
-```text
-AI_NPC_System/tts_outputs
-```
-
-and attempts local playback. If the server is not running, text generation continues and TTS is skipped.
-
-## Unity Strategy
-
-The recommended architecture is:
-
-```text
-Unity or Live2D UI
-  -> Python local server
-      -> FastTrack text
-      -> SlowTrack text
-      -> Fish Speech HTTP TTS
-      -> wav file or audio URL
-  -> UI plays wav/audio URL
-```
-
-This avoids embedding Fish Speech inside Unity. A Live2D or browser-based chat UI can use the same Python backend later.

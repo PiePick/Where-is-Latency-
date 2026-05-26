@@ -1,0 +1,13 @@
+module,run,elapsed_ms,error,output_path
+fasttrack_analysis,1,10.7,,
+fasttrack_analysis,2,12.44,,
+fasttrack_analysis,3,10.788,,
+language_fasttrack_tts,1,801.547,,/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_outputs/edge_live/bench_language_fasttrack_tts_01_1779768264656_164cd3e5.mp3
+language_fasttrack_tts,2,387.162,,/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_outputs/edge_live/bench_language_fasttrack_tts_02_1779768266248_7fded95e.mp3
+language_fasttrack_tts,3,603.125,,/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_outputs/edge_live/bench_language_fasttrack_tts_03_1779768266636_1497217b.mp3
+slowtrack_tts,1,905.994,,/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_outputs/edge_live/bench_slowtrack_tts_01_1779768267239_b957b2c3.mp3
+slowtrack_tts,2,643.252,,/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_outputs/edge_live/bench_slowtrack_tts_02_1779768268145_3990c0ee.mp3
+slowtrack_tts,3,458.535,,/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/tts_outputs/edge_live/bench_slowtrack_tts_03_1779768268788_c0c1fe71.mp3
+slowtrack_llm,1,902.333,,
+slowtrack_llm,2,522.115,,
+slowtrack_llm,3,944.165,,

@@ -1,35 +1,41 @@
 # CREDO FastTrack Assets
 
-This folder is the single navigation point for FastTrack research/runtime assets.
-FastTrack datasets, trained intent models, and prebuilt audio bundles live here
-as canonical files so the project root stays readable.
+This folder keeps the dataset and artifact evidence used by FastTrack.
 
 ## Layout
 
-- `datasets/`
-  - Prepared GoEmotions 4-way emotion data.
-  - Prepared SWDA coarse intent data.
-- `models/`
-  - SetFit SWDA intent classifiers used by FastTrack intent routing.
-- `audio/`
-  - Prebuilt Fish Speech persona reaction bundle.
-  - Pure interjection + motion bundle.
-  - Thinking bridge bundle such as `Let me think about it.`
-  - Professor Jinsama callout bundle.
-
-Runtime source files such as `config.py`, `fast_track.py`, and
-`fast_track_engine.py` remain at the `AI_NPC_System/` root because importing
-them from their existing module paths is simpler and less fragile. They are
-listed in `INDEX.generated.json`, but they are not duplicated here.
-
-## Refresh
-
-After generating new audio, refresh this folder:
-
-```bash
-cd /mnt/c/Users/CGLAB/Desktop/CREDO
-vendor/open-llm-vtuber/.venv/bin/python \
-  AI_NPC_System/scripts/collect_fasttrack_assets.py \
+```text
+datasets/  Prepared GoEmotions emotion and SWDA dialogue-act data.
+models/    SetFit SWDA intent classifier used at runtime.
+text/      Active separated filtered dataset pools.
+audio/     Active StyleBERT nonverbal bundle.
 ```
 
-The script writes `INDEX.generated.json` with file counts and canonical paths.
+## Current Runtime Use
+
+The current StyleBERT realtime path reads
+`text/professor_lab_maid_dataset_pool_v1/pool.json`. This is not a static
+persona reaction manifest. It keeps the two prepared source datasets separate:
+
+- GoEmotions: emotion evidence pool.
+- SWDA: response-act evidence pool, with `QUESTION` excluded.
+
+Runtime router v3 searches the relevant separated pool(s), records the selected
+source items as metadata, and composes a short Professor's Lab Maid FastTrack
+line on demand. The contextual mapping policies are:
+
+- `grounded`: emotion + sampled response act
+- `emotion_only`: emotion only
+- `response_act_only`: SWDA-transitioned response act only
+- `none`: FastTrack control condition
+
+Legacy static text manifests are kept under `AI_NPC_System/archive/` if needed
+for reproducibility. They are not the active language FastTrack source.
+
+`audio/expressive_interjection_bundle/manifest.json` provides pure nonverbal
+StyleBERT wav files. These files are played with motion without live
+synthesis.
+
+The trained models, filtered dataset pool, and active interjection wav bundle
+must be retained for experimental reproducibility. Other generated wav folders
+can be archived or removed after any required analysis is preserved.
