@@ -1622,50 +1622,8 @@ class CredoLatencyCoverAgent(AgentInterface):
         }.get(emotion, "thinking")
 
     def _build_initial_interjection_outputs(self, emotion: str, turn_id: str) -> list[AudioOutput]:
-        """Legacy prebuilt interjection path; disabled in the active speech-first runtime."""
-        if not self._nonverbal_fasttrack_enabled():
-            return []
-        if not getattr(self._credo_config, "CREDO_ENABLE_INITIAL_INTERJECTION_AUDIO", True):
-            return []
-        count = max(1, int(getattr(self._credo_config, "CREDO_INITIAL_INTERJECTION_MAX_BLOCKS", 2)))
-        items = self.cover_composer.choose_extreme_audio_items(self._normalize_emotion(emotion), count=count)
-        event = self._event_for_emotion(emotion)
-        outputs: list[AudioOutput] = []
-        for index, item in enumerate(items, start=1):
-            carrier = self._clean_spoken_text(str(item.get("carrier") or ""))
-            audio_path = str(item.get("audio_path") or "").strip()
-            if not carrier or not audio_path or not Path(audio_path).exists():
-                continue
-            self.latency_logger.log(
-                self._latency_observer.LatencyEvent(
-                    stage="fast_track_interjection",
-                    elapsed_ms=0.0,
-                    text=carrier,
-                    engine="prebuilt_fish_audio",
-                    metadata={
-                        **self._experiment_metadata(),
-                        "turn_id": turn_id,
-                        "emotion": self._normalize_emotion(emotion),
-                        "event": event,
-                        "interjection_index": index,
-                        "audio_path": audio_path,
-                        "realtime_synthesis": False,
-                    },
-                )
-            )
-            outputs.append(
-                AudioOutput(
-                    audio_path=audio_path,
-                    display_text=self._display(""),
-                    transcript="",
-                    actions=self._expressive_cover_actions(
-                        emotion,
-                        str(item.get("event") or event),
-                        style_tag=str(item.get("style_tag") or ""),
-                    ),
-                )
-            )
-        return outputs
+        """Sealed standalone interjection path."""
+        return []
 
     async def _yield_thinking_bridge_audio(
         self,
@@ -1720,7 +1678,8 @@ class CredoLatencyCoverAgent(AgentInterface):
         *,
         reason: str,
     ) -> AsyncIterator[AudioOutput]:
-        """Play a prebuilt Fish hm/mm filler while SlowTrack is not ready."""
+        """Sealed standalone waiting filler path."""
+        return
         if not self._nonverbal_fasttrack_enabled():
             return
         if not getattr(self._credo_config, "CREDO_ENABLE_WAITING_COVER_AUDIO", True):

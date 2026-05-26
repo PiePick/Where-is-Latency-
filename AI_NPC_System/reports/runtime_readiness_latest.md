@@ -31,7 +31,7 @@
 | OK | False | Style-Bert-VITS2 model assets | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets |
 | OK | False | Style-Bert-VITS2 explicit English model | credo_voice_sample_en (/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets/credo_voice_sample_en/config.json) |
 | OK | False | Style-Bert-VITS2 device | cuda on CUDA_VISIBLE_DEVICES=0 |
-| OK | False | Style-Bert-VITS2 endpoint | http://127.0.0.1:5000/docs responded HTTP 200 in 0.6 ms |
+| OK | False | Style-Bert-VITS2 endpoint | http://127.0.0.1:5000/docs responded HTTP 200 in 1.1 ms |
 
 ## Interpretation
 - READY: the full configured demo stack is reachable.

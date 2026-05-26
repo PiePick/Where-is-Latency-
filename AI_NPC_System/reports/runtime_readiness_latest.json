@@ -4,7 +4,7 @@
     "required_failed": 0,
     "optional_failed": 0,
     "warnings": 0,
-    "checked_at_unix": 1779832158.0231698
+    "checked_at_unix": 1779832521.4396894
   },
   "checks": [
     {
@@ -148,7 +148,7 @@
     {
       "name": "Style-Bert-VITS2 endpoint",
       "status": "OK",
-      "detail": "http://127.0.0.1:5000/docs responded HTTP 200 in 0.6 ms",
+      "detail": "http://127.0.0.1:5000/docs responded HTTP 200 in 1.1 ms",
       "required": false
     }
   ]

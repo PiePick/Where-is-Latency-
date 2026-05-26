@@ -1413,6 +1413,47 @@
     `Interjection audio bundle` is now reported as `SKIP`.
 - Notes:
   - The prebuilt interjection asset files were not deleted; they are no longer
-    required for the active live path and remain available only for manual/archive checks.
+    required for the active live path and remain archived only.
   - FastTrack still provides the short language reaction. The expression layer now
     follows the analyzed viewer emotion while mouth movement remains audio-driven.
+
+## 2026-05-27 KST - Manual Interjection Playback Sealed
+
+- Owner/chat: motion/runtime
+- User correction:
+  - Interjections were still reachable through the manual playback feature.
+  - Seal interjection playback for now.
+- Implemented:
+  - Removed the `Reactions` button, manual interjection panel, startup reaction
+    loading, and `/credo/interjections` frontend fetch from both CREDO frontend
+    hook copies:
+    - `vendor/open-llm-vtuber/frontend/credo-vtuber-mode.js`
+    - `AI_NPC_System/integrations/open_llm_vtuber/frontend/credo-vtuber-mode.js`
+  - Locked backend manual playback in
+    `vendor/open-llm-vtuber/src/open_llm_vtuber/routes.py`:
+    - `GET /credo/interjections` returns an empty disabled list.
+    - `POST /credo/interjections/play` returns `423` with `played=false`.
+    - Removed the interjection manifest loader and audio payload send path from
+      the active route file.
+  - Hardened both CREDO agent copies:
+    - `_nonverbal_fasttrack_enabled()` now returns `False` unconditionally.
+    - Initial interjection generation calls were removed from the turn path.
+    - `_build_initial_interjection_outputs()` returns `[]`.
+    - `_yield_waiting_cover_audio()` exits immediately.
+  - Updated config comments to reflect that standalone interjection playback is
+    sealed, not merely disabled by default.
+- Active behavior:
+  - FastTrack language reactions still work for the six experiment cases.
+  - Standalone gasp/laugh/hm/sigh-style audio clips are not emitted by FastTrack,
+    waiting cover, initial cover, manual UI, or manual backend playback.
+  - Viewer-emotion expression/body motion remains active while mouth movement is
+    still owned by audio lip-sync.
+- Verification:
+  - Windows Node parse check passed for both frontend hook files.
+  - `python3 -m py_compile` passed for both agent copies, `routes.py`, config,
+    and runtime readiness script.
+  - Frontend hook copies are byte-identical; agent copies are byte-identical.
+  - Search check found no active frontend `Reactions`, `Manual interjection`,
+    `play-interjection`, `toggle-interjections`, reaction load/fetch, or agent
+    `fast_track_interjection` send path.
+  - `python3 AI_NPC_System/scripts/check_runtime_readiness.py` returned `READY`.
