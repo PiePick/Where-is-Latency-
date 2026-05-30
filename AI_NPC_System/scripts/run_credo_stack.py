@@ -152,9 +152,9 @@ def warmup_stylebert(*, timeout: float) -> None:
         "speaker_id": env.get("STYLEBERT_VITS2_SPEAKER_ID", "0"),
         "style": env.get("STYLEBERT_VITS2_STYLE", "Neutral"),
         "style_weight": env.get("STYLEBERT_VITS2_STYLE_WEIGHT", "1.0"),
-        "sdp_ratio": env.get("STYLEBERT_VITS2_SDP_RATIO", "0.2"),
-        "noise": env.get("STYLEBERT_VITS2_NOISE", "0.55"),
-        "noisew": env.get("STYLEBERT_VITS2_NOISEW", "0.7"),
+        "sdp_ratio": env.get("STYLEBERT_VITS2_SDP_RATIO", "0.1"),
+        "noise": env.get("STYLEBERT_VITS2_NOISE", "0.35"),
+        "noisew": env.get("STYLEBERT_VITS2_NOISEW", "0.45"),
         "length": env.get("STYLEBERT_VITS2_LENGTH", "0.95"),
         "language": env.get("STYLEBERT_VITS2_LANGUAGE", "EN"),
     }
@@ -259,7 +259,12 @@ def start_service(service: StackService, *, http_timeout: float = 15.0) -> Runti
 
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     PID_DIR.mkdir(parents=True, exist_ok=True)
-    log_path = LOG_DIR / f"{service.name}.log"
+    env = load_project_env()
+    runtime_log_stem = "".join(
+        char if char.isalnum() or char in {"-", "_"} else "_"
+        for char in str(env.get("CREDO_RUNTIME_LOG_STEM") or "").strip()
+    )
+    log_path = LOG_DIR / f"{service.name}.{runtime_log_stem}.log" if runtime_log_stem else LOG_DIR / f"{service.name}.log"
     log_file = log_path.open("ab")
     log(f"{service.name}: starting -> {' '.join(service.command)}")
     log(f"{service.name}: log -> {log_path}")
@@ -268,6 +273,7 @@ def start_service(service: StackService, *, http_timeout: float = 15.0) -> Runti
         cwd=ROOT,
         stdout=log_file,
         stderr=subprocess.STDOUT,
+        env=env,
         start_new_session=True,
     )
     (PID_DIR / f"{service.name}.pid").write_text(str(process.pid), encoding="utf-8")

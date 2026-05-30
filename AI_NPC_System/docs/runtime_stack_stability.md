@@ -16,8 +16,9 @@ AI_NPC_System/scripts/run_credo_stack.sh --profile live
 3. Open-LLM-VTuber at `http://127.0.0.1:12393`
 
 Language TTS executes through the local StyleBERT-VITS2 server; there is no
-Fish or Piper service in the current live stack. Fish is started only offline
-when regenerating the active nonverbal reaction bundle.
+Fish or Piper service in the current live stack. Standalone interjection
+playback is sealed; regenerated nonverbal bundles are archive/reproduction
+assets unless a future experiment explicitly reopens that path.
 
 ## Startup And Restart Policy
 
@@ -66,16 +67,16 @@ contextual mapping and `Parallel` scheduling.
 
 ```text
 current trigger
-  -> prebuilt StyleBERT short interjection/motion, StyleBERT reaction
+  -> StyleBERT FastTrack language reaction + viewer-emotion Live2D motion
   || local LLM starts SlowTrack work immediately
   -> StyleBERT SlowTrack playback
   -> while playback continues, chat is buffered and next idle speech is prefetched
   -> chat batch takes precedence; otherwise a prepared idle segment is used
 ```
 
-The pure interjection is a prebuilt StyleBERT wav paired with motion. The persona
-reaction, spoken thinking bridge, and SlowTrack are synthesized through
-StyleBERT-VITS2 on demand.
+Standalone interjection playback is sealed. The persona reaction and SlowTrack
+are synthesized through StyleBERT-VITS2 on demand; expression/body tone follows
+the analyzed viewer emotion while mouth movement remains audio lip-sync driven.
 
 ## Latency Trace
 
@@ -89,16 +90,15 @@ AI_NPC_System/latency_logs/module_events.csv
 tail -f AI_NPC_System/latency_logs/module_events.csv
 ```
 
-Primary modules are `fasttrack_analysis`, `fasttrack_interjection_dispatch`,
-`fasttrack_audio`,
-`fasttrack_keyword_echo`, `slowtrack_llm`, `slowtrack_tts`, and `turn_total`.
+Primary modules are `fasttrack_analysis`, `emotion_motion_payload`,
+`fasttrack_audio`, `slowtrack_llm`, `slowtrack_tts`, and `turn_total`.
 Each new row also includes `component_mode`, `selection_policy`, and
 `scheduling_mode`. Use this CSV, not prior Fish logs, when reporting the new
 live condition.
 
-`fasttrack_interjection_dispatch` records prebuilt interjection wav delivery and motion
-dispatch. It has no live TTS cost; browser first-audio instrumentation is
-needed for audible onset.
+`emotion_motion_payload` records the viewer-emotion Live2D action payload.
+Standalone `fasttrack_interjection_dispatch` rows should not appear in the
+current sealed-interjection runtime.
 
 ## Operational Limits
 
@@ -106,5 +106,6 @@ needed for audible onset.
   turns; cold-start model load should be excluded from warm latency claims.
 - A failed FastTrack/SlowTrack StyleBERT request is not retried through a second
   live TTS path by default; that would mix experimental conditions.
-- Fish checkpoints are not needed during live operation; the generated
-  StyleBERT interjection bundle is required whenever that factor is enabled.
+- Fish checkpoints are not needed during live operation. Generated StyleBERT
+  interjection bundles are archived unless a future experiment explicitly
+  reopens standalone playback.

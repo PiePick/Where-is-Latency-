@@ -5,14 +5,14 @@
 ## Objective
 
 같은 StyleBERT-VITS2 언어 TTS 환경에서 확률적 전이 기반 FastTrack과
-비동기 다음 발화 준비가 AI VTuber의 체감 응답성, 대화 자연스러움, 모션
-적합성을 개선하는지 비교한다.
+사전 음성화된 FastTrack 반응이 AI VTuber의 체감 응답성, 대화 자연스러움,
+모션 적합성을 개선하는지 Serial 조건을 기준으로 비교한다.
 
 ## Conditions
 
 Use the VTuber overlay `Experiment cases` section to set the condition before
 each two-and-a-half-minute video trial. All cases use the same `shared_2m30` Graduate
-School Survival Counseling Center scenario. Short chat lines are mainly
+Lab Maid Donation Reality Check scenario. Short chat lines are mainly
 reaction comments; longer counseling questions are injected as donation events
 and should be answered before the surrounding chat batch.
 
@@ -22,14 +22,18 @@ and should be answered before the surrounding chat batch.
 | `case_2_emotion_only_serial` | `contextual_mapping` | `shared_2m30` | `both` | `emotion_only` | `serial` |
 | `case_3_intent_only_serial` | `contextual_mapping` | `shared_2m30` | `both` | `response_act_only` | `serial` |
 | `case_4_neutral_random_serial` | `contextual_mapping` | `shared_2m30` | `both` | `neutral_random` | `serial` |
-| `case_5_grounded_parallel` | `scheduling_architecture` | `shared_2m30` | `both` | `grounded` | `parallel` |
-| `case_6_slowtrack_only` | `scheduling_architecture` | `shared_2m30` | `none` | `none` | `serial` |
+| `case_5_slowtrack_only` | `scheduling_architecture` | `shared_2m30` | `none` | `none` | `serial` |
+
+Parallel scheduling is retained in the codebase for later architecture work,
+but it is not part of the active recording protocol and is not exposed in the
+current browser panel. Current scenario runs should log `scheduling_mode=serial`.
 
 The previous dynamic A/B/C assembly and static random condition are excluded
-from this primary study. The fixed FastTrack path uses prebuilt nonverbal
-interjection/motion plus one language reaction in every Contextual Mapping
-condition. In `Neutral Random`, the language reaction uses the context-free
-control path without emotion or intent grounding. In Case 6, FastTrack is
+from this primary study. The fixed FastTrack path uses one language reaction
+plus viewer-emotion Live2D expression/body motion in every Contextual Mapping
+condition; standalone nonverbal interjection audio is sealed. In `Neutral Random`,
+the language reaction uses the context-free control path without emotion or
+intent grounding. In Case 5, FastTrack is
 disabled and the trial waits for the SlowTrack response. Condition order should
 be counterbalanced.
 

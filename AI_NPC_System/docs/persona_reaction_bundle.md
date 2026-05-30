@@ -1,6 +1,6 @@
 # FastTrack Dataset Pool
 
-작성 기준: 2026-05-27 KST
+작성 기준: 2026-05-29 KST
 
 ## Purpose
 
@@ -27,10 +27,22 @@ conflict with the pending SlowTrack answer.
    `INFORM`, `ACKNOWLEDGE`, `DIRECTIVE`, `EXPRESSIVE`, `REJECT`.
 3. SWDA `QUESTION` is filtered out for FastTrack output.
 4. Source text with proper nouns, brands, dates, numbers, political/news
-   references, profanity, sexual wording, emoticons, long laughter strings,
-   incomplete fragments, or highly specific situations is rejected.
-5. Runtime router v3 retrieves from the relevant separated pool(s), records
+   references, profanity, sexual wording, greetings/closings, emoticons,
+   laughter/filler strings, lowercase fragments, SWDA phone-call closings, or
+   highly specific situations is rejected.
+5. A local LLM quality pass can additionally remove candidates that are unclear
+   without hidden context or unsuitable as standalone VTuber FastTrack speech.
+6. Runtime router v3 retrieves from the relevant separated pool(s), records
    the source item IDs as metadata, and only then composes the spoken cover.
+
+Current curated pool size after the 2026-05-29 filtering pass:
+
+```text
+GoEmotions: 385 items
+  POSITIVE 141 / NEGATIVE 133 / SURPRISE 23 / NEUTRAL 88
+SWDA: 244 items
+  INFORM 199 / ACKNOWLEDGE 3 / DIRECTIVE 18 / EXPRESSIVE 14 / REJECT 10
+```
 
 ## Runtime Lookup
 
@@ -55,6 +67,7 @@ AI_NPC_System/fasttrack_assets/datasets/prepared_fasttrack_data/go_emotions_coar
 AI_NPC_System/fasttrack_assets/datasets/prepared_fasttrack_data/swda_intent_coarse.jsonl
 AI_NPC_System/fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json
 AI_NPC_System/scripts/build_fasttrack_dataset_pools.py
+AI_NPC_System/scripts/filter_fasttrack_dataset_pool_with_local_llm.py
 AI_NPC_System/scripts/validate_fasttrack_dataset_pool.py
 ```
 

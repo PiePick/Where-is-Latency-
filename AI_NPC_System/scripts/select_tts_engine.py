@@ -268,10 +268,11 @@ def apply_selection(args: argparse.Namespace, engine: Engine) -> dict[str, objec
             conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "speaker_id", "0")
             conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "style", "Neutral")
             conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "style_weight", "1.0")
-            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "sdp_ratio", "0.2")
-            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "noise", "0.55")
-            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "noisew", "0.7")
-            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "length", "0.95")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "sdp_ratio", "0.1")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "noise", "0.35")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "noisew", "0.45")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "length", "1.33")
+            conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "sentence_pause_ms", "220")
             conf_text = replace_yaml_key_in_block(conf_text, "stylebert_vits2", "language", "EN")
         if write_text_if_changed(CONF_PATH, conf_text, args.dry_run):
             changed.append(str(CONF_PATH))
@@ -282,8 +283,8 @@ def apply_selection(args: argparse.Namespace, engine: Engine) -> dict[str, objec
             project_text = set_project_export(project_text, "OPEN_LLM_VTUBER_SLOW_TTS_MODE", "edge_tts")
             project_text = set_project_export(project_text, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", "0")
         elif engine.open_llm_tts_model == "stylebert_vits2":
-            project_text = set_project_export(project_text, "OPEN_LLM_VTUBER_SLOW_TTS_MODE", "open_llm")
-            project_text = set_project_export(project_text, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", "1")
+            project_text = set_project_export(project_text, "OPEN_LLM_VTUBER_SLOW_TTS_MODE", "stylebert_vits2")
+            project_text = set_project_export(project_text, "SLOW_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", "0")
         if write_text_if_changed(PROJECT_CONFIG_PATH, project_text, args.dry_run):
             changed.append(str(PROJECT_CONFIG_PATH))
 
@@ -295,10 +296,11 @@ def apply_selection(args: argparse.Namespace, engine: Engine) -> dict[str, objec
             project_text = set_project_export(project_text, "STYLEBERT_VITS2_LANGUAGE", "EN")
             project_text = set_project_export(project_text, "STYLEBERT_VITS2_DEVICE", "cuda")
             project_text = set_project_export(project_text, "STYLEBERT_VITS2_STYLE_WEIGHT", "1.0")
-            project_text = set_project_export(project_text, "STYLEBERT_VITS2_SDP_RATIO", "0.2")
-            project_text = set_project_export(project_text, "STYLEBERT_VITS2_NOISE", "0.55")
-            project_text = set_project_export(project_text, "STYLEBERT_VITS2_NOISEW", "0.7")
-            project_text = set_project_export(project_text, "STYLEBERT_VITS2_LENGTH", "0.95")
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_SDP_RATIO", "0.1")
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_NOISE", "0.35")
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_NOISEW", "0.45")
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_LENGTH", "1.33")
+            project_text = set_project_export(project_text, "STYLEBERT_VITS2_SENTENCE_PAUSE_MS", "220")
         if engine.fast_track_tts_mode == "edge_tts":
             project_text = set_project_export(project_text, "FAST_TRACK_ALLOW_OPEN_LLM_TTS_FALLBACK", "0")
             project_text = set_project_export(project_text, "FAST_TRACK_PREBUILT_ONLY", "0")

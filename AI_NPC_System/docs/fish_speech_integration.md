@@ -4,7 +4,9 @@
 
 Fish Speech was evaluated for expressive reference-voice generation and
 prebuilt FastTrack assets. It is no longer a live synthesis engine, and the
-active short interjection bundle has been regenerated with StyleBERT-VITS2.
+short interjection bundle has been regenerated with StyleBERT-VITS2 for archive
+and reproduction. Standalone interjection playback is sealed in the active
+runtime.
 
 ## Reason For Removal From Live Runtime
 
@@ -19,7 +21,7 @@ Measured live results included:
 
 This latency cannot be usefully hidden by a short reaction in a conversational
 broadcast loop. The default route therefore uses StyleBERT-VITS2 for language
-FastTrack, SlowTrack, and short prebuilt interjection clips.
+FastTrack and SlowTrack.
 
 ## Retained Historical Assets
 
@@ -38,8 +40,8 @@ generated Fish wav files. It uses the separated GoEmotions/SWDA dataset pool at
 `fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json` for
 runtime retrieval and persona-cover composition. The active interjection bundle is
 `fasttrack_assets/audio/expressive_interjection_bundle/manifest.json`; its
-`65` wav files are now StyleBERT-generated and required when interjection
-FastTrack is enabled.
+`65` wav files are now StyleBERT-generated but remain archived while standalone
+interjection playback is sealed.
 
 ## Reproduction Only
 
@@ -58,8 +60,8 @@ FISH_SPEECH_AUTO_PLAY=0 vendor/open-llm-vtuber/.venv/bin/python \
   --engine fish_speech --synthesize --force --max-new-tokens 96
 ```
 
-This is for reproducing historical Fish assets only. For the active bundle, use
-StyleBERT:
+This is for reproducing historical Fish assets only. To reproduce the archived
+StyleBERT bundle, use:
 
 ```bash
 python3 AI_NPC_System/scripts/build_interjection_audio_bundle.py \

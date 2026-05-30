@@ -17,12 +17,16 @@ Current decisions:
 - Live language TTS uses the local StyleBERT-VITS2 model
   `credo_voice_sample_en` for both FastTrack language reactions and SlowTrack
   persona speech.
-- Fish Speech is not used for live language synthesis. The active short
-  interjection wav bundle is now generated with the same StyleBERT voice.
+- Fish Speech is not used for live language synthesis. Standalone interjection
+  playback is currently sealed; archived/generated interjection bundles are not
+  part of the active participant path.
 - FastTrack language reactions are selected from separated GoEmotions/SWDA
   dataset evidence pools, covered with the current Professor's Lab Maid persona
   rule, and synthesized in real time; they are not selected as prebuilt language
   wav files.
+- When LLM-generated speech clearly targets one viewer, the persona may address
+  that viewer as `<nickname> kyo-shu-zin-sa-ma`; multi-chat summaries should
+  not list every nickname.
 - The active recording plan is six two-and-a-half-minute video cases with one shared
   scenario: four serial contextual-mapping cases, one grounded parallel case,
   and one SlowTrack-only case.
@@ -34,8 +38,8 @@ Active bundle files:
   excludes `QUESTION` from FastTrack output response acts while preserving it as
   an incoming intent label.
 - `AI_NPC_System/fasttrack_assets/audio/expressive_interjection_bundle/manifest.json`
-  is the runtime nonverbal bundle. It contains `65` prebuilt wav files with
-  Live2D motion metadata.
+  is an archived generated nonverbal bundle. It is not used by the active
+  live path while interjection playback is sealed.
 - `AI_NPC_System/reports/intent_transition_matrix_from_swda.*` stores the SWDA
   user-intent to response-act transition evidence used for probabilistic
   response selection.
@@ -51,7 +55,6 @@ Viewer text / mic input
        SWDA response-intent transition
        latency predictor
   -> Latency-cover block sequence
-       prebuilt nonverbal audio + Live2D motion
        separated dataset-pool retrieval + persona cover + StyleBERT FastTrack speech
   -> CREDO SlowTrack
        local OpenAI-compatible LLM
@@ -91,7 +94,7 @@ AI_NPC_System/latency_logs/
   Local-only JSONL, CSV, and Markdown latency records generated during experiments.
 
 AI_NPC_System/fasttrack_assets/audio/expressive_interjection_bundle/
-  Current prebuilt StyleBERT short interjection bundle used before FastTrack text audio.
+  Archived generated StyleBERT short interjection bundle. Active playback is sealed.
 
 AI_NPC_System/fasttrack_assets/
   Canonical FastTrack datasets, SetFit models, separated reaction text pools, and nonverbal audio.
@@ -185,13 +188,21 @@ Parallel/Serial/No FastTrack. Use `Experiment cases` for participant videos:
 `case_3_intent_only_serial`, `case_4_neutral_random_serial`,
 `case_5_grounded_parallel`, and `case_6_slowtrack_only`. `Start Scenario`
 runs the shared two-and-a-half-minute `Graduate School Survival Counseling Center` virtual broadcast scenario
-for the selected case. Scenario donations show a 20-second broadcast overlay,
-play the local donation SFX, and are answered before buffered reaction chat.
+for the selected case. The scenario now skips the opening monologue, starts with
+a donation counseling question at about 3 seconds, includes a laughter chat wave
+around a conflicted professor donation near the 1-minute mark, and adds a final
+1:30 counseling donation. Scenario donations show a 15-second broadcast overlay, play
+the local donation SFX, play the male Edge TTS donation readout, and only then
+submit the donation text to the VTuber answer route.
 `LLM Settings` accepts an operator broadcast direction prompt, and `Donation`
 queues the same priority donation-style reaction in Virtual Broadcast mode.
 
 CREDO's default user-facing speech policy is English. Runtime scenario
 `broadcast_direction` should stay in English for the current participant videos.
+When generated main speech clearly targets one viewer, the persona prompt asks
+for `<nickname> kyo-shu-zin-sa-ma`; broad chat summaries should not enumerate
+all viewer names. This behavior is guided by both
+prompt rules and runtime post-processing.
 
 ## Configuration
 
@@ -215,10 +226,11 @@ FAST_TRACK_DATASET_POOL_FILE     active separated GoEmotions/SWDA text pool
 STYLEBERT_VITS2_BASE_URL         live language TTS endpoint
 OPEN_LLM_VTUBER_LIVE2D_MODEL_NAME Live2D model name
 CREDO_ENGLISH_ONLY_OUTPUT        1 keeps all audience-facing output in English
+CREDO_VIEWER_ADDRESS_SUFFIX      kyo-shu-zin-sa-ma suffix for generated main speech
 CREDO_LANGUAGE_POLICY            shared language rule appended to LLM prompts
 SLOW_TRACK_SYSTEM_PROMPT         local LLM response policy
-CREDO_MAX_COVER_BLOCKS           extra prebuilt cover blocks while SlowTrack waits
-CREDO_ENABLE_EXTRA_COVER_AUDIO   enable expressive audio blocks
+CREDO_MAX_COVER_BLOCKS           legacy cover block limit; standalone interjections are sealed
+CREDO_ENABLE_EXTRA_COVER_AUDIO   0 in the active live profile
 LATENCY_PREDICTOR_MODEL_FILE  generated artifact-backed kNN latency predictor
 LOCAL_LLM_CUDA_VISIBLE_DEVICES   GPU1 for SlowTrack local LLM
 ```
@@ -255,7 +267,7 @@ Measure end-to-end pipeline latency:
 vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/benchmark_pipeline_latency.py --runs 3
 ```
 
-Generate the current pure-interjection StyleBERT audio bundle:
+Historical only: regenerate the archived pure-interjection StyleBERT audio bundle:
 
 ```bash
 vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/build_interjection_audio_bundle.py --engine stylebert_vits2 --synthesize --force
@@ -270,7 +282,8 @@ vendor/open-llm-vtuber/.venv/bin/python AI_NPC_System/scripts/validate_fasttrack
 ```
 
 If offline audio is needed later, synthesize it as a batch job rather than live
-FastTrack TTS.
+FastTrack TTS. Do not re-enable manual interjection playback for participant
+runs unless the experiment design changes.
 
 See `AI_NPC_System/docs/persona_reaction_bundle.md` for the active dataset-pool
 schema and smoke-test commands.

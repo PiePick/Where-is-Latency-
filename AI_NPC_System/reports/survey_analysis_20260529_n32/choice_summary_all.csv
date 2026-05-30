@@ -1,0 +1,6 @@
+sample,case_no,condition,n,best_flow_yes,best_flow_pct,most_uncomfortable_yes,most_uncomfortable_pct,best_context_reaction_yes,best_context_reaction_pct
+all_n32,1,Grounded,32,20,62.5,10,31.25,21,65.625
+all_n32,2,Emotion Only,32,18,56.25,6,18.75,17,53.125
+all_n32,3,Intent Only,32,22,68.75,8,25.0,23,71.875
+all_n32,4,Neutral Random,32,14,43.75,6,18.75,14,43.75
+all_n32,5,SlowTrack Only,32,12,37.5,14,43.75,15,46.875

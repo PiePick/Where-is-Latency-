@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import csv
+import os
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -32,6 +33,16 @@ MODULE_BY_STAGE = {
     "vtuber_mode_llm": "vtuber_llm",
     "vtuber_mode_tts": "vtuber_tts",
     "vtuber_mode_total": "vtuber_total",
+    "donation_answer_queued": "donation_answer",
+    "donation_readout_tts": "donation_readout",
+    "vtuber_turn_blocked": "vtuber_turn_queue",
+    "vtuber_turn_deferred": "vtuber_turn_queue",
+    "vtuber_turn_queued": "vtuber_turn_queue",
+    "virtual_chat_buffered": "virtual_chat",
+    "vtuber_mode_stop": "vtuber_runtime",
+    "vtuber_mode_start": "vtuber_runtime",
+    "experiment_mode_post": "experiment_config",
+    "experiment_case_set": "experiment_config",
 }
 
 MODULE_CSV_FIELDS = [
@@ -43,8 +54,10 @@ MODULE_CSV_FIELDS = [
     "component_mode",
     "selection_policy",
     "scheduling_mode",
+    "runtime_mode",
     "module",
     "stage",
+    "event",
     "elapsed_ms",
     "engine",
     "emotion",
@@ -91,16 +104,68 @@ class LatencyLogger:
     def __init__(
         self,
         *,
-        jsonl_path: Path = DEFAULT_JSONL,
-        module_csv_path: Path = DEFAULT_MODULE_CSV,
-        markdown_path: Path = DEFAULT_MARKDOWN,
+        jsonl_path: Path | None = None,
+        module_csv_path: Path | None = None,
+        markdown_path: Path | None = None,
         summary_limit: int = 80,
     ) -> None:
-        self.jsonl_path = jsonl_path
-        self.module_csv_path = module_csv_path
-        self.markdown_path = markdown_path
+        self.jsonl_path = jsonl_path or self._default_jsonl_path()
+        self.module_csv_path = module_csv_path or self._default_module_csv_path()
+        self.markdown_path = markdown_path or self._default_markdown_path()
         self.summary_limit = summary_limit
         self.jsonl_path.parent.mkdir(parents=True, exist_ok=True)
+        self.module_csv_path.parent.mkdir(parents=True, exist_ok=True)
+        self.markdown_path.parent.mkdir(parents=True, exist_ok=True)
+
+    @staticmethod
+    def _env_path(name: str, fallback: Path) -> Path:
+        raw = os.getenv(name, "").strip()
+        if not raw:
+            return fallback
+        path = Path(raw).expanduser()
+        return path if path.is_absolute() else ROOT / path
+
+    @staticmethod
+    def _session_stem() -> str:
+        stem = os.getenv("CREDO_LATENCY_LOG_STEM", "").strip()
+        return "".join(char if char.isalnum() or char in {"-", "_"} else "_" for char in stem)
+
+    @classmethod
+    def _session_log_dir(cls) -> Path:
+        default_dir = DEFAULT_LOG_DIR
+        raw = os.getenv("CREDO_LATENCY_LOG_DIR", "").strip()
+        if raw:
+            path = Path(raw).expanduser()
+            default_dir = path if path.is_absolute() else ROOT / path
+        return default_dir
+
+    @classmethod
+    def _default_jsonl_path(cls) -> Path:
+        stem = cls._session_stem()
+        fallback = cls._session_log_dir() / f"{stem}.events.jsonl" if stem else DEFAULT_JSONL
+        return cls._env_path("CREDO_LATENCY_JSONL", fallback)
+
+    @classmethod
+    def _default_module_csv_path(cls) -> Path:
+        stem = cls._session_stem()
+        fallback = cls._session_log_dir() / f"{stem}.module_events.csv" if stem else DEFAULT_MODULE_CSV
+        return cls._env_path("CREDO_LATENCY_MODULE_CSV", fallback)
+
+    @classmethod
+    def _default_markdown_path(cls) -> Path:
+        stem = cls._session_stem()
+        fallback = cls._session_log_dir() / f"{stem}.latest_summary.md" if stem else DEFAULT_MARKDOWN
+        return cls._env_path("CREDO_LATENCY_SUMMARY_MD", fallback)
+
+    def initialize_files(self) -> None:
+        """Create empty session log files before the first measured event."""
+        self.jsonl_path.touch(exist_ok=True)
+        write_header = not self.module_csv_path.exists() or self.module_csv_path.stat().st_size == 0
+        if write_header:
+            with self.module_csv_path.open("w", encoding="utf-8", newline="") as stream:
+                writer = csv.DictWriter(stream, fieldnames=MODULE_CSV_FIELDS)
+                writer.writeheader()
+        self.write_summary()
 
     def log(self, event: LatencyEvent) -> dict[str, Any]:
         """Append one event and refresh the Markdown summary."""
@@ -130,8 +195,10 @@ class LatencyLogger:
             "component_mode": metadata.get("component_mode", ""),
             "selection_policy": metadata.get("selection_policy", ""),
             "scheduling_mode": metadata.get("scheduling_mode", ""),
+            "runtime_mode": metadata.get("runtime_mode", ""),
             "module": MODULE_BY_STAGE.get(stage, stage),
             "stage": stage,
+            "event": metadata.get("event", ""),
             "elapsed_ms": record.get("elapsed_ms", 0.0),
             "engine": record.get("engine", ""),
             "emotion": metadata.get("emotion", ""),
@@ -177,23 +244,29 @@ class LatencyLogger:
             "",
             f"Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             "",
-            "| Time | Stage | Engine | ms | Chars | Words | Tags | Text |",
-            "| --- | --- | --- | ---: | ---: | ---: | ---: | --- |",
+            "| Time | Run | Mapping | Sched | Stage | Engine | ms | Text |",
+            "| --- | --- | --- | --- | --- | --- | ---: | --- |",
         ]
         for row in records:
             text = str(row.get("text", "")).replace("|", "/")
             if len(text) > 80:
                 text = text[:77] + "..."
             timestamp = str(row.get("ts", ""))[11:19]
+            metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+            run_id = str(metadata.get("experiment_run_id", ""))
+            if len(run_id) > 28:
+                run_id = run_id[:25] + "..."
+            mapping = str(metadata.get("selection_policy", ""))
+            scheduling = str(metadata.get("scheduling_mode", ""))
             lines.append(
-                "| {time} | {stage} | {engine} | {ms:.1f} | {chars} | {words} | {tags} | {text} |".format(
+                "| {time} | {run} | {mapping} | {scheduling} | {stage} | {engine} | {ms:.1f} | {text} |".format(
                     time=timestamp,
+                    run=run_id,
+                    mapping=mapping,
+                    scheduling=scheduling,
                     stage=row.get("stage", ""),
                     engine=row.get("engine", ""),
                     ms=float(row.get("elapsed_ms", 0.0)),
-                    chars=row.get("char_len", 0),
-                    words=row.get("word_count", 0),
-                    tags=row.get("tag_count", 0),
                     text=text,
                 )
             )

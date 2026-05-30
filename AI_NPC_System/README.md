@@ -12,14 +12,16 @@ chat buffer / idle trigger
   -> DistilBERT emotion + SetFit/SWDA response-act routing
   -> separated GoEmotions/SWDA dataset-pool retrieval
   -> Professor's Lab Maid runtime cover composition
-  -> prebuilt StyleBERT short interjection+motion and/or StyleBERT language FastTrack
+  -> StyleBERT language FastTrack plus viewer-emotion Live2D motion
   || local LLM + StyleBERT SlowTrack/prefetch
 ```
 
 StyleBERT-VITS2 `credo_voice_sample_en` is the active language TTS model.
-Fish and CosyVoice2 live language synthesis remain excluded; the short
-interjection wav bundle is also generated with StyleBERT to keep voice color
-consistent.
+Fish and CosyVoice2 live language synthesis remain excluded. Standalone
+interjection playback is sealed in the active runtime. When LLM-generated main
+speech clearly targets one viewer, the persona may address that viewer as
+`<nickname> kyo-shu-zin-sa-ma`; multi-chat summaries should not list every
+nickname.
 
 ## Main Files
 
@@ -45,8 +47,9 @@ The selected response act is sampled from SWDA transition evidence instead of
 being copied from the incoming user intent. `QUESTION` is intentionally excluded
 from FastTrack response acts; if transition evidence would select a question,
 the next allowed response act is used instead.
-`fasttrack_assets/audio/expressive_interjection_bundle/manifest.json` supplies
-`65` short StyleBERT interjection clips played with Live2D motion.
+`fasttrack_assets/audio/expressive_interjection_bundle/manifest.json` is an
+archived generated StyleBERT interjection bundle. It is not played by the active
+runtime while standalone interjections are sealed.
 
 ## Run
 
@@ -67,9 +70,9 @@ debugging.
 
 Open `http://127.0.0.1:12393` and use the `CREDO VTuber Mode` panel. The
 current UI exposes three runtime modes (`YouTube Live`, `Virtual Broadcast`,
-`1:1 Chat`), six `Experiment cases`, and the manual factor buttons
+`1:1 Chat`), five `Experiment cases`, and the manual factor buttons
 (`Contextual mapping`, `Scheduling architecture`). For participant trials, use
-`case_1_grounded_serial` through `case_6_slowtrack_only`, then click
+`case_1_grounded_serial` through `case_5_slowtrack_only`, then click
 `Start Scenario` to run the shared two-and-a-half-minute `Graduate School Survival Counseling Center` virtual
 broadcast scenario. Short chat events are buffered for later batch reaction;
 long counseling questions are routed as priority donations with a 20-second
@@ -77,6 +80,10 @@ overlay and donation SFX. The selected `experiment_run_id`,
 `experiment_factor`, and `scenario` are recorded with the runtime factors.
 `LLM Settings` can add a broadcast direction prompt for topic steering. Labeled latency rows are
 appended to `AI_NPC_System/latency_logs/module_events.csv`.
+
+Targeted SlowTrack/proactive speech is prompted to use
+`<nickname> kyo-shu-zin-sa-ma` only when one viewer is the focus. FastTrack comparison text is kept stable for the six
+experiment cases.
 
 Current usage details are documented in:
 

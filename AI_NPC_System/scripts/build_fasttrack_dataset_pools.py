@@ -38,15 +38,47 @@ SWDA_MARKER_RE = re.compile(r"^(?:[A-Z]\s+){1,3}")
 EMOTICON_RE = re.compile(r"[:;=xX][-']?[)(DPpOo/]|[()']\s*[vV]\s*[()']")
 EMOTIVE_NOISE_RE = re.compile(
     r"(?ix)"
-    r"(\b(?:ha[-\s]*){2,}h?\b|\bahaha+\b|\bhaha+\b|\bhehe+\b|\blol\b|\blmao\b|\brofl\b)"
+    r"(\b(?:ha[-\s]*){2,}h?\b|\bah!|\bahaha+\b|\bhaha+\b|\bhehe+\b|\blol\b|\blmao\b|\brofl\b|\blaugh(?:s|ed|ing)?\b)"
     r"|[😂🤣😀😅😊😍🥲😭😡😳✨]"
+)
+FILLER_START_RE = re.compile(r"(?i)^\s*(?:ah|oh|uh|um|er|hmm|hm)\b")
+LOW_QUALITY_SOURCE_NOISE_RE = re.compile(
+    r"(?ix)"
+    r"\b(?:dont|cant|wont|thats|im|ive|ill|omg|huh|ye|kinda|trolling|spidey|cookies|trinity)\b"
+    r"|\bvaccin\w*\b|\bgood\s+luck\b|\bno\s+idea\b|;;|!{2,}"
+    r"|\b(?:talking|conversation|speaking|calling|phone|current\s+events|pleasant\s+evening|good\s+day|so\s+long|my\s+pleasure)\b"
+    r"|\b(?:talk\s+(?:to|with)\s+you|good\s+to\s+hear\s+from\s+you|nice\s+to\s+talk\s+to\s+you)\b"
+    r"|\b(?:enjoyed\s+(?:this|it|our|talk|talking)|exhausted\s+everything|that'?s\s+about\s+all|think\s+that\s+covers)\b"
+    r"|\b(?:same\s+weather|where\s+you\s+are|coughing|doing\s+fine|i'?m\s+great|trying\s+to\s+think\s+of\s+the\s+name)\b"
+    r"|\b(?:getting\s+help|what\s+was\s+wondering)\b"
+    r"|\b(?:read|story|person|people|drive|driver|over\s+there|allowed\s+to\s+drive)\b"
+    r"|\bii\s+can'?t\b"
+    r"|\bworked\s+out\s+real\s+good\b"
+    r"|\b(?:covered\s+all\s+the\s+bases|let\s+you\s+go|take\s+good\s+care|another\s+line\s+calling|time\s+is\s+up|we\s+can\s+quit)\b"
+    r"|\b(?:furnace|lake|grass|consumer\s+guide|statistical\s+analysis|item\s+analysis|favorable|younger|we'?re\s+north)\b"
+    r"|\b(?:ma'am|sir)\b"
+    r"|^\s*(?:well,?\s*)?(?:yes|yeah|okay|really|you\s+too)\b"
+    r"|^\s*(?:very\s+faint|my\s+word|that\s+right|ta,|i,\s*i,)"
+    r"|^\s*,\s*oh,\s*see\b"
+    r"|^that'?s\s+right,\s*yes\b"
+    r"|^\s*\.?\s*that's\s+true\b"
+    r"|^\s*well,?\s*(?:guess|i'?ve|it\s+was|it'?s\s+been|enjoyed|good|nice|we'?ll\s+be)"
+    r"|^\s*(?:but|and|so),?\s*(?:no|yes|yeah|right|okay|ok)\b"
+)
+GREETING_RE = re.compile(
+    r"(?ix)"
+    r"\b(?:hi|hello|hey|howdy|hiya|yo|sup|welcome|nice\s+to\s+meet|pleased\s+to\s+meet|good\s+to\s+see)\b"
+    r"|\b(?:good\s+morning|good\s+afternoon|good\s+evening|good\s+night|morning|afternoon|evening)\b"
+    r"|\b(?:how\s+are\s+you|how\s+do\s+you\s+do|how(?:'| i)?s\s+it\s+going|what(?:'| i)?s\s+up|long\s+time\s+no\s+see)\b"
+    r"|\b(?:goodbye|bye|see\s+you|we'?ll\s+see\s+you|nice\s+seeing\s+you|take\s+care|have\s+a\s+good(?:\s+day|\s+night|\s+evening|\s+weekend|\s+time)?)\b"
+    r"|\b(?:thanks|thank\s+you|thankyou|you'?re\s+welcome|cheers|appreciate\s+it)\b"
 )
 UNSAFE_RE = re.compile(
     r"(?ix)\b("
     r"fuck|fucking|fucked|shit|bullshit|bitch|asshole|cunt|slut|porn|sex|sexy|nude|nsfw|"
     r"hentai|rape|sexual|assault|kill|killing|suicide|dead|death|cocaine|heroin|meth|weed|terrorist|nazi|racist|"
     r"idiot|idiots|dumbass|stupid|retard|retardation|disgusting|filth|miserable|"
-    r"shitty|shitting|shithole|shite|fuckup"
+    r"shitty|shitting|shithole|shite|fuckup|damn|goddamn|hell|pedo|pedos"
     r")\b"
 )
 SPECIFIC_CONTENT_RE = re.compile(
@@ -60,7 +92,8 @@ SPECIFIC_CONTENT_RE = re.compile(
     r"|\b(?:facebook|twitter|x\.com|youtube|tiktok|instagram|reddit|netflix|disney|google|microsoft|apple|amazon)\b"
     r"|\b(?:pokemon|minecraft|fortnite|valorant|league of legends|genshin|hololive|twitch|nba|nfl|mlb|director|movie|film)\b"
     r"|\b(?:subreddit|subreddits|reddits|tworedditorsonecup|brigading|repo|post|comment|bot|doxing|dox|game|season|fishing|golf|television|stereo)\b"
-    r"|\b(?:uncle|couple|college|adhd|calories|universe|projection|admin|assistant|houston)\b"
+    r"|\b(?:photo|picture|title|album|song|show|team|player|sports|shoe|leather|clown|cat|dog|animal|face|body)\b"
+    r"|\b(?:uncle|couple|college|adhd|calories|universe|projection|admin|assistant|houston|mom|dad|daughter|children|kid|kids)\b"
 )
 CONTEXT_BOUND_RE = re.compile(
     r"(?ix)\b("
@@ -167,6 +200,8 @@ def rejection_reason(text: str, *, max_words: int, max_chars: int) -> str | None
         return "too_short"
     if len(words) > max_words:
         return "too_many_words"
+    if text and text[0].islower():
+        return "source_noise"
     if QUESTION_START_RE.search(text):
         return "question_like"
     if FRAGMENT_END_RE.search(text):
@@ -177,12 +212,20 @@ def rejection_reason(text: str, *, max_words: int, max_chars: int) -> str | None
         return "non_ascii"
     if any(mark in text for mark in ("<", ">", "{", "}", "[", "]", "%")):
         return "markup_or_symbol"
+    if any(mark in text for mark in ("(", ")", "*", "^")):
+        return "markup_or_symbol"
     if any(ch.isdigit() for ch in text):
         return "numeric_or_specific"
     if NUMBER_WORD_RE.search(text):
         return "numeric_or_specific"
     if EMOTICON_RE.search(text) or EMOTIVE_NOISE_RE.search(text):
         return "emotive_noise"
+    if FILLER_START_RE.search(text):
+        return "emotive_noise"
+    if LOW_QUALITY_SOURCE_NOISE_RE.search(text):
+        return "source_noise"
+    if GREETING_RE.search(text):
+        return "greeting_or_closing_phrase"
     if UNSAFE_RE.search(text):
         return "unsafe"
     if SPECIFIC_CONTENT_RE.search(text):

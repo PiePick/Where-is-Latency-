@@ -31,6 +31,63 @@ def _resolve_project_root() -> Path:
     return Path.cwd().resolve()
 
 
+
+
+def _split_tts_sentences(text: str) -> list[str]:
+    """Split spoken text at sentence boundaries so pauses can be physical silence."""
+    stripped = (text or "").strip()
+    if not stripped:
+        return []
+    parts: list[str] = []
+    start = 0
+    for match in re.finditer(r"(?<=[.!?])\s+", stripped):
+        segment = stripped[start:match.start()].strip()
+        if segment:
+            parts.append(segment)
+        start = match.end()
+    tail = stripped[start:].strip()
+    if tail:
+        parts.append(tail)
+    return parts or [stripped]
+
+
+def _join_wav_bytes(audio_parts: list[bytes], pause_ms: int) -> bytes:
+    """Concatenate WAV chunks with a short silence between sentence chunks."""
+    if not audio_parts:
+        return b""
+    if len(audio_parts) == 1 or pause_ms <= 0:
+        return audio_parts[0]
+    try:
+        frames: list[bytes] = []
+        params = None
+        for audio in audio_parts:
+            with wave.open(BytesIO(audio), "rb") as source:
+                current = source.getparams()
+                if params is None:
+                    params = current
+                elif (
+                    current.nchannels != params.nchannels
+                    or current.sampwidth != params.sampwidth
+                    or current.framerate != params.framerate
+                    or current.comptype != params.comptype
+                ):
+                    return audio_parts[0]
+                frames.append(source.readframes(source.getnframes()))
+        assert params is not None
+        silence_frames = int(params.framerate * pause_ms / 1000.0)
+        silence = b"\x00" * silence_frames * params.nchannels * params.sampwidth
+        output = BytesIO()
+        with wave.open(output, "wb") as target:
+            target.setnchannels(params.nchannels)
+            target.setsampwidth(params.sampwidth)
+            target.setframerate(params.framerate)
+            target.setcomptype(params.comptype, params.compname)
+            target.writeframes(silence.join(frames))
+        return output.getvalue()
+    except Exception as exc:
+        logger.debug(f"StyleBERT sentence pause join skipped: {exc}")
+        return audio_parts[0]
+
 def _safe_name(value: str | None) -> str:
     """Keep generated filenames readable while avoiding path control chars."""
     if not value:
@@ -109,8 +166,9 @@ class TTSEngine(TTSInterface):
         sdp_ratio: float = 0.1,
         noise: float = 0.35,
         noisew: float = 0.45,
-        length: float = 0.95,
+        length: float = 1.18,
         language: str = "EN",
+        sentence_pause_ms: int = 220,
         **_: object,
     ) -> None:
         self.base_url = (base_url or "http://127.0.0.1:5000").rstrip("/")
@@ -127,6 +185,7 @@ class TTSEngine(TTSInterface):
         self.noisew = float(noisew)
         self.length = float(length)
         self.language = language or "EN"
+        self.sentence_pause_ms = max(0, int(sentence_pause_ms))
 
         output_path = Path(output_dir).expanduser()
         if not output_path.is_absolute():
@@ -141,40 +200,50 @@ class TTSEngine(TTSInterface):
             logger.warning("StyleBERT TTS skipped empty text.")
             return None
 
-        params = {
-            "text": text,
-            "model_id": str(self.model_id),
-            "speaker_id": str(self.speaker_id),
-            "style": self.style,
-            "style_weight": str(self.style_weight),
-            "sdp_ratio": str(self.sdp_ratio),
-            "noise": str(self.noise),
-            "noisew": str(self.noisew),
-            "length": str(self.length),
-            "language": self.language,
-        }
-        if self.model_name:
-            params["model_name"] = self.model_name
+        def request_audio(segment: str) -> bytes | None:
+            params = {
+                "text": segment,
+                "model_id": str(self.model_id),
+                "speaker_id": str(self.speaker_id),
+                "style": self.style,
+                "style_weight": str(self.style_weight),
+                "sdp_ratio": str(self.sdp_ratio),
+                "noise": str(self.noise),
+                "noisew": str(self.noisew),
+                "length": str(self.length),
+                "language": self.language,
+            }
+            if self.model_name:
+                params["model_name"] = self.model_name
 
-        separator = "&" if "?" in self.voice_url else "?"
-        url = f"{self.voice_url}{separator}{urllib.parse.urlencode(params)}"
-        request = urllib.request.Request(
-            url,
-            headers={
-                "Accept": "audio/wav",
-            },
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                audio_bytes = _stabilize_wav_bytes(response.read())
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode("utf-8", errors="replace")
-            logger.error(f"StyleBERT TTS failed: HTTP {exc.code}: {body}")
-            return None
-        except urllib.error.URLError as exc:
-            logger.error(f"StyleBERT server is unreachable at {self.voice_url}: {exc}")
-            return None
+            separator = "&" if "?" in self.voice_url else "?"
+            url = f"{self.voice_url}{separator}{urllib.parse.urlencode(params)}"
+            request = urllib.request.Request(
+                url,
+                headers={
+                    "Accept": "audio/wav",
+                },
+                method="POST",
+            )
+            try:
+                with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                    return _stabilize_wav_bytes(response.read())
+            except urllib.error.HTTPError as exc:
+                body = exc.read().decode("utf-8", errors="replace")
+                logger.error(f"StyleBERT TTS failed: HTTP {exc.code}: {body}")
+                return None
+            except urllib.error.URLError as exc:
+                logger.error(f"StyleBERT server is unreachable at {self.voice_url}: {exc}")
+                return None
+
+        segments = _split_tts_sentences(text) if self.sentence_pause_ms > 0 else [text]
+        audio_parts: list[bytes] = []
+        for segment in segments:
+            audio = request_audio(segment)
+            if audio is None:
+                return None
+            audio_parts.append(audio)
+        audio_bytes = _join_wav_bytes(audio_parts, self.sentence_pause_ms)
 
         filename = f"{_safe_name(file_name_no_ext)}_{int(time.time() * 1000)}.wav"
         audio_path = self.output_dir / filename

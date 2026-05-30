@@ -45,24 +45,25 @@ def _get_engine() -> HybridFastTrack | None:
         return _ENGINE
     except (Exception, SystemExit) as exc:
         _ENGINE_ERROR = str(exc)
-        print("[Fast Track] Hybrid engine load failed; neutral fallback enabled.")
+        print("[Fast Track] Hybrid engine load failed; language FastTrack will be skipped.")
         print(f"  error: {_ENGINE_ERROR}")
         return None
 
 
-def _fallback_response(text: str) -> dict:
-    """Return a neutral packet when model loading failed."""
+def _empty_response(text: str) -> dict:
+    """Return explicit no-speech metadata when model loading failed."""
     del text
     return {
         "emotion_label": "neutral",
         "emotion_detail": "neutral",
-        "reaction": "I see.",
+        "reaction": "",
         "keyword": None,
+        "keywords": [],
         "echo_text": "",
-        "strategy": "fallback",
-        "reaction_source": "fallback",
-        "tts_text": "I see.",
-        "plain_tts_text": "I see.",
+        "strategy": "engine_unavailable_no_speech",
+        "reaction_source": "none",
+        "tts_text": "",
+        "plain_tts_text": "",
         "fish_speech_cue": None,
         "fast_audio_path": None,
         "fast_audio_cache_id": None,
@@ -71,7 +72,7 @@ def _fallback_response(text: str) -> dict:
         "top1": 0.0,
         "margin": 0.0,
         "entropy": 0.0,
-        "confidence_band": "fallback",
+        "confidence_band": "unavailable",
         "action_probs": {},
         "strategy_scores": {},
         "calibration_temp": None,
@@ -92,7 +93,7 @@ def analyze_and_react(text: str) -> dict:
     """Generate the FastTrack packet expected by tcp_server.py and main.py."""
     engine = _get_engine()
     if engine is None:
-        return _fallback_response(text)
+        return _empty_response(text)
 
     result = engine.generate(text)
     category = str(result["emotion"])

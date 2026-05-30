@@ -35,7 +35,7 @@ TALK_SAFE_MOTION_FILES = {
 }
 
 CREDO_MOTION_GROUPS = {
-    "Idle": [{"File": "motions/neutral_1.motion3.json"}],
+    "Idle": [{"File": "motions/Idle_Motion.motion3.json"}],
     "Talk": [{"File": "motions/neutral_1_talk.motion3.json"}],
     "Positive": [
         {"File": "motions/positive_1.motion3.json"},
@@ -213,7 +213,7 @@ class CredoLatencyCoverAgentConfig(I18nMixin, BaseModel):
     fast_track_enabled: bool = Field(True, alias="fast_track_enabled")
     use_fast_audio: bool = Field(True, alias="use_fast_audio")
     slow_enabled: bool = Field(True, alias="slow_enabled")
-    slow_tts_mode: str = Field("open_llm", alias="slow_tts_mode")
+    slow_tts_mode: str = Field("stylebert_vits2", alias="slow_tts_mode")
     speech_emotion_motion_enabled: bool = Field(True, alias="speech_emotion_motion_enabled")
     record_memory: bool = Field(True, alias="record_memory")
     seed: Optional[int] = Field(None, alias="seed")
@@ -503,7 +503,8 @@ class StyleBertVITS2Config(I18nMixin):
     sdp_ratio: float = Field(0.1, alias="sdp_ratio")
     noise: float = Field(0.35, alias="noise")
     noisew: float = Field(0.45, alias="noisew")
-    length: float = Field(0.95, alias="length")
+    length: float = Field(1.33, alias="length")
+    sentence_pause_ms: int = Field(220, alias="sentence_pause_ms")
     language: str = Field("EN", alias="language")
 
     DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
@@ -530,6 +531,28 @@ class StyleBertVITS2Config(I18nMixin):
             "\n\n" + class_block + "class CosyvoiceTTSConfig",
             "StyleBertVITS2Config class",
         )
+    text = text.replace(
+        '    length: float = Field(0.95, alias="length")\n',
+        '    length: float = Field(1.33, alias="length")\n',
+    )
+    if 'sentence_pause_ms: int = Field(220, alias="sentence_pause_ms")' not in text:
+        text = text.replace(
+            '    length: float = Field(1.33, alias="length")\n    language: str = Field("EN", alias="language")\n',
+            '    length: float = Field(1.33, alias="length")\n    sentence_pause_ms: int = Field(220, alias="sentence_pause_ms")\n    language: str = Field("EN", alias="language")\n',
+            1,
+        )
+    text = text.replace(
+        '    sdp_ratio: float = Field(0.2, alias="sdp_ratio")\n',
+        '    sdp_ratio: float = Field(0.1, alias="sdp_ratio")\n',
+    )
+    text = text.replace(
+        '    noise: float = Field(0.55, alias="noise")\n',
+        '    noise: float = Field(0.35, alias="noise")\n',
+    )
+    text = text.replace(
+        '    noisew: float = Field(0.7, alias="noisew")\n',
+        '    noisew: float = Field(0.45, alias="noisew")\n',
+    )
     if '        "stylebert_vits2",\n' not in text:
         text = text.replace(
             '        "edge_tts",\n',
@@ -617,6 +640,7 @@ def copy_files(vendor: Path) -> None:
     stylebert_config["noise"] = cfg.STYLEBERT_VITS2_NOISE
     stylebert_config["noisew"] = cfg.STYLEBERT_VITS2_NOISEW
     stylebert_config["length"] = cfg.STYLEBERT_VITS2_LENGTH
+    stylebert_config["sentence_pause_ms"] = cfg.STYLEBERT_VITS2_SENTENCE_PAUSE_MS
     stylebert_config["language"] = cfg.STYLEBERT_VITS2_LANGUAGE
 
     character_dst.write_text(
@@ -652,8 +676,15 @@ def install_frontend_overlay(vendor: Path) -> None:
     if not index_path.exists():
         return
     text = index_path.read_text(encoding="utf-8")
-    script = '    <script src="./credo-vtuber-mode.js"></script>\n'
+    script = '    <script src="./credo-vtuber-mode.js?v=20260528-subtitle-highlight-toggle"></script>\n'
     if "credo-vtuber-mode.js" in text:
+        text = re.sub(
+            r'    <script src="\./credo-vtuber-mode\.js(?:\?[^"]*)?"></script>\n?',
+            script,
+            text,
+            count=1,
+        )
+        index_path.write_text(text, encoding="utf-8")
         return
     if "  </body>" in text:
         text = text.replace("  </body>", f"{script}  </body>", 1)
@@ -718,6 +749,286 @@ def patch_model_dict(vendor: Path) -> None:
     path.write_text(json.dumps(models, ensure_ascii=False, indent=4) + "\n", encoding="utf-8")
 
 
+
+def _patch_sequential_vtuber_routes(text: str) -> str:
+    """Keep VTuber generated speech sequential across turns and donation events."""
+    if '"speech_busy_until": 0.0,' not in text:
+        text = text.replace(
+            '        "scenario": "",\n    }\n',
+            '        "scenario": "",\n        "speech_busy_until": 0.0,\n    }\n',
+            1,
+        )
+    helper = """
+    def _vtuber_speech_guard_seconds(event: str | None = None) -> float:
+        \"\"\"Minimum wall-clock spacing so one VTuber utterance does not cut the previous one.\"\"\"
+        default_seconds = os.getenv(\"CREDO_VTUBER_PLAYBACK_GUARD_SECONDS\", \"20.0\")
+        if str(event or \"\") == \"donation\":
+            default_seconds = os.getenv(\"CREDO_VTUBER_DONATION_PLAYBACK_GUARD_SECONDS\", default_seconds)
+        try:
+            return max(4.0, float(default_seconds))
+        except ValueError:
+            return 20.0
+
+    def _vtuber_speech_busy_seconds() -> float:
+        return max(0.0, float(vtuber_mode.get(\"speech_busy_until\") or 0.0) - time.monotonic())
+
+    def _mark_vtuber_speech_busy(event: str | None = None) -> None:
+        guard = _vtuber_speech_guard_seconds(event)
+        vtuber_mode[\"speech_busy_until\"] = max(float(vtuber_mode.get(\"speech_busy_until\") or 0.0), time.monotonic() + guard)
+
+    def _active_vtuber_conversation_running() -> bool:
+        target_uid = ws_handler.first_client_uid()
+        active_task = ws_handler.current_conversation_tasks.get(target_uid) if target_uid else None
+        return bool(active_task and not active_task.done())
+
+    vtuber_turn_lock = asyncio.Lock()
+
+    async def _trigger_vtuber_turn(text: str, metadata: dict, *, delay_if_busy: bool = False) -> bool:
+        \"\"\"Start one VTuber turn at a time, preserving speech order across queued events.\"\"\"
+        event = str(metadata.get("vtuber_event") or "")
+
+        async def wait_until_free() -> None:
+            while vtuber_mode["active"]:
+                busy_seconds = _vtuber_speech_busy_seconds()
+                if not _active_vtuber_conversation_running() and busy_seconds <= 0.0:
+                    return
+                await asyncio.sleep(min(3.0, max(0.5, busy_seconds if busy_seconds > 0.0 else 1.0)))
+
+        async def run_trigger(wait_for_busy: bool) -> bool:
+            async with vtuber_turn_lock:
+                if wait_for_busy:
+                    await wait_until_free()
+                if metadata.get("vtuber_mode") and not vtuber_mode["active"]:
+                    return False
+                if _active_vtuber_conversation_running() or _vtuber_speech_busy_seconds() > 0.0:
+                    return False
+                ok = await ws_handler.trigger_text_input(text, metadata=metadata)
+                if ok:
+                    _mark_vtuber_speech_busy(event)
+                return ok
+
+        if delay_if_busy and (_active_vtuber_conversation_running() or _vtuber_speech_busy_seconds() > 0.0 or vtuber_turn_lock.locked()):
+            async def delayed_trigger() -> None:
+                await run_trigger(True)
+
+            asyncio.create_task(delayed_trigger())
+            return True
+
+        return await run_trigger(delay_if_busy)
+
+"""
+    if 'def _vtuber_speech_guard_seconds(' not in text:
+        text = text.replace('\n    async def _idle_loop() -> None:\n', helper + '\n    async def _idle_loop() -> None:\n', 1)
+    if 'vtuber_turn_lock = asyncio.Lock()' not in text:
+        replacement = '''
+    vtuber_turn_lock = asyncio.Lock()
+
+    async def _trigger_vtuber_turn(text: str, metadata: dict, *, delay_if_busy: bool = False) -> bool:
+        """Start one VTuber turn at a time, preserving speech order across queued events."""
+        event = str(metadata.get("vtuber_event") or "")
+
+        async def wait_until_free() -> None:
+            while vtuber_mode["active"]:
+                busy_seconds = _vtuber_speech_busy_seconds()
+                if not _active_vtuber_conversation_running() and busy_seconds <= 0.0:
+                    return
+                await asyncio.sleep(min(3.0, max(0.5, busy_seconds if busy_seconds > 0.0 else 1.0)))
+
+        async def run_trigger(wait_for_busy: bool) -> bool:
+            async with vtuber_turn_lock:
+                if wait_for_busy:
+                    await wait_until_free()
+                if metadata.get("vtuber_mode") and not vtuber_mode["active"]:
+                    return False
+                if _active_vtuber_conversation_running() or _vtuber_speech_busy_seconds() > 0.0:
+                    return False
+                ok = await ws_handler.trigger_text_input(text, metadata=metadata)
+                if ok:
+                    _mark_vtuber_speech_busy(event)
+                return ok
+
+        if delay_if_busy and (_active_vtuber_conversation_running() or _vtuber_speech_busy_seconds() > 0.0 or vtuber_turn_lock.locked()):
+            async def delayed_trigger() -> None:
+                await run_trigger(True)
+
+            asyncio.create_task(delayed_trigger())
+            return True
+
+        return await run_trigger(delay_if_busy)
+'''
+        text = re.sub(
+            r'\n    async def _trigger_vtuber_turn\(text: str, metadata: dict, \*, delay_if_busy: bool = False\) -> bool:\n.*?\n        return ok\n',
+            '\n' + replacement,
+            text,
+            count=1,
+            flags=re.DOTALL,
+        )
+    if '"speech_busy_seconds": round(_vtuber_speech_busy_seconds(), 1),' not in text:
+        text = text.replace(
+            '            "scenario": vtuber_mode["scenario"],\n',
+            '            "scenario": vtuber_mode["scenario"],\n            "speech_busy_seconds": round(_vtuber_speech_busy_seconds(), 1),\n',
+            1,
+        )
+    busy_gate_after = (
+        '            if active_task and not active_task.done():\n'
+        '                logger.info("CREDO VTuber idle monologue skipped because a conversation is still running.")\n'
+        '                await asyncio.sleep(2.0)\n'
+        '                continue\n'
+    )
+    if 'previous speech is probably still playing' not in text:
+        text = text.replace(
+            busy_gate_after,
+            busy_gate_after
+            + '            busy_seconds = _vtuber_speech_busy_seconds()\n'
+            + '            if busy_seconds > 0.0:\n'
+            + '                logger.info(f"CREDO VTuber turn skipped while previous speech is probably still playing ({busy_seconds:.1f}s left).")\n'
+            + '                await asyncio.sleep(min(3.0, max(0.5, busy_seconds)))\n'
+            + '                continue\n',
+            1,
+        )
+    text = text.replace('queued = await ws_handler.trigger_text_input(prompt, metadata=metadata)', 'queued = await _trigger_vtuber_turn(prompt, metadata)')
+    text = text.replace(
+        '        ok = await _trigger_vtuber_turn(text, metadata, delay_if_busy=True)\n'
+        '        return {"queued": ok, "delayed": _vtuber_speech_busy_seconds() > 0.0}\n',
+        '        delayed = _active_vtuber_conversation_running() or _vtuber_speech_busy_seconds() > 0.0 or vtuber_turn_lock.locked()\n'
+        '        ok = await _trigger_vtuber_turn(text, metadata, delay_if_busy=True)\n'
+        '        return {"queued": ok, "delayed": delayed}\n',
+        1,
+    )
+    text = re.sub(
+        r'        text = _clean_prompt_piece\(f"\{name\} sent support\. \{message\}", 220\)\n'
+        r'        target_uid = ws_handler\.first_client_uid\(\)\n'
+        r'        if payload\.get\("priority", True\) and target_uid:\n.*?'
+        r'        return \{"queued": ok\}\n',
+        '        text = _clean_prompt_piece(f"{name} sent support. {message}", 220)\n'
+        '        metadata = {\n'
+        '            "vtuber_mode": True,\n'
+        '            "vtuber_event": "donation",\n'
+        '            "vtuber_instruction": instruction,\n'
+        '            "skip_last_text_input": True,\n'
+        '            "skip_history": True,\n'
+        '            "skip_memory": True,\n'
+        '            "topic": _clean_prompt_piece(vtuber_mode["topic"], 180),\n'
+        '            "broadcast_direction": _broadcast_direction(),\n'
+        '            "last_chat": _clean_prompt_piece(ws_handler.last_text_input(), 360),\n'
+        '            "style_tag": "energetic",\n'
+        '        }\n'
+        '        delayed = _active_vtuber_conversation_running() or _vtuber_speech_busy_seconds() > 0.0\n'
+        '        ok = await _trigger_vtuber_turn(text, metadata, delay_if_busy=True)\n'
+        '        if delayed:\n'
+        '            logger.info("CREDO donation queued behind the current speech instead of interrupting it.")\n'
+        '        return {"queued": ok, "delayed": delayed}\n',
+        text,
+        flags=re.DOTALL,
+    )
+    return text
+
+
+def _patch_vtuber_route_runtime_logging(text: str) -> str:
+    """Add route-level experiment case logs to Open-LLM VTuber routes."""
+    helper = """
+    def _vtuber_case_metadata(extra: dict | None = None) -> dict:
+        \"\"\"Return compact experiment labels for route-level runtime logs.\"\"\"
+        metadata = {
+            \"experiment_run_id\": str(vtuber_mode.get(\"experiment_run_id\") or \"\"),
+            \"experiment_factor\": str(vtuber_mode.get(\"experiment_factor\") or \"\"),
+            \"scenario\": str(vtuber_mode.get(\"scenario\") or \"\"),
+            \"component_mode\": str(vtuber_mode.get(\"component_mode\") or \"\"),
+            \"selection_policy\": str(vtuber_mode.get(\"selection_policy\") or \"\"),
+            \"scheduling_mode\": str(vtuber_mode.get(\"scheduling_mode\") or \"\"),
+            \"runtime_mode\": str(vtuber_mode.get(\"mode\") or \"\"),
+        }
+        for key, value in (extra or {}).items():
+            if key in {\"vtuber_instruction\", \"broadcast_direction\", \"last_chat\"}:
+                continue
+            text = \" \".join(str(value or \"\").split())
+            metadata[str(key)] = text[:220]
+        return metadata
+
+    def _log_vtuber_case_event(stage: str, *, text: str = \"\", engine: str = \"\", elapsed_ms: float = 0.0, metadata: dict | None = None) -> None:
+        \"\"\"Append route-level events to the same CSV used by module latency logs.\"\"\"
+        event_metadata = _vtuber_case_metadata({\"event\": stage, **(metadata or {})})
+        logger.info(
+            f\"CREDO event={stage} \"
+            f\"run={event_metadata.get('experiment_run_id', '')} \"
+            f\"mapping={event_metadata.get('selection_policy', '')} \"
+            f\"scheduling={event_metadata.get('scheduling_mode', '')} \"
+            f\"runtime={event_metadata.get('runtime_mode', '')} \"
+            f\"engine={engine} ms={float(elapsed_ms or 0.0):.1f}\"
+        )
+        try:
+            ai_path = _credo_root() / \"AI_NPC_System\"
+            if str(ai_path) not in sys.path:
+                sys.path.insert(0, str(ai_path))
+            from latency_observer import LatencyEvent, LatencyLogger
+
+            LatencyLogger().log(
+                LatencyEvent(
+                    stage=stage,
+                    elapsed_ms=float(elapsed_ms or 0.0),
+                    text=text,
+                    engine=engine,
+                    metadata=event_metadata,
+                )
+            )
+        except Exception as exc:
+            logger.warning(f\"CREDO route latency log failed for {stage}: {exc}\")
+"""
+    if 'def _vtuber_case_metadata(' not in text:
+        marker = '    def _clean_prompt_piece(value: object, limit: int = 500) -> str:\n        """Keep server-generated stream context compact and safe for prompts."""\n        text = " ".join(str(value or "").split())\n        return text[:limit]\n'
+        text = text.replace(marker, marker + helper, 1)
+    replacements = [
+        (
+            '                ok = await ws_handler.trigger_text_input(text, metadata=metadata)\n                if ok:\n                    _mark_vtuber_speech_busy(event)\n                return ok\n',
+            '                ok = await ws_handler.trigger_text_input(text, metadata=metadata)\n                if ok:\n                    _mark_vtuber_speech_busy(event)\n                    _log_vtuber_case_event(\n                        "vtuber_turn_queued",\n                        text=text,\n                        engine=str(metadata.get("vtuber_event") or "vtuber_turn"),\n                        metadata={\n                            "vtuber_event": event,\n                            "delay_if_busy": wait_for_busy,\n                            "speech_busy_seconds": round(_vtuber_speech_busy_seconds(), 1),\n                        },\n                    )\n                else:\n                    _log_vtuber_case_event(\n                        "vtuber_turn_blocked",\n                        text=text,\n                        engine=str(metadata.get("vtuber_event") or "vtuber_turn"),\n                        metadata={"vtuber_event": event, "delay_if_busy": wait_for_busy},\n                    )\n                return ok\n',
+            'vtuber_turn_queued',
+        ),
+        (
+            '            asyncio.create_task(delayed_trigger())\n            return True\n',
+            '            _log_vtuber_case_event(\n                "vtuber_turn_deferred",\n                text=text,\n                engine=str(metadata.get("vtuber_event") or "vtuber_turn"),\n                metadata={\n                    "vtuber_event": event,\n                    "speech_busy_seconds": round(_vtuber_speech_busy_seconds(), 1),\n                    "turn_lock": vtuber_turn_lock.locked(),\n                },\n            )\n            asyncio.create_task(delayed_trigger())\n            return True\n',
+            'vtuber_turn_deferred',
+        ),
+        (
+            '            updated += 1\n        return {\n            "component_mode": component_mode,\n',
+            '            updated += 1\n        _log_vtuber_case_event(\n            "experiment_case_set",\n            text=experiment_run_id or selection_policy,\n            metadata={"updated_agents": updated},\n        )\n        return {\n            "component_mode": component_mode,\n',
+            'experiment_case_set',
+        ),
+        (
+            '        except (KeyError, ValueError) as exc:\n            return JSONResponse({"ok": False, "error": str(exc)}, status_code=404)\n        return {"ok": True, **result, **factors}\n',
+            '        except (KeyError, ValueError) as exc:\n            return JSONResponse({"ok": False, "error": str(exc)}, status_code=404)\n        _log_vtuber_case_event("experiment_mode_post", text=mode_key or factors.get("experiment_run_id", ""), metadata={**result, **factors})\n        return {"ok": True, **result, **factors}\n',
+            'experiment_mode_post',
+        ),
+        (
+            '        if vtuber_mode["active"] and vtuber_mode.get("mode") == "virtual_broadcast":\n            ws_handler.enqueue_vtuber_chat_context(text)\n            return {"queued": True, "buffered": True}\n',
+            '        if vtuber_mode["active"] and vtuber_mode.get("mode") == "virtual_broadcast":\n            ws_handler.enqueue_vtuber_chat_context(text)\n            _log_vtuber_case_event("virtual_chat_buffered", text=message, metadata={"author": author})\n            return {"queued": True, "buffered": True}\n',
+            'virtual_chat_buffered',
+        ),
+        (
+            '        elif bridge and bridge.poll() is None:\n            bridge.terminate()\n            vtuber_mode["bridge"] = None\n\n        return await credo_vtuber_mode_status()\n',
+            '        elif bridge and bridge.poll() is None:\n            bridge.terminate()\n            vtuber_mode["bridge"] = None\n\n        _log_vtuber_case_event(\n            "vtuber_mode_start",\n            text=vtuber_mode["topic"],\n            metadata={"requested_mode": requested_mode, "interval_seconds": vtuber_mode["interval"]},\n        )\n        return await credo_vtuber_mode_status()\n',
+            'vtuber_mode_start',
+        ),
+        (
+            '            agent._vtuber_slow_prefetch_task = None\n        return await credo_vtuber_mode_status()\n',
+            '            agent._vtuber_slow_prefetch_task = None\n        _log_vtuber_case_event("vtuber_mode_stop", text="stop")\n        return await credo_vtuber_mode_status()\n',
+            'vtuber_mode_stop',
+        ),
+        (
+            '        out_path = out_dir / f"donation_readout_{int(time.time() * 1000)}_{uuid4().hex[:8]}.mp3"\n        await edge_tts.Communicate(readout_text, voice, rate=rate, volume=volume).save(str(out_path))\n',
+            '        out_path = out_dir / f"donation_readout_{int(time.time() * 1000)}_{uuid4().hex[:8]}.mp3"\n        readout_started = time.perf_counter()\n        await edge_tts.Communicate(readout_text, voice, rate=rate, volume=volume).save(str(out_path))\n        readout_elapsed_ms = (time.perf_counter() - readout_started) * 1000.0\n        _log_vtuber_case_event(\n            "donation_readout_tts",\n            text=readout_text,\n            engine=f"edge_tts:{voice}",\n            elapsed_ms=readout_elapsed_ms,\n            metadata={"donation_author": name, "donation_amount": amount, "audio_path": str(out_path)},\n        )\n',
+            'donation_readout_tts',
+        ),
+        (
+            '        if not ok:\n            delayed = _active_vtuber_conversation_running() or _vtuber_speech_busy_seconds() > 0.0 or vtuber_turn_lock.locked()\n            ok = await _trigger_vtuber_turn(text, metadata, delay_if_busy=True)\n        return {"queued": ok, "delayed": delayed}\n',
+            '        if not ok:\n            delayed = _active_vtuber_conversation_running() or _vtuber_speech_busy_seconds() > 0.0 or vtuber_turn_lock.locked()\n            ok = await _trigger_vtuber_turn(text, metadata, delay_if_busy=True)\n        _log_vtuber_case_event(\n            "donation_answer_queued",\n            text=message,\n            engine="vtuber_donation",\n            metadata={"donation_author": name, "donation_amount": amount, "queued": ok, "delayed": delayed},\n        )\n        return {"queued": ok, "delayed": delayed}\n',
+            'donation_answer_queued',
+        ),
+    ]
+    for old, new, key in replacements:
+        if key not in text:
+            text = text.replace(old, new, 1)
+    return text
+
 def patch_vtuber_routes(vendor: Path) -> None:
     """Keep CREDO VTuber route prompts aligned with output policy."""
     path = vendor / "src" / "open_llm_vtuber" / "routes.py"
@@ -726,6 +1037,8 @@ def patch_vtuber_routes(vendor: Path) -> None:
     text = path.read_text(encoding="utf-8")
     if "/credo/vtuber-mode/" not in text:
         return
+    if "import re\n" not in text:
+        text = text.replace("import json\n", "import json\nimport re\n", 1)
     text = text.replace(
         '"AI_NPC_System" / "expressive_interjection_bundle" / "manifest.json"',
         '"AI_NPC_System" / "fasttrack_assets" / "audio" / "expressive_interjection_bundle" / "manifest.json"',
@@ -734,12 +1047,10 @@ def patch_vtuber_routes(vendor: Path) -> None:
         '"AI_NPC_System" / "fasttrack_assets" / "text" / "interjection_carriers" / "manifest.json"',
         '"AI_NPC_System" / "fasttrack_assets" / "audio" / "expressive_interjection_bundle" / "manifest.json"',
     )
-    if "from .utils.stream_audio import prepare_audio_payload" not in text:
+    if "from .utils.stream_audio import prepare_audio_payload\n" not in text:
         text = text.replace(
             "from .proxy_handler import ProxyHandler\n",
-            "from .proxy_handler import ProxyHandler\n"
-            "from .utils.stream_audio import prepare_audio_payload\n",
-            1,
+            "from .proxy_handler import ProxyHandler\nfrom .utils.stream_audio import prepare_audio_payload\n",
         )
     text = text.replace(
         "from starlette.responses import JSONResponse\n",
@@ -777,24 +1088,24 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '            "label": "StyleBERT SlowTrack only",\n'
             '            "fast_track_enabled": False,\n'
             '            "use_fast_audio": False,\n'
-            '            "slow_tts_mode": "open_llm",\n'
-            '            "open_llm_tts_fallback": True,\n'
+            '            "slow_tts_mode": "stylebert_vits2",\n'
+            '            "open_llm_tts_fallback": False,\n'
             '            "prefetch_enabled": False,\n'
             '        },\n'
             '        "edge_fasttrack": {\n'
             '            "label": "StyleBERT realtime FastTrack",\n'
             '            "fast_track_enabled": True,\n'
             '            "use_fast_audio": True,\n'
-            '            "slow_tts_mode": "open_llm",\n'
-            '            "open_llm_tts_fallback": True,\n'
+            '            "slow_tts_mode": "stylebert_vits2",\n'
+            '            "open_llm_tts_fallback": False,\n'
             '            "prefetch_enabled": False,\n'
             '        },\n'
             '        "edge_async_cover": {\n'
             '            "label": "StyleBERT realtime FastTrack + async prefetch",\n'
             '            "fast_track_enabled": True,\n'
             '            "use_fast_audio": True,\n'
-            '            "slow_tts_mode": "open_llm",\n'
-            '            "open_llm_tts_fallback": True,\n'
+            '            "slow_tts_mode": "stylebert_vits2",\n'
+            '            "open_llm_tts_fallback": False,\n'
             '            "prefetch_enabled": True,\n'
             '        },\n'
             '    }\n',
@@ -814,8 +1125,8 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '            "label": "StyleBERT realtime FastTrack + async prefetch",\n'
             '            "fast_track_enabled": True,\n'
             '            "use_fast_audio": True,\n'
-            '            "slow_tts_mode": "open_llm",\n'
-            '            "open_llm_tts_fallback": True,\n'
+            '            "slow_tts_mode": "stylebert_vits2",\n'
+            '            "open_llm_tts_fallback": False,\n'
             '            "prefetch_enabled": True,\n'
             '        },\n'
         )
@@ -825,7 +1136,7 @@ def patch_vtuber_routes(vendor: Path) -> None:
         '            "label": "Fast low-quality TTS / no cover",\n'
         '            "fast_track_enabled": False,\n'
         '            "use_fast_audio": False,\n'
-        '            "slow_tts_mode": "open_llm",\n'
+        '            "slow_tts_mode": "stylebert_vits2",\n'
         '            "open_llm_tts_fallback": False,\n'
         '        },\n'
         '        "fish_no_cover": {\n'
@@ -846,24 +1157,24 @@ def patch_vtuber_routes(vendor: Path) -> None:
         '            "label": "StyleBERT SlowTrack only",\n'
         '            "fast_track_enabled": False,\n'
         '            "use_fast_audio": False,\n'
-        '            "slow_tts_mode": "open_llm",\n'
-        '            "open_llm_tts_fallback": True,\n'
+        '            "slow_tts_mode": "stylebert_vits2",\n'
+        '            "open_llm_tts_fallback": False,\n'
         '            "prefetch_enabled": False,\n'
         '        },\n'
         '        "edge_fasttrack": {\n'
         '            "label": "StyleBERT realtime FastTrack",\n'
         '            "fast_track_enabled": True,\n'
         '            "use_fast_audio": True,\n'
-        '            "slow_tts_mode": "open_llm",\n'
-        '            "open_llm_tts_fallback": True,\n'
+        '            "slow_tts_mode": "stylebert_vits2",\n'
+        '            "open_llm_tts_fallback": False,\n'
         '            "prefetch_enabled": False,\n'
         '        },\n',
     )
     text = text.replace("Edge realtime FastTrack + async prefetch", "StyleBERT realtime FastTrack + async prefetch")
     text = text.replace("Edge SlowTrack only", "StyleBERT SlowTrack only")
     text = text.replace("Edge realtime FastTrack", "StyleBERT realtime FastTrack")
-    text = text.replace('"slow_tts_mode": "edge_tts"', '"slow_tts_mode": "open_llm"')
-    text = text.replace('"open_llm_tts_fallback": False', '"open_llm_tts_fallback": True')
+    text = text.replace('"slow_tts_mode": "edge_tts"', '"slow_tts_mode": "stylebert_vits2"')
+    text = text.replace('"open_llm_tts_fallback": False', '"open_llm_tts_fallback": False')
 
     replacements = [
         (
@@ -883,7 +1194,7 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '            "Do not mention systems, prompts, tests, models, or implementation. "\n'
             '            "Aim for 12 to 22 spoken words so live speech stays responsive."\n'
             '        )\n'
-            '        prompt = "Chat got quiet for a moment."\n',
+            '        prompt = "Idle stream turn."\n',
         ),
         (
             '        vtuber_mode["last_prompt"] = prompt\n',
@@ -964,6 +1275,11 @@ def patch_vtuber_routes(vendor: Path) -> None:
     ]
     for old, new in replacements:
         text = text.replace(old, new)
+    longer_vtuber_rule = (
+        "Do not use filler openings or filler-only sentences such as well, okay, alright, anyway, um, uh, hmm, let me think, or give me a second. "
+        "Speak at least 32 spoken words, usually 35 to 70 spoken words."
+    )
+    text = text.replace("Speak at least 50 characters, usually 18 to 40 spoken words.", longer_vtuber_rule)
     if '            "vtuber_event": "idle",\n            "vtuber_instruction": instruction,\n' not in text:
         text = text.replace(
             '            "vtuber_event": "idle",\n',
@@ -1035,17 +1351,24 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '        vtuber_mode["last_prompt"] = instruction\n'
             '        return prompt, metadata\n'
             '\n'
-            '    def _build_chat_batch_prompt(topic: str, chat_context: str) -> tuple[str, dict]:\n'
+            '    def _build_chat_batch_prompt(topic: str, chat_context: str, window_seconds: float = 20.0) -> tuple[str, dict]:\n'
             '        """Build a VTuber turn from buffered live chat instead of one-by-one replies."""\n'
             '        topic = _clean_prompt_piece(topic, 180) or "the current stream"\n'
             '        chat_context = _clean_prompt_piece(chat_context, 1200)\n'
             '        instruction = (\n'
-            '            "VTuber live chat batch segment. Recent chat has been buffered while the stream was speaking. "\n'
+            '            f"VTuber live chat batch segment. These are the live chat messages from the most recent {int(window_seconds)} seconds after the priority donation or stream speech. "\n'
             '            "Respond to the overall mood and one or two representative points, not every line. "\n'
+            '            "Each chat line is formatted like \\\'Viewer AUTHOR says: MESSAGE\\\'. If you directly answer one specific chat line, address that AUTHOR once in a natural sentence. "\n'
+            '            "If you summarize multiple chat messages, address the room naturally and do not list nicknames or force a closing catchphrase. "\n'
+            '            "If this batch follows a donation, acknowledge the room\\\'s reaction after the donation answer instead of re-answering the donation from scratch. "\n'
             '            "Keep continuity with the current topic, stay in natural English, and end with a light hook for chat. "\n'
-            '            "Aim for 12 to 22 spoken words so live speech stays responsive."\n'
+            '            "Do not use filler openings or filler-only sentences such as well, okay, alright, anyway, um, uh, hmm, let me think, or give me a second. "\n'
+            '            "Speak at least 32 spoken words, usually 35 to 70 spoken words."\n'
             '        )\n'
-            '        prompt = "Live chat is reacting right now."\n'
+            '        prompt = (\n'
+            '            "Live chat batch to answer now:\\n"\n'
+            '            f"{chat_context}"\n'
+            '        )\n'
             '        metadata = {\n'
             '            "vtuber_mode": True,\n'
             '            "vtuber_event": "live_chat_batch",\n'
@@ -1055,8 +1378,8 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '            "skip_memory": True,\n'
             '            "topic": topic,\n'
             '            "last_chat": chat_context,\n'
+            '            "chat_window_seconds": round(float(window_seconds), 1),\n'
             '            "style_tag": "energetic",\n'
-            '            "emotion": "positive",\n'
             '        }\n'
             '        vtuber_mode["last_prompt"] = instruction\n'
             '        return prompt, metadata\n'
@@ -1225,52 +1548,20 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '    @router.post("/credo/vtuber-mode/virtual-chat")\n',
             '    @router.get("/credo/interjections")\n'
             '    async def credo_interjection_list():\n'
-            '        """Return manual FastTrack interjection+motion choices."""\n'
-            '        items = _load_interjection_items()\n'
+            '        """Return no manual interjection choices while playback is sealed."""\n'
             '        return {\n'
-            '            "items": [\n'
-            '                {key: value for key, value in item.items() if key != "audio_path"}\n'
-            '                for item in items\n'
-            '            ]\n'
+            '            "items": [],\n'
+            '            "disabled": True,\n'
+            '            "reason": "interjection playback is sealed",\n'
             '        }\n'
             '\n'
             '    @router.post("/credo/interjections/play")\n'
             '    async def credo_interjection_play(request: Request):\n'
-            '        """Force-play one prebuilt Fish interjection with its motion tags."""\n'
-            '        payload = await request.json()\n'
-            '        item_id = str(payload.get("id") or "")\n'
-            '        items = _load_interjection_items()\n'
-            '        item = next((candidate for candidate in items if candidate.get("id") == item_id), None)\n'
-            '        if item is None:\n'
-            '            return JSONResponse({"played": False, "error": "unknown interjection id"}, status_code=404)\n'
-            '        target_uid = ws_handler.first_client_uid()\n'
-            '        if not target_uid or target_uid not in ws_handler.client_connections:\n'
-            '            return JSONResponse({"played": False, "error": "no browser client connected"}, status_code=409)\n'
-            '\n'
-            '        emotion = str(item.get("emotion") or "neutral").lower()\n'
-            '        style = str(item.get("style_tag") or "steady").lower()\n'
-            '        event = str(item.get("event") or "thinking").lower()\n'
-            '        profile = _motion_profile_for_item(item)\n'
-            '        expressions = [\n'
-            '            f"credo_motion_profile:{profile}",\n'
-            '            f"credo_fast_motion:{emotion}",\n'
-            '            f"credo_event_motion:{event}",\n'
-            '            f"credo_style_motion:{style}",\n'
-            '        ]\n'
-            '        audio_payload = prepare_audio_payload(\n'
-            '            audio_path=item["audio_path"],\n'
-            '            display_text={"text": "", "name": os.getenv("OPEN_LLM_VTUBER_CHARACTER_NAME", "Professor\\\'s Lab Maid"), "avatar": None},\n'
-            '            actions={"expressions": expressions},\n'
+            '        """Keep the legacy manual interjection playback route hard-locked."""\n'
+            '        return JSONResponse(\n'
+            '            {"played": False, "disabled": True, "error": "interjection playback is sealed"},\n'
+            '            status_code=423,\n'
             '        )\n'
-            '        await ws_handler.client_connections[target_uid].send_text(json.dumps(audio_payload))\n'
-            '        return {\n'
-            '            "played": True,\n'
-            '            "id": item["id"],\n'
-            '            "emotion": emotion,\n'
-            '            "style_tag": style,\n'
-            '            "event": event,\n'
-            '            "carrier": item.get("carrier", ""),\n'
-            '        }\n'
             '\n'
             '    @router.post("/credo/vtuber-mode/virtual-chat")\n',
             1,
@@ -1314,30 +1605,6 @@ def patch_vtuber_routes(vendor: Path) -> None:
         '        return items\n'
     )
     text = text.replace(current_item_loop, prebuilt_item_loop)
-    text = text.replace(
-        '        """Force-synthesize one interjection with the live TTS and motion tags."""\n',
-        '        """Force-play one prebuilt StyleBERT interjection with its motion tags."""\n',
-    )
-    text = text.replace(
-        '        carrier = str(item.get("carrier") or "hm.").strip()\n'
-        '        audio_path = await default_context_cache.tts_engine.async_generate_audio(\n'
-        '            carrier, file_name_no_ext=f"credo_manual_{uuid4().hex[:8]}"\n'
-        '        )\n'
-        '        try:\n'
-        '            audio_payload = prepare_audio_payload(\n'
-        '                audio_path=audio_path,\n'
-        '                display_text={"text": "", "name": os.getenv("OPEN_LLM_VTUBER_CHARACTER_NAME", "Professor\\\'s Lab Maid"), "avatar": None},\n'
-        '                actions={"expressions": expressions},\n'
-        '            )\n'
-        '        finally:\n'
-        '            if audio_path:\n'
-        '                default_context_cache.tts_engine.remove_file(audio_path, verbose=False)\n',
-        '        audio_payload = prepare_audio_payload(\n'
-        '            audio_path=item["audio_path"],\n'
-        '            display_text={"text": "", "name": os.getenv("OPEN_LLM_VTUBER_CHARACTER_NAME", "Professor\\\'s Lab Maid"), "avatar": None},\n'
-        '            actions={"expressions": expressions},\n'
-        '        )\n',
-    )
     if '@router.get("/credo/experiment-modes")' not in text:
         text = text.replace(
             '    @router.get("/credo/interjections")\n',
@@ -1496,11 +1763,13 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '                logger.info("CREDO VTuber idle monologue skipped because a conversation is still running.")\n'
             '                await asyncio.sleep(2.0)\n'
             '                continue\n'
+            '            chat_window_seconds = float(os.getenv("CREDO_VTUBER_CHAT_BATCH_WINDOW_SECONDS", "20.0"))\n'
             '            chat_context = ws_handler.consume_vtuber_chat_context(\n'
-            '                max_items=int(os.getenv("CREDO_VTUBER_CHAT_BATCH_MAX_ITEMS", "8"))\n'
+            '                max_items=int(os.getenv("CREDO_VTUBER_CHAT_BATCH_MAX_ITEMS", "10")),\n'
+            '                since_seconds=chat_window_seconds,\n'
             '            )\n'
             '            if chat_context:\n'
-            '                prompt, metadata = _build_chat_batch_prompt(topic, chat_context)\n'
+            '                prompt, metadata = _build_chat_batch_prompt(topic, chat_context, chat_window_seconds)\n'
             '                queued = await ws_handler.trigger_text_input(prompt, metadata=metadata)\n'
             '                if queued:\n'
             '                    vtuber_mode["last_idle_at"] = time.monotonic()\n'
@@ -1509,6 +1778,20 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '            silence_seconds = ws_handler.seconds_since_last_activity()\n',
             1,
         )
+    text = text.replace(
+        '            chat_context = ws_handler.consume_vtuber_chat_context(\n'
+        '                max_items=int(os.getenv("CREDO_VTUBER_CHAT_BATCH_MAX_ITEMS", "8"))\n'
+        '            )\n'
+        '            if chat_context:\n'
+        '                prompt, metadata = _build_chat_batch_prompt(topic, chat_context)\n',
+        '            chat_window_seconds = float(os.getenv("CREDO_VTUBER_CHAT_BATCH_WINDOW_SECONDS", "20.0"))\n'
+        '            chat_context = ws_handler.consume_vtuber_chat_context(\n'
+        '                max_items=int(os.getenv("CREDO_VTUBER_CHAT_BATCH_MAX_ITEMS", "10")),\n'
+        '                since_seconds=chat_window_seconds,\n'
+        '            )\n'
+        '            if chat_context:\n'
+        '                prompt, metadata = _build_chat_batch_prompt(topic, chat_context, chat_window_seconds)\n',
+    )
     if 'requested_experiment = payload.get("experiment_mode")' not in text:
         text = text.replace(
             '        payload = await request.json()\n'
@@ -1655,10 +1938,10 @@ def patch_vtuber_routes(vendor: Path) -> None:
         '        message = _clean_prompt_piece(payload.get("message") or "", 360)\n',
     )
     text = text.replace(
-        "React warmly in the language requested by the broadcast direction or stream context, then naturally fold back into the stream. "
+        "React warmly in English only, then naturally fold back into the stream. "
         "Do not write bracketed style tags or switch languages. ",
         "This donation is the highest-priority counseling question. Answer it before buffered live chat. "
-        "React warmly in the language requested by the broadcast direction or stream context, then naturally fold back into the stream. "
+        "React warmly in English only, then naturally fold back into the stream. "
         "Do not answer unrelated chat in this donation turn; a later live-chat batch turn will summarize surrounding chat. "
         "Do not write bracketed style tags or switch languages. ",
     )
@@ -1669,11 +1952,50 @@ def patch_vtuber_routes(vendor: Path) -> None:
             '        text = _clean_prompt_piece(f"{name} sent support. {message}", 220)\n'
             '        target_uid = ws_handler.first_client_uid()\n'
             '        if payload.get("priority", True) and target_uid:\n'
+            '            websocket = ws_handler.client_connections.get(target_uid)\n'
+            '            if websocket is not None:\n'
+            '                try:\n'
+            '                    await websocket.send_text(json.dumps({"type": "interrupt-signal", "text": ""}))\n'
+            '                    logger.info("CREDO donation priority cleared frontend audio queue before answering donation.")\n'
+            '                except RuntimeError as exc:\n'
+            '                    logger.warning(f"CREDO donation priority could not clear frontend audio queue: {exc}")\n'
             '            active_task = ws_handler.current_conversation_tasks.get(target_uid)\n'
             '            if active_task and not active_task.done():\n'
             '                active_task.cancel()\n'
             '                logger.info("CREDO donation priority cancelled the active VTuber turn before answering donation.")\n'
             '        ok = await ws_handler.trigger_text_input(\n',
+            1,
+        )
+    if "CREDO VTuber stop cancelled the active conversation task." not in text:
+        text = text.replace(
+            '        vtuber_mode["bridge"] = None\n'
+            '        return await credo_vtuber_mode_status()\n'
+            '\n'
+            '    @router.post("/credo/vtuber-mode/monologue")\n',
+            '        vtuber_mode["bridge"] = None\n'
+            '        target_uid = ws_handler.first_client_uid()\n'
+            '        if target_uid:\n'
+            '            websocket = ws_handler.client_connections.get(target_uid)\n'
+            '            if websocket is not None:\n'
+            '                try:\n'
+            '                    await websocket.send_text(json.dumps({"type": "interrupt-signal", "text": "scenario-stopped"}))\n'
+            '                    logger.info("CREDO VTuber stop cleared frontend audio queue.")\n'
+            '                except RuntimeError as exc:\n'
+            '                    logger.warning(f"CREDO VTuber stop could not clear frontend audio queue: {exc}")\n'
+            '            active_task = ws_handler.current_conversation_tasks.get(target_uid)\n'
+            '            if active_task and not active_task.done():\n'
+            '                active_task.cancel()\n'
+            '                logger.info("CREDO VTuber stop cancelled the active conversation task.")\n'
+            '        if hasattr(ws_handler, "_vtuber_chat_buffer"):\n'
+            '            ws_handler._vtuber_chat_buffer = []\n'
+            '        for agent in _iter_credo_agents():\n'
+            '            prefetch_task = getattr(agent, "_vtuber_slow_prefetch_task", None)\n'
+            '            if prefetch_task is not None and not prefetch_task.done():\n'
+            '                prefetch_task.cancel()\n'
+            '            agent._vtuber_slow_prefetch_task = None\n'
+            '        return await credo_vtuber_mode_status()\n'
+            '\n'
+            '    @router.post("/credo/vtuber-mode/monologue")\n',
             1,
         )
     text = text.replace(
@@ -1954,21 +2276,512 @@ def patch_vtuber_routes(vendor: Path) -> None:
     )
     text = text.replace(
         "Speak in natural English as Professor's Lab Maid. Use cute lab-maid and graduate-school comedy naturally. ",
-        "Speak in the language requested by the broadcast direction or recent chat; otherwise use natural English as Professor's Lab Maid. "
+        "Speak in English only as Professor's Lab Maid, regardless of the viewer's language or broadcast context. "
         "Use cute lab-maid and graduate-school comedy naturally. ",
     )
     text = text.replace(
         "Keep continuity with the current topic, stay in natural English, and end with a light hook for chat. ",
-        "Keep continuity with the current topic, use the language requested by the broadcast direction or recent chat, and end with a light hook for chat. ",
+        "Keep continuity with the current topic, answer in English only, and end with a light hook for chat. ",
     )
     text = text.replace(
         "VTuber mode manual monologue. Speak naturally to the audience in English only. ",
-        "VTuber mode manual monologue. Speak naturally to the audience in the language requested by the broadcast direction or stream context. ",
+        "VTuber mode manual monologue. Speak naturally to the audience in English only, regardless of stream context language. ",
     )
     text = text.replace(
         "React warmly in English only, then naturally fold back into the stream. ",
-        "React warmly in the language requested by the broadcast direction or stream context, then naturally fold back into the stream. ",
+        "React warmly in English only, then naturally fold back into the stream. ",
     )
+    disabled_interjection_routes = '''    @router.get("/credo/interjections")
+    async def credo_interjection_list():
+        """Return no standalone interjection clips for the current experiment design."""
+        return {
+            "items": [],
+            "disabled": True,
+            "count": 0,
+            "reason": "standalone interjection audio is retired; emotion motion is attached to spoken TTS",
+        }
+
+    @router.post("/credo/interjections/play")
+    async def credo_interjection_play(request: Request):
+        """Keep legacy manual interjection playback disabled."""
+        return JSONResponse(
+            {
+                "played": False,
+                "disabled": True,
+                "error": "standalone interjection audio is retired; emotion motion is attached to spoken TTS",
+            },
+            status_code=423,
+        )
+'''
+    text = re.sub(
+        r'    @router\.get\("/credo/interjections"\)\n'
+        r"    async def credo_interjection_list\(\):\n"
+        r".*?"
+        r'    @router\.post\("/credo/interjections/play"\)\n'
+        r"    async def credo_interjection_play\(request: Request\):\n"
+        r".*?(?=\n    @router\.post\(\"/credo/vtuber-mode/virtual-chat\"\))",
+        disabled_interjection_routes,
+        text,
+        flags=re.DOTALL,
+    )
+    text = _patch_sequential_vtuber_routes(text)
+    donation_emotion_route = '''    @router.post("/credo/vtuber-mode/donation-emotion")
+    async def credo_vtuber_mode_donation_emotion(request: Request):
+        """Classify donation text emotion for readout-time Live2D motion."""
+        payload = await request.json()
+        text = _clean_prompt_piece(payload.get("text") or payload.get("message") or "", 500)
+        if not text:
+            return {"emotion": "neutral", "confidence": 0.0, "source": "empty"}
+        try:
+            ai_npc_path = _credo_root() / "AI_NPC_System"
+            if str(ai_npc_path) not in sys.path:
+                sys.path.insert(0, str(ai_npc_path))
+            import fasttrack_router_v3
+
+            runtime = fasttrack_router_v3._get_runtime()
+            result = await asyncio.to_thread(runtime.infer_emotion, text)
+            label = str(getattr(result, "label", "neutral") or "neutral").lower()
+            if label == "surprise":
+                label = "ambiguous"
+            if label not in {"positive", "negative", "ambiguous", "neutral"}:
+                label = "neutral"
+            confidence = float(getattr(result, "confidence", 0.0) or 0.0)
+            latency_ms = float(getattr(result, "latency_ms", 0.0) or 0.0)
+            _log_vtuber_case_event(
+                "donation_emotion_motion",
+                text=text,
+                engine="distilbert_goemotions",
+                elapsed_ms=latency_ms,
+                metadata={"emotion": label, "confidence": confidence},
+            )
+            return {
+                "emotion": label,
+                "confidence": round(confidence, 6),
+                "latency_ms": round(latency_ms, 3),
+                "source": "distilbert_goemotions",
+            }
+        except Exception as exc:
+            logger.warning(f"CREDO donation emotion analysis failed: {exc}")
+            return {"emotion": "neutral", "confidence": 0.0, "source": "analysis_unavailable"}
+
+'''
+    donation_readout_route = '    @router.post("/credo/vtuber-mode/donation-readout")\n    async def credo_vtuber_mode_donation_readout(request: Request):\n        """Generate a short male Edge TTS readout for a donation popup."""\n        payload = await request.json()\n        name = _clean_prompt_piece(payload.get("name") or "a viewer", 48)\n        amount = _clean_prompt_piece(payload.get("amount") or "", 32)\n        message = _clean_prompt_piece(payload.get("message") or "", 360)\n        if amount:\n            readout_text = _clean_prompt_piece(f"{name} donated {amount}. {message}", 460)\n        else:\n            readout_text = _clean_prompt_piece(f"{name} donated. {message}", 460)\n        if not readout_text:\n            return JSONResponse({"error": "empty donation readout"}, status_code=400)\n\n        import edge_tts\n\n        voice = os.getenv("CREDO_DONATION_EDGE_TTS_VOICE", "en-US-GuyNeural")\n        rate = os.getenv("CREDO_DONATION_EDGE_TTS_RATE", "+0%")\n        volume = os.getenv("CREDO_DONATION_EDGE_TTS_VOLUME", "+0%")\n        out_dir = _credo_root() / "AI_NPC_System" / "runtime" / "donation_readout"\n        out_dir.mkdir(parents=True, exist_ok=True)\n        out_path = out_dir / f"donation_readout_{int(time.time() * 1000)}_{uuid4().hex[:8]}.mp3"\n        await edge_tts.Communicate(readout_text, voice, rate=rate, volume=volume).save(str(out_path))\n\n        retained = sorted(out_dir.glob("donation_readout_*.mp3"), key=lambda path: path.stat().st_mtime, reverse=True)\n        for stale_path in retained[40:]:\n            try:\n                stale_path.unlink()\n            except OSError:\n                pass\n        return FileResponse(out_path, media_type="audio/mpeg", filename=out_path.name)\n\n'
+    donation_route = '    @router.post("/credo/vtuber-mode/donation")\n    async def credo_vtuber_mode_donation(request: Request):\n        """Trigger a donation-style reaction for experiment recordings."""\n        payload = await request.json()\n        name = _clean_prompt_piece(payload.get("name") or "a viewer", 48)\n        amount = _clean_prompt_piece(payload.get("amount") or "", 32)\n        message = _clean_prompt_piece(payload.get("message") or "", 360)\n        readout_completed = bool(payload.get("donation_readout_completed"))\n        readout_completed_at = _clean_prompt_piece(payload.get("donation_readout_completed_at") or "", 64)\n        donation_emotion = _clean_prompt_piece(payload.get("donation_emotion") or "neutral", 24).lower()\n        if donation_emotion == "surprise":\n            donation_emotion = "ambiguous"\n        if donation_emotion not in {"positive", "negative", "ambiguous", "neutral"}:\n            donation_emotion = "neutral"\n        instruction = _with_broadcast_direction(\n            f"Donation event from {name} {amount}: {message}. "\n            "This donation has just been read aloud by a male narrator, and you paused to listen. "\n            "Answer the donor now before buffered live chat. "\n            "Start with the answer itself, not a filler, gasp, or reaction sound, then give the donor a concrete counseling answer before anything else. "\n            "Do not answer unrelated chat in this donation turn; as soon as this donation answer ends, the next live-chat batch will summarize the most recent surrounding chat. "\n            "Do not write bracketed style tags or switch languages. "\n            "Do not use filler openings or filler-only sentences such as well, okay, alright, anyway, oh, ah, um, uh, hmm, let me think, or give me a second. "\n            "Speak at least 32 spoken words, usually 35 to 70 spoken words.",\n            payload,\n        )\n        text = _clean_prompt_piece(f"{name} sent support. {message}", 220)\n        metadata = {\n            "vtuber_mode": True,\n            "vtuber_event": "donation",\n            "vtuber_instruction": instruction,\n            "skip_last_text_input": True,\n            "skip_history": True,\n            "skip_memory": True,\n            "topic": _clean_prompt_piece(vtuber_mode["topic"], 180),\n            "broadcast_direction": _broadcast_direction(),\n            "last_chat": _clean_prompt_piece(ws_handler.last_text_input(), 360),\n            "style_tag": "energetic",\n            "emotion": donation_emotion,\n            "donation_readout_completed": readout_completed,\n            "donation_readout_completed_at": readout_completed_at,\n        }\n        target_uid = ws_handler.first_client_uid()\n        if target_uid:\n            websocket = ws_handler.client_connections.get(target_uid)\n            if websocket is not None and not bool(payload.get("donation_input_after_readout")):\n                try:\n                    await websocket.send_text(json.dumps({"type": "interrupt-signal", "text": "donation-readout"}))\n                except RuntimeError as exc:\n                    logger.warning(f"CREDO donation could not clear frontend audio queue: {exc}")\n            active_task = ws_handler.current_conversation_tasks.get(target_uid)\n            if active_task and not active_task.done():\n                active_task.cancel()\n                logger.info("CREDO donation cancelled the active conversation after readout.")\n        vtuber_mode["speech_busy_until"] = 0.0\n        ok = await _trigger_vtuber_turn(text, metadata, delay_if_busy=False)\n        delayed = False\n        if not ok:\n            delayed = _active_vtuber_conversation_running() or _vtuber_speech_busy_seconds() > 0.0 or vtuber_turn_lock.locked()\n            ok = await _trigger_vtuber_turn(text, metadata, delay_if_busy=True)\n        _log_vtuber_case_event(\n            "donation_answer_queued",\n            text=message,\n            engine="vtuber_donation",\n            metadata={\n                "donation_author": name,\n                "donation_amount": amount,\n                "queued": ok,\n                "delayed": delayed,\n                "readout_completed": readout_completed,\n                "readout_completed_at": readout_completed_at,\n                "input_after_readout": bool(payload.get("donation_input_after_readout")),\n                "donation_emotion": donation_emotion,\n            },\n        )\n        return {"queued": ok, "delayed": delayed}\n\n'
+    donation_route = donation_route.replace(
+        '            "Answer the donor now before buffered live chat. "\n',
+        '            "Answer the donor now before buffered live chat. "\n'
+        '            f"This turn targets one named donor, so address {name} naturally if needed, but do not force a romanized honorific or catchphrase. "\n',
+    )
+    donation_route = donation_route.replace(
+        '''        donation_emotion = _clean_prompt_piece(payload.get("donation_emotion") or "neutral", 24).lower()
+        if donation_emotion == "surprise":
+            donation_emotion = "ambiguous"
+        if donation_emotion not in {"positive", "negative", "ambiguous", "neutral"}:
+            donation_emotion = "neutral"
+''',
+        '''        donation_emotion = "neutral"
+        donation_emotion_confidence = 0.0
+        donation_emotion_latency_ms = 0.0
+        donation_emotion_source = "analysis_unavailable"
+        try:
+            ai_npc_path = _credo_root() / "AI_NPC_System"
+            if str(ai_npc_path) not in sys.path:
+                sys.path.insert(0, str(ai_npc_path))
+            import fasttrack_router_v3
+
+            runtime = fasttrack_router_v3._get_runtime()
+            emotion_result = await asyncio.to_thread(runtime.infer_emotion, message)
+            donation_emotion = str(getattr(emotion_result, "label", "neutral") or "neutral").lower()
+            if donation_emotion == "surprise":
+                donation_emotion = "ambiguous"
+            if donation_emotion not in {"positive", "negative", "ambiguous", "neutral"}:
+                donation_emotion = "neutral"
+            donation_emotion_confidence = float(getattr(emotion_result, "confidence", 0.0) or 0.0)
+            donation_emotion_latency_ms = float(getattr(emotion_result, "latency_ms", 0.0) or 0.0)
+            donation_emotion_source = "distilbert_goemotions"
+        except Exception as exc:
+            logger.warning(f"CREDO donation answer emotion analysis failed: {exc}")
+''',
+    ).replace(
+        '''            "emotion": donation_emotion,
+            "donation_readout_completed": readout_completed,
+''',
+        '''            "emotion": donation_emotion,
+            "emotion_confidence": donation_emotion_confidence,
+            "emotion_source": donation_emotion_source,
+            "donation_readout_completed": readout_completed,
+''',
+    ).replace(
+        '''                "input_after_readout": bool(payload.get("donation_input_after_readout")),
+                "donation_emotion": donation_emotion,
+            },
+        )
+        return {"queued": ok, "delayed": delayed}
+''',
+        '''                "input_after_readout": bool(payload.get("donation_input_after_readout")),
+                "donation_emotion": donation_emotion,
+                "donation_emotion_confidence": donation_emotion_confidence,
+                "donation_emotion_source": donation_emotion_source,
+            },
+        )
+        _log_vtuber_case_event(
+            "donation_answer_emotion_analysis",
+            text=message,
+            engine=donation_emotion_source,
+            elapsed_ms=donation_emotion_latency_ms,
+            metadata={
+                "emotion": donation_emotion,
+                "confidence": donation_emotion_confidence,
+                "donation_author": name,
+                "donation_amount": amount,
+            },
+        )
+        _schedule_post_donation_chat_batch(name)
+        return {"queued": ok, "delayed": delayed}
+''',
+    )
+    donation_pattern = re.compile(
+        r'    @router\.post\("/credo/vtuber-mode/donation"\)\n'
+        r'    async def credo_vtuber_mode_donation\(request: Request\):\n'
+        r'.*?'
+        r'        return \{"queued": ok(?:, "delayed": delayed)?\}\n',
+        re.DOTALL,
+    )
+    text, donation_count = donation_pattern.subn(donation_route, text, count=1)
+    if donation_count == 1 and '"/credo/vtuber-mode/donation-readout"' not in text:
+        text = text.replace(donation_route, donation_readout_route + donation_route, 1)
+    if '"/credo/vtuber-mode/donation-emotion"' not in text:
+        text = text.replace(
+            '    @router.post("/credo/vtuber-mode/donation-readout")\n',
+            donation_emotion_route + '    @router.post("/credo/vtuber-mode/donation-readout")\n',
+            1,
+        )
+    text = _patch_vtuber_route_runtime_logging(text)
+    text = text.replace(
+        '"chatting with viewers about games, daily life, and funny stream moments"',
+        '"computer graphics research lab talk: rendering, shaders, animation, simulation, papers, experiments, professor messages, and deadline bells"',
+    )
+    text = text.replace(
+        '"games, daily life, and funny stream moments"',
+        '"computer graphics research lab talk: rendering, shaders, animation, simulation, papers, experiments, professor messages, and deadline bells"',
+    )
+    text = text.replace(
+        '"quiet stream moment"',
+        '"computer graphics research lab talk"',
+    )
+    if "def _default_vtuber_topic()" not in text:
+        text = text.replace(
+            '    def _clean_prompt_piece(value: object, limit: int = 500) -> str:\n'
+            '        """Keep server-generated stream context compact and safe for prompts."""\n'
+            '        text = " ".join(str(value or "").split())\n'
+            '        return text[:limit]\n',
+            '    def _clean_prompt_piece(value: object, limit: int = 500) -> str:\n'
+            '        """Keep server-generated stream context compact and safe for prompts."""\n'
+            '        text = " ".join(str(value or "").split())\n'
+            '        return text[:limit]\n\n'
+            '    def _default_vtuber_topic() -> str:\n'
+            '        return _clean_prompt_piece(\n'
+            '            os.getenv(\n'
+            '                "CREDO_VTUBER_DEFAULT_TOPIC",\n'
+            '                "computer graphics research lab talk: rendering, shaders, animation, simulation, papers, experiments, professor messages, and deadline bells",\n'
+            '            ),\n'
+            '            180,\n'
+            '        )\n\n'
+            '    def _normalize_vtuber_topic(value: object) -> str:\n'
+            '        topic = _clean_prompt_piece(value, 180)\n'
+            '        legacy_defaults = {\n'
+            '            "games, daily life, and funny stream moments",\n'
+            '            "chatting with viewers about games, daily life, and funny stream moments",\n'
+            '        }\n'
+            '        return _default_vtuber_topic() if not topic or topic.lower() in legacy_defaults else topic\n',
+            1,
+        )
+    if "def _target_viewer_from_chat_context(" not in text:
+        text = text.replace(
+            '    def _normalize_vtuber_topic(value: object) -> str:\n'
+            '        topic = _clean_prompt_piece(value, 180)\n'
+            '        legacy_defaults = {\n'
+            '            "computer graphics research lab talk: rendering, shaders, animation, simulation, papers, experiments, professor messages, and deadline bells",\n'
+            '            "computer graphics research lab talk: rendering, shaders, animation, simulation, papers, experiments, professor messages, and deadline bells",\n'
+            '        }\n'
+            '        return _default_vtuber_topic() if not topic or topic.lower() in legacy_defaults else topic\n',
+            '    def _normalize_vtuber_topic(value: object) -> str:\n'
+            '        topic = _clean_prompt_piece(value, 180)\n'
+            '        legacy_defaults = {\n'
+            '            "computer graphics research lab talk: rendering, shaders, animation, simulation, papers, experiments, professor messages, and deadline bells",\n'
+            '            "computer graphics research lab talk: rendering, shaders, animation, simulation, papers, experiments, professor messages, and deadline bells",\n'
+            '        }\n'
+            '        return _default_vtuber_topic() if not topic or topic.lower() in legacy_defaults else topic\n'
+            '\n'
+            '    def _target_viewer_from_chat_context(chat_context: str) -> str:\n'
+            '        """Use the first visible chat author as the addressee for batch turns."""\n'
+            '        match = re.search(r"\\bViewer\\s+([A-Za-z0-9 _-]{1,48})\\s+says\\s*:", str(chat_context or ""))\n'
+            '        return _clean_prompt_piece(match.group(1), 48) if match else "chat"\n',
+            1,
+        )
+    text = text.replace(
+        '"last_chat": last_chat,\n            "silence_seconds": round(silence_seconds, 1),',
+        '"last_chat": last_chat,\n            "target_viewer": "chat",\n            "silence_seconds": round(silence_seconds, 1),',
+    )
+    text = text.replace(
+        '"last_chat": chat_context,\n            "chat_window_seconds": round(float(window_seconds), 1),',
+        '"last_chat": chat_context,\n            "target_viewer": "chat",\n            "chat_window_seconds": round(float(window_seconds), 1),',
+    )
+    text = text.replace(
+        '"last_chat": _clean_prompt_piece(ws_handler.last_text_input(), 360),\n            "silence_seconds": round(ws_handler.seconds_since_last_activity(), 1),',
+        '"last_chat": _clean_prompt_piece(ws_handler.last_text_input(), 360),\n            "target_viewer": "chat",\n            "silence_seconds": round(ws_handler.seconds_since_last_activity(), 1),',
+    )
+    text = text.replace(
+        '"last_chat": _clean_prompt_piece(ws_handler.last_text_input(), 360),\n            "style_tag": "energetic",\n            "emotion": donation_emotion,',
+        '"last_chat": _clean_prompt_piece(ws_handler.last_text_input(), 360),\n            "target_viewer": name,\n            "style_tag": "energetic",\n            "emotion": donation_emotion,',
+    )
+    text = text.replace(
+        'topic = _clean_prompt_piece(topic, 180) or "computer graphics research lab talk: rendering, shaders, animation, simulation, papers, experiments, professor messages, and deadline bells"',
+        'topic = _normalize_vtuber_topic(topic)',
+    )
+    text = text.replace(
+        'vtuber_mode["topic"] = _clean_prompt_piece(payload.get("topic") or "", 180)',
+        'vtuber_mode["topic"] = _normalize_vtuber_topic(payload.get("topic") or "")',
+    )
+    text = text.replace(
+        'vtuber_mode["topic"] = _clean_prompt_piece(payload.get("topic") or vtuber_mode["topic"] or "", 180)',
+        'vtuber_mode["topic"] = _normalize_vtuber_topic(payload.get("topic") or vtuber_mode["topic"] or "")',
+    )
+    text = text.replace(
+        'topic = _clean_prompt_piece(payload.get("topic") or vtuber_mode["topic"] or "computer graphics research lab talk", 180)',
+        'topic = _normalize_vtuber_topic(payload.get("topic") or vtuber_mode["topic"] or "")',
+    )
+    if '"post_donation_chat_pending": False,' not in text:
+        text = text.replace(
+            '        "speech_busy_until": 0.0,\n',
+            '        "speech_busy_until": 0.0,\n'
+            '        "post_donation_chat_pending": False,\n'
+            '        "post_donation_chat_token": 0,\n',
+            1,
+        )
+    if '"donation_priority_until": 0.0,' not in text:
+        text = text.replace(
+            '        "speech_busy_until": 0.0,\n',
+            '        "speech_busy_until": 0.0,\n'
+            '        "donation_priority_until": 0.0,\n',
+            1,
+        )
+    if '"idle_suppressed_until": 0.0,' not in text:
+        text = text.replace(
+            '        "speech_busy_until": 0.0,\n',
+            '        "speech_busy_until": 0.0,\n'
+            '        "idle_suppressed_until": 0.0,\n',
+            1,
+        )
+    legacy_viewer_suffix = "kyo-" "shu-zin-sa-ma"
+    text = text.replace(
+        f"Each chat line is formatted like 'Viewer AUTHOR says: MESSAGE'. If you directly answer one specific chat line, use that line's AUTHOR and make the final sentence end exactly with 'AUTHOR {legacy_viewer_suffix}'. ",
+        "Each chat line is formatted like 'Viewer AUTHOR says: MESSAGE'. If you directly answer one specific chat line, address that AUTHOR once in a natural sentence. ",
+    )
+    text = text.replace(
+        "If you summarize multiple chat messages, address the room naturally and do not list nicknames or attach the honorific. ",
+        "If you summarize multiple chat messages, address the room naturally and do not list nicknames or force a closing catchphrase. ",
+    )
+    text = text.replace(
+        'f"This turn targets one named donor, so make the final sentence end exactly with \'{name} ' + legacy_viewer_suffix + '\'. "\n',
+        'f"This turn targets one named donor, so address {name} naturally if needed, but do not force a romanized honorific or catchphrase. "\n',
+    )
+    text = text.replace('            "suppress_fasttrack_audio": True,\n', '')
+    text = text.replace(
+        '            if websocket is not None:\n'
+        '                try:\n'
+        '                    await websocket.send_text(json.dumps({"type": "interrupt-signal", "text": "donation-readout"}))\n',
+        '            if websocket is not None and not bool(payload.get("donation_input_after_readout")):\n'
+        '                try:\n'
+        '                    await websocket.send_text(json.dumps({"type": "interrupt-signal", "text": "donation-readout"}))\n',
+    )
+    if 'idle_suppressed_seconds = max(0.0, float(vtuber_mode.get("idle_suppressed_until") or 0.0) - time.monotonic())' not in text:
+        text = text.replace(
+            '            silence_seconds = ws_handler.seconds_since_last_activity()\n',
+            '            idle_suppressed_seconds = max(0.0, float(vtuber_mode.get("idle_suppressed_until") or 0.0) - time.monotonic())\n'
+            '            if idle_suppressed_seconds > 0.0:\n'
+            '                await asyncio.sleep(min(3.0, max(0.5, idle_suppressed_seconds)))\n'
+            '                continue\n'
+            '            silence_seconds = ws_handler.seconds_since_last_activity()\n',
+            1,
+        )
+    if 'donation_priority_seconds = max(0.0, float(vtuber_mode.get("donation_priority_until") or 0.0) - time.monotonic())' not in text:
+        text = text.replace(
+            '            if vtuber_mode.get("post_donation_chat_pending"):\n'
+            '                await asyncio.sleep(1.0)\n'
+            '                continue\n',
+            '            donation_priority_seconds = max(0.0, float(vtuber_mode.get("donation_priority_until") or 0.0) - time.monotonic())\n'
+            '            if donation_priority_seconds > 0.0:\n'
+            '                await asyncio.sleep(min(1.0, max(0.25, donation_priority_seconds)))\n'
+            '                continue\n'
+            '            if vtuber_mode.get("post_donation_chat_pending"):\n'
+            '                await asyncio.sleep(1.0)\n'
+            '                continue\n',
+            1,
+        )
+    text = text.replace(
+        '        readout_guard_seconds = max(6.0, min(18.0, len(readout_text.split()) / 2.8 + 4.0))\n',
+        '        readout_guard_seconds = max(24.0, min(36.0, len(readout_text.split()) / 2.2 + 10.0))\n',
+    )
+    if 'readout_guard_seconds = max(24.0, min(36.0, len(readout_text.split()) / 2.2 + 10.0))' not in text:
+        text = text.replace(
+            '        if not readout_text:\n'
+            '            return JSONResponse({"error": "empty donation readout"}, status_code=400)\n'
+            '\n'
+            '        import edge_tts\n',
+            '        if not readout_text:\n'
+            '            return JSONResponse({"error": "empty donation readout"}, status_code=400)\n'
+            '        readout_guard_seconds = max(24.0, min(36.0, len(readout_text.split()) / 2.2 + 10.0))\n'
+            '        vtuber_mode["donation_priority_until"] = max(\n'
+            '            float(vtuber_mode.get("donation_priority_until") or 0.0),\n'
+            '            time.monotonic() + readout_guard_seconds,\n'
+            '        )\n'
+            '\n'
+            '        import edge_tts\n',
+            1,
+        )
+    if 'payload.get("scenario_start_only")' not in text:
+        text = text.replace(
+            '        vtuber_mode["interval"] = max(12.0, float(payload.get("interval_seconds") or vtuber_mode["interval"]))\n',
+            '        vtuber_mode["interval"] = max(12.0, float(payload.get("interval_seconds") or vtuber_mode["interval"]))\n'
+            '        if payload.get("scenario_start_only"):\n'
+            '            try:\n'
+            '                idle_grace = max(0.0, float(payload.get("idle_grace_seconds") or os.getenv("CREDO_VTUBER_SCENARIO_START_IDLE_GRACE_SECONDS", "8.0")))\n'
+            '            except ValueError:\n'
+            '                idle_grace = 8.0\n'
+            '            vtuber_mode["idle_suppressed_until"] = time.monotonic() + idle_grace\n'
+            '        else:\n'
+            '            vtuber_mode["idle_suppressed_until"] = 0.0\n',
+            1,
+        )
+    if 'agent._vtuber_slow_prefetch_task = None\n        vtuber_mode["speech_busy_until"] = 0.0' not in text:
+        text = text.replace(
+            '        vtuber_mode["speech_busy_until"] = 0.0\n',
+            '        for agent in _iter_credo_agents():\n'
+            '            prefetch_task = getattr(agent, "_vtuber_slow_prefetch_task", None)\n'
+            '            if prefetch_task is not None and not prefetch_task.done():\n'
+            '                prefetch_task.cancel()\n'
+            '            agent._vtuber_slow_prefetch_task = None\n'
+            '        vtuber_mode["speech_busy_until"] = 0.0\n'
+            '        vtuber_mode["idle_suppressed_until"] = 0.0\n',
+            1,
+        )
+    post_donation_helper = '''
+    def _schedule_post_donation_chat_batch(donor_name: str) -> None:
+        """Queue a live-chat follow-up after the donation answer has finished speaking."""
+        vtuber_mode["post_donation_chat_token"] = int(vtuber_mode.get("post_donation_chat_token") or 0) + 1
+        token = int(vtuber_mode["post_donation_chat_token"])
+        vtuber_mode["post_donation_chat_pending"] = True
+
+        async def run_followup() -> None:
+            try:
+                while vtuber_mode["active"] and token == int(vtuber_mode.get("post_donation_chat_token") or 0):
+                    busy_seconds = _vtuber_speech_busy_seconds()
+                    if not _active_vtuber_conversation_running() and busy_seconds <= 0.0 and not vtuber_turn_lock.locked():
+                        break
+                    await asyncio.sleep(min(3.0, max(0.5, busy_seconds if busy_seconds > 0.0 else 1.0)))
+                if not vtuber_mode["active"] or token != int(vtuber_mode.get("post_donation_chat_token") or 0):
+                    return
+                topic = vtuber_mode["topic"] or os.getenv(
+                    "CREDO_VTUBER_DEFAULT_TOPIC",
+                    "computer graphics research lab talk",
+                )
+                chat_context = ws_handler.consume_vtuber_chat_context(
+                    max_items=int(os.getenv("CREDO_VTUBER_POST_DONATION_CHAT_MAX_ITEMS", "12")),
+                    since_seconds=None,
+                )
+                if not chat_context:
+                    _log_vtuber_case_event(
+                        "post_donation_chat_batch_empty",
+                        text=donor_name,
+                        engine="vtuber_chat_batch",
+                    )
+                    return
+                prompt, metadata = _build_chat_batch_prompt(
+                    topic,
+                    chat_context,
+                    float(os.getenv("CREDO_VTUBER_CHAT_BATCH_WINDOW_SECONDS", "20.0")),
+                )
+                metadata["post_donation_followup"] = True
+                metadata["donation_author"] = donor_name
+                queued = await _trigger_vtuber_turn(prompt, metadata, delay_if_busy=False)
+                _log_vtuber_case_event(
+                    "post_donation_chat_batch_queued",
+                    text=chat_context,
+                    engine="vtuber_chat_batch",
+                    metadata={"donation_author": donor_name, "queued": queued},
+                )
+            finally:
+                if token == int(vtuber_mode.get("post_donation_chat_token") or 0):
+                    vtuber_mode["post_donation_chat_pending"] = False
+
+        asyncio.create_task(run_followup())
+
+'''
+    if "def _schedule_post_donation_chat_batch(" not in text:
+        text = text.replace('\n    async def _idle_loop() -> None:\n', '\n' + post_donation_helper + '    async def _idle_loop() -> None:\n', 1)
+    if 'if vtuber_mode.get("post_donation_chat_pending"):' not in text:
+        text = text.replace(
+            '            if busy_seconds > 0.0:\n'
+            '                logger.info(f"CREDO VTuber turn skipped while previous speech is probably still playing ({busy_seconds:.1f}s left).")\n'
+            '                await asyncio.sleep(min(3.0, max(0.5, busy_seconds)))\n'
+            '                continue\n',
+            '            if busy_seconds > 0.0:\n'
+            '                logger.info(f"CREDO VTuber turn skipped while previous speech is probably still playing ({busy_seconds:.1f}s left).")\n'
+            '                await asyncio.sleep(min(3.0, max(0.5, busy_seconds)))\n'
+            '                continue\n'
+            '            if vtuber_mode.get("post_donation_chat_pending"):\n'
+            '                await asyncio.sleep(1.0)\n'
+            '                continue\n',
+            1,
+        )
+    if 'vtuber_mode["post_donation_chat_token"] = int(vtuber_mode.get("post_donation_chat_token") or 0) + 1' not in text.split('async def credo_vtuber_mode_stop', 1)[-1]:
+        text = text.replace(
+            '        vtuber_mode["active"] = False\n        vtuber_mode["mode"] = "direct_chat"\n',
+            '        vtuber_mode["active"] = False\n'
+            '        vtuber_mode["mode"] = "direct_chat"\n'
+            '        vtuber_mode["donation_priority_until"] = 0.0\n'
+            '        vtuber_mode["post_donation_chat_pending"] = False\n'
+            '        vtuber_mode["post_donation_chat_token"] = int(vtuber_mode.get("post_donation_chat_token") or 0) + 1\n',
+            1,
+        )
+    text = text.replace(
+        '        "scheduling_mode": "parallel",\n        "mode": "direct_chat",\n',
+        '        "scheduling_mode": "serial",\n        "mode": "direct_chat",\n',
+    )
+    text = text.replace(
+        '        scheduling_mode = str(payload.get("scheduling_mode") or vtuber_mode.get("scheduling_mode") or "parallel")\n',
+        '        scheduling_mode = str(payload.get("scheduling_mode") or vtuber_mode.get("scheduling_mode") or "serial")\n',
+    )
+    if 'parallel_deferred = False\n        if scheduling_mode == "parallel":' not in text:
+        text = text.replace(
+            '        scenario = _clean_prompt_piece(\n'
+            '            payload.get("scenario") if "scenario" in payload else vtuber_mode.get("scenario"),\n'
+            '            96,\n'
+            '        )\n'
+            '        if scheduling_mode in {"no_fasttrack", "none"}:\n',
+            '        scenario = _clean_prompt_piece(\n'
+            '            payload.get("scenario") if "scenario" in payload else vtuber_mode.get("scenario"),\n'
+            '            96,\n'
+            '        )\n'
+            '        parallel_deferred = False\n'
+            '        if scheduling_mode == "parallel":\n'
+            '            parallel_deferred = True\n'
+            '            scheduling_mode = "serial"\n'
+            '        if scheduling_mode in {"no_fasttrack", "none"}:\n',
+            1,
+        )
+    if '"parallel_deferred": parallel_deferred,' not in text:
+        text = text.replace(
+            '            metadata={"updated_agents": updated},\n',
+            '            metadata={"updated_agents": updated, "parallel_deferred": parallel_deferred},\n',
+            1,
+        )
+        text = text.replace(
+            '            "scenario": scenario,\n            "updated_agents": updated,\n',
+            '            "scenario": scenario,\n            "parallel_deferred": parallel_deferred,\n            "updated_agents": updated,\n',
+            1,
+        )
     path.write_text(text, encoding="utf-8")
 
 
@@ -1995,9 +2808,10 @@ def patch_websocket_handler(vendor: Path) -> None:
         text = text.replace(
             '        self._last_text_input = ""\n',
             '        self._last_text_input = ""\n'
-            '        self._vtuber_chat_buffer: List[str] = []\n',
+            '        self._vtuber_chat_buffer: List[Dict[str, object]] = []\n',
             1,
         )
+    text = text.replace('        self._vtuber_chat_buffer: List[str] = []\n', '        self._vtuber_chat_buffer: List[Dict[str, object]] = []\n')
     if "def enqueue_vtuber_chat_context(" not in text:
         text = text.replace(
             '    def last_text_input(self) -> str:\n'
@@ -2013,20 +2827,83 @@ def patch_websocket_handler(vendor: Path) -> None:
             '        cleaned = " ".join(str(text or "").split())[:1200]\n'
             '        if not cleaned:\n'
             '            return\n'
-            '        self._vtuber_chat_buffer.append(cleaned)\n'
+            '        self._vtuber_chat_buffer.append({"text": cleaned, "at": time.monotonic()})\n'
             '        if len(self._vtuber_chat_buffer) > max_items:\n'
             '            self._vtuber_chat_buffer = self._vtuber_chat_buffer[-max_items:]\n'
             '\n'
-            '    def consume_vtuber_chat_context(self, *, max_items: int = 8) -> str:\n'
-            '        """Return and clear a compact batch of buffered VTuber chat context."""\n'
+            '    def consume_vtuber_chat_context(self, *, max_items: int = 8, since_seconds: Optional[float] = None) -> str:\n'
+            '        """Return and clear a compact time-windowed batch of buffered VTuber chat context."""\n'
             '        if not self._vtuber_chat_buffer:\n'
             '            return ""\n'
-            '        selected = self._vtuber_chat_buffer[-max(1, max_items):]\n'
-            '        self._vtuber_chat_buffer.clear()\n'
-            '        return "\\n".join(selected)\n'
+            '        now = time.monotonic()\n'
+            '        if since_seconds is None:\n'
+            '            eligible = list(self._vtuber_chat_buffer)\n'
+            '            keep_recent = None\n'
+            '        else:\n'
+            '            cutoff = now - max(0.0, float(since_seconds))\n'
+            '            eligible = [item for item in self._vtuber_chat_buffer if float(item.get("at") or 0.0) >= cutoff]\n'
+            '            keep_recent = cutoff\n'
+            '        selected = eligible[-max(1, max_items):]\n'
+            '        consumed_ids = {id(item) for item in selected}\n'
+            '        self._vtuber_chat_buffer = [\n'
+            '            item\n'
+            '            for item in self._vtuber_chat_buffer\n'
+            '            if id(item) not in consumed_ids and (keep_recent is None or float(item.get("at") or 0.0) >= keep_recent)\n'
+            '        ]\n'
+            '        return "\\n".join(str(item.get("text") or "") for item in selected)\n'
             '\n',
             1,
         )
+    old_chat_buffer_methods = (
+        '    def enqueue_vtuber_chat_context(self, text: str, *, max_items: int = 40) -> None:\n'
+        '        """Buffer live/virtual chat while VTuber mode is speaking."""\n'
+        '        cleaned = " ".join(str(text or "").split())[:1200]\n'
+        '        if not cleaned:\n'
+        '            return\n'
+        '        self._vtuber_chat_buffer.append(cleaned)\n'
+        '        if len(self._vtuber_chat_buffer) > max_items:\n'
+        '            self._vtuber_chat_buffer = self._vtuber_chat_buffer[-max_items:]\n'
+        '\n'
+        '    def consume_vtuber_chat_context(self, *, max_items: int = 8) -> str:\n'
+        '        """Return and clear a compact batch of buffered VTuber chat context."""\n'
+        '        if not self._vtuber_chat_buffer:\n'
+        '            return ""\n'
+        '        selected = self._vtuber_chat_buffer[-max(1, max_items):]\n'
+        '        self._vtuber_chat_buffer.clear()\n'
+        '        return "\\n".join(selected)\n'
+    )
+    new_chat_buffer_methods = (
+        '    def enqueue_vtuber_chat_context(self, text: str, *, max_items: int = 40) -> None:\n'
+        '        """Buffer live/virtual chat while VTuber mode is speaking."""\n'
+        '        cleaned = " ".join(str(text or "").split())[:1200]\n'
+        '        if not cleaned:\n'
+        '            return\n'
+        '        self._vtuber_chat_buffer.append({"text": cleaned, "at": time.monotonic()})\n'
+        '        if len(self._vtuber_chat_buffer) > max_items:\n'
+        '            self._vtuber_chat_buffer = self._vtuber_chat_buffer[-max_items:]\n'
+        '\n'
+        '    def consume_vtuber_chat_context(self, *, max_items: int = 8, since_seconds: Optional[float] = None) -> str:\n'
+        '        """Return and clear a compact time-windowed batch of buffered VTuber chat context."""\n'
+        '        if not self._vtuber_chat_buffer:\n'
+        '            return ""\n'
+        '        now = time.monotonic()\n'
+        '        if since_seconds is None:\n'
+        '            eligible = list(self._vtuber_chat_buffer)\n'
+        '            keep_recent = None\n'
+        '        else:\n'
+        '            cutoff = now - max(0.0, float(since_seconds))\n'
+        '            eligible = [item for item in self._vtuber_chat_buffer if float(item.get("at") or 0.0) >= cutoff]\n'
+        '            keep_recent = cutoff\n'
+        '        selected = eligible[-max(1, max_items):]\n'
+        '        consumed_ids = {id(item) for item in selected}\n'
+        '        self._vtuber_chat_buffer = [\n'
+        '            item\n'
+        '            for item in self._vtuber_chat_buffer\n'
+        '            if id(item) not in consumed_ids and (keep_recent is None or float(item.get("at") or 0.0) >= keep_recent)\n'
+        '        ]\n'
+        '        return "\\n".join(str(item.get("text") or "") for item in selected)\n'
+    )
+    text = text.replace(old_chat_buffer_methods, new_chat_buffer_methods)
     if 'metadata.get("vtuber_live_chat_batch")' not in text:
         text = text.replace(
             '        if data.get("type") == "text-input" and data.get("text") and not metadata.get("skip_last_text_input"):\n'

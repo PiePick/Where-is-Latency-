@@ -1,8 +1,8 @@
 # CREDO Runtime Readiness
 
-- readiness: READY
+- readiness: PARTIAL
 - required_failed: 0
-- optional_failed: 0
+- optional_failed: 2
 - warnings: 0
 
 ## Checks
@@ -15,7 +15,7 @@
 | SKIP | False | Interjection audio bundle | disabled by CREDO_NONVERBAL_FASTTRACK_ENABLED=0; live FastTrack uses speech + emotion motion |
 | OK | False | Legacy expressive audio manifest | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/archive/legacy_audio/expressive_audio_pool/manifest.json |
 | SKIP | False | FastTrack audio cache | disabled by FAST_TRACK_AUDIO_CACHE_ENABLED=0 |
-| OK | True | FastTrack separated dataset pool | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json; go_emotions=1131; swda=1049; separated_sources=true |
+| OK | True | FastTrack separated dataset pool | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json; go_emotions=385; swda=244; separated_sources=true |
 | OK | True | SWDA intent transition matrix | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/reports/intent_transition_matrix_from_swda.json; cross-speaker pairs=78439; QUESTION->INFORM=0.472856, QUESTION->ACKNOWLEDGE=0.471845 |
 | OK | True | Live2D motion groups | Ambiguous, AmbiguousTalk, Idle, Negative, NegativeTalk, Neutral, NeutralTalk, Positive, PositiveTalk, Talk |
 | OK | True | python import: spacy | importable |
@@ -24,14 +24,9 @@
 | OK | False | python import: faiss | importable |
 | OK | False | python import: websockets | importable |
 | OK | False | YouTube bridge dependency | websockets 16.0 |
-| OK | False | Local LLM endpoint | http://127.0.0.1:8001/v1/models responded HTTP 200 in 13.6 ms |
-| OK | False | Open-LLM-VTuber web server | 127.0.0.1:12393 accepts TCP connections |
-| OK | False | Style-Bert-VITS2 repo | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2 |
-| OK | False | Style-Bert-VITS2 runtime | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/.venv/bin/python |
-| OK | False | Style-Bert-VITS2 model assets | /mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets |
-| OK | False | Style-Bert-VITS2 explicit English model | credo_voice_sample_en (/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets/credo_voice_sample_en/config.json) |
-| OK | False | Style-Bert-VITS2 device | cuda on CUDA_VISIBLE_DEVICES=0 |
-| OK | False | Style-Bert-VITS2 endpoint | http://127.0.0.1:5000/docs responded HTTP 200 in 1.1 ms |
+| FAIL | False | Local LLM endpoint | unreachable: http://127.0.0.1:8001/v1/models (<urlopen error [Errno 111] Connection refused>) |
+| FAIL | False | Open-LLM-VTuber web server | 127.0.0.1:12393 is closed or unreachable ([Errno 111] Connection refused) |
+| OK | True | Prebuilt StyleBERT FastTrack manifest | /mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/audio/prebuilt_stylebert_v1/manifest.json; usable_audio=1816/1816; go_emotions=917, swda=899; voice_model=credo_voice_sample_en |
 
 ## Interpretation
 - READY: the full configured demo stack is reachable.

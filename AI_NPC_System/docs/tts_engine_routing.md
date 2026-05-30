@@ -6,7 +6,8 @@
 
 현재 live 언어 경로는 FastTrack과 SlowTrack 모두 StyleBERT-VITS2
 `credo_voice_sample_en`을 사용한다. Fish Speech는 실시간 언어 합성에서
-제외하고, 순수 비언어 감탄사 wav를 오프라인으로 만들 때만 사용한다.
+제외한다. 순수 비언어 감탄사 wav는 보관/재현용 오프라인 산출물이며,
+현재 live 재생 경로는 봉인되어 있다.
 
 ```bash
 cd /mnt/c/Users/CGLAB/Desktop/CREDO
@@ -43,13 +44,13 @@ between local control, voice consistency, and live latency. It does not interpre
 Fish style tags. Persona style belongs in text selection, prompt policy, and
 Live2D motion metadata rather than bracketed TTS tags.
 
-Pure nonverbal FastTrack reactions are the exception: `65` Fish wav files are
-generated offline and played with their motion metadata. This bundle remains
-live-readable without running Fish Speech.
+Standalone nonverbal FastTrack reactions are not active in the current runtime.
+The generated bundle is kept only for archive/reproduction unless a future
+experiment explicitly reopens interjection playback.
 
 ## Historical Engines
 
 `fish`, `cosyvoice2`, `piper`, and `edge` selector entries may remain to
 reproduce older measurements. They must be explicitly selected and are not the
-current primary live configuration. Regenerating the active nonverbal wav bundle
-is a separate offline Fish task.
+current primary live configuration. Regenerating a nonverbal wav bundle is a
+separate offline task, not part of the live participant path.

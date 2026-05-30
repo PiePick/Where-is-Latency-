@@ -67,6 +67,9 @@ Slow_Track/
 ttsDLL/
 Live2D Avatar/
 
+# Large raw latency simulation exports; keep summarized reports instead.
+AI_NPC_System/reports/**/simulated_turns_wide.csv
+
 # Unity generated folders
 Slow_Track/Library/
 Slow_Track/Logs/

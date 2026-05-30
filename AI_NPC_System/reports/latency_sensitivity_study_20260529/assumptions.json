@@ -1,0 +1,68 @@
+{
+  "source_log": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/latency_logs/paper_latency_20260529_000308.module_events.csv",
+  "window_start": "2026-05-29T03:36:00+09:00",
+  "source_rows": 508,
+  "repetitions": 500,
+  "turns_per_run": 8,
+  "seed": 2026052902,
+  "fasttrack_policies": [
+    "grounded",
+    "emotion_only",
+    "response_act_only",
+    "neutral_random",
+    "slowtrack_only"
+  ],
+  "slowtrack_load_profiles": {
+    "current_prompt": {
+      "llm_multiplier": 1.0,
+      "tts_multiplier": 1.0,
+      "description": "Measured current prompt and current response length."
+    },
+    "expanded_memory": {
+      "llm_multiplier": 1.6,
+      "tts_multiplier": 1.1,
+      "description": "Longer persona, recent-memory, and audience-summary prompt."
+    },
+    "heavy_context": {
+      "llm_multiplier": 2.4,
+      "tts_multiplier": 1.25,
+      "description": "World-state, topic memory, and longer answer generation."
+    },
+    "stress_context": {
+      "llm_multiplier": 3.4,
+      "tts_multiplier": 1.4,
+      "description": "Stress-test prompt with dense memory and longer responses."
+    }
+  },
+  "frontend_profiles": {
+    "backend_ready": {
+      "low_ms": 0.0,
+      "mode_ms": 3.0,
+      "high_ms": 8.0,
+      "description": "Backend readiness only, minimal frontend overhead."
+    },
+    "local_browser": {
+      "low_ms": 20.0,
+      "mode_ms": 45.0,
+      "high_ms": 90.0,
+      "description": "Local browser dispatch and audio element start overhead."
+    },
+    "capture_stress": {
+      "low_ms": 80.0,
+      "mode_ms": 150.0,
+      "high_ms": 280.0,
+      "description": "OBS/capture/browser stress overhead sensitivity."
+    }
+  },
+  "scenario_profiles": {
+    "chat_only": {
+      "donation_turn_probability": 0.0,
+      "description": "Only batched chat turns; no donation readout gate."
+    },
+    "donation_mix": {
+      "donation_turn_probability": 0.45,
+      "description": "Broadcast scenario with donation readout gates mixed into chat."
+    }
+  },
+  "interpretation_boundary": "Recorded-log empirical bootstrap and sensitivity simulation. It estimates backend/frontend-readiness latency, not final browser audible onset."
+}

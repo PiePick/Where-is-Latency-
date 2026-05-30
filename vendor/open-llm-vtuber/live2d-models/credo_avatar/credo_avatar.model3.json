@@ -10,7 +10,7 @@
 		"Motions": {
 			"Idle": [
 				{
-					"File": "motions/neutral_1.motion3.json"
+					"File": "motions/Idle_Motion.motion3.json"
 				}
 			],
 			"Talk": [

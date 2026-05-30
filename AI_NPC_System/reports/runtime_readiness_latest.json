@@ -1,10 +1,10 @@
 {
   "summary": {
-    "readiness": "READY",
+    "readiness": "PARTIAL",
     "required_failed": 0,
-    "optional_failed": 0,
+    "optional_failed": 2,
     "warnings": 0,
-    "checked_at_unix": 1779832521.4396894
+    "checked_at_unix": 1779992797.7621472
   },
   "checks": [
     {
@@ -52,7 +52,7 @@
     {
       "name": "FastTrack separated dataset pool",
       "status": "OK",
-      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json; go_emotions=1131; swda=1049; separated_sources=true",
+      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/text/professor_lab_maid_dataset_pool_v1/pool.json; go_emotions=385; swda=244; separated_sources=true",
       "required": true
     },
     {
@@ -105,51 +105,21 @@
     },
     {
       "name": "Local LLM endpoint",
-      "status": "OK",
-      "detail": "http://127.0.0.1:8001/v1/models responded HTTP 200 in 13.6 ms",
+      "status": "FAIL",
+      "detail": "unreachable: http://127.0.0.1:8001/v1/models (<urlopen error [Errno 111] Connection refused>)",
       "required": false
     },
     {
       "name": "Open-LLM-VTuber web server",
-      "status": "OK",
-      "detail": "127.0.0.1:12393 accepts TCP connections",
+      "status": "FAIL",
+      "detail": "127.0.0.1:12393 is closed or unreachable ([Errno 111] Connection refused)",
       "required": false
     },
     {
-      "name": "Style-Bert-VITS2 repo",
+      "name": "Prebuilt StyleBERT FastTrack manifest",
       "status": "OK",
-      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2",
-      "required": false
-    },
-    {
-      "name": "Style-Bert-VITS2 runtime",
-      "status": "OK",
-      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/.venv/bin/python",
-      "required": false
-    },
-    {
-      "name": "Style-Bert-VITS2 model assets",
-      "status": "OK",
-      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets",
-      "required": false
-    },
-    {
-      "name": "Style-Bert-VITS2 explicit English model",
-      "status": "OK",
-      "detail": "credo_voice_sample_en (/mnt/c/Users/CGLAB/Desktop/CREDO/vendor/Style-Bert-VITS2/model_assets/credo_voice_sample_en/config.json)",
-      "required": false
-    },
-    {
-      "name": "Style-Bert-VITS2 device",
-      "status": "OK",
-      "detail": "cuda on CUDA_VISIBLE_DEVICES=0",
-      "required": false
-    },
-    {
-      "name": "Style-Bert-VITS2 endpoint",
-      "status": "OK",
-      "detail": "http://127.0.0.1:5000/docs responded HTTP 200 in 1.1 ms",
-      "required": false
+      "detail": "/mnt/c/Users/CGLAB/Desktop/CREDO/AI_NPC_System/fasttrack_assets/audio/prebuilt_stylebert_v1/manifest.json; usable_audio=1816/1816; go_emotions=917, swda=899; voice_model=credo_voice_sample_en",
+      "required": true
     }
   ]
 }

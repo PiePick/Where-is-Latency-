@@ -40,23 +40,9 @@ FISH_SPEECH_CUE_BUNDLES = {
     "neutral": ["[short pause]", "[soft sigh]", "[exhale]", "[whisper]"],
 }
 
-INTENT_FALLBACKS = {
-    "QUESTION": ["Wait, what do you mean?", "Can you say that again?"],
-    "INFORM": ["I got it.", "That makes sense."],
-    "ACKNOWLEDGE": ["Yeah, yeah.", "Right, I hear you."],
-    "DIRECTIVE": ["Okay, let's do it.", "Point me there."],
-    "EXPRESSIVE": ["That is a lot.", "I can feel that."],
-    "REJECT": ["No way.", "I don't think so."],
-    "UNKNOWN": ["Let me think.", "I see."],
-}
+INTENT_FALLBACKS: dict[str, list[str]] = {}
 
-REALTIME_THINKING_BRIDGES = [
-    {"emotion": "neutral", "carrier": "Let me think about that.", "style_tag": "cute"},
-    {"emotion": "neutral", "carrier": "Hmm, give me a second.", "style_tag": "playful"},
-    {"emotion": "positive", "carrier": "Ooh, let me think about that!", "style_tag": "energetic"},
-    {"emotion": "ambiguous", "carrier": "Wait, let me figure that out.", "style_tag": "playful"},
-    {"emotion": "negative", "carrier": "Hmm, let me think carefully.", "style_tag": "cute"},
-]
+REALTIME_THINKING_BRIDGES: list[dict[str, Any]] = []
 
 
 @dataclass(frozen=True)
@@ -101,7 +87,7 @@ class CoverComposer:
         return self._load_json(EXTREME_AUDIO_MANIFEST, {"items": []}).get("items", [])
 
     def _load_thinking_bridge_items(self) -> list[dict[str, Any]]:
-        """Load short spoken thinking bridges such as 'Let me think about it.'"""
+        """Load short spoken bridge clips when that optional path is enabled."""
         bundle_path = getattr(config, "CREDO_THINKING_BRIDGE_AUDIO_BUNDLE_PATH", None)
         if not bundle_path or not Path(bundle_path).exists():
             return []
@@ -266,11 +252,6 @@ class CoverComposer:
         if not candidates:
             candidates = [item for item in self.thinking_bridge_audio if item.get("carrier") or item.get("text")]
         if not candidates:
-            candidates = [
-                item for item in REALTIME_THINKING_BRIDGES
-                if str(item.get("emotion", "")).lower() in {str(emotion or "").lower(), "neutral"}
-            ]
-        if not candidates:
             return None
         return self.rng.choice(candidates)
 
@@ -353,15 +334,15 @@ class CoverComposer:
         if isinstance(bucket, dict):
             for source in ("everyday", "stream"):
                 candidates.extend(bucket.get(source) or [])
-        return self.rng.choice(candidates or ["I see."])
+        return self.rng.choice(candidates) if candidates else ""
 
     def _choose_intent_line(self, intent: str) -> str:
         intent = intent.upper()
-        examples = self.swda_examples.get(intent) or INTENT_FALLBACKS.get(intent) or INTENT_FALLBACKS["UNKNOWN"]
-        return self.rng.choice(examples)
+        examples = self.swda_examples.get(intent) or INTENT_FALLBACKS.get(intent) or []
+        return self.rng.choice(examples) if examples else ""
 
     def _estimate_slow_probe(self, user_text: str) -> str:
-        return f"I hear you. Let me respond to that carefully: {user_text[:90]}"
+        return str(user_text or "")[:90]
 
     def _load_swda_examples(self) -> dict[str, list[str]]:
         examples: dict[str, list[str]] = {}

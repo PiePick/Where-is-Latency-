@@ -20,10 +20,10 @@ direct text / virtual broadcast chat / YouTube chat buffer / idle turn
         SWDA transition-weighted response-act sampling, excluding QUESTION
         separated GoEmotions/SWDA dataset-pool retrieval
         runtime Professor's Lab Maid cover composition
-        spaCy keyword metadata
+        spaCy keyword metadata/source bias; spoken echo prefix paused
      -> selected mapping basis:
         grounded / emotion only / intent only / context-free control
-     -> prebuilt StyleBERT short interjection wav + Live2D motion and selected reaction StyleBERT TTS
+     -> selected reaction StyleBERT TTS + viewer-emotion Live2D motion
      || SlowTrack local LLM + StyleBERT TTS audio preparation
   -> SlowTrack playback
   -> during playback: accumulate chat and prefetch next idle SlowTrack
@@ -42,10 +42,10 @@ does not swap the underlying conversation stack.
 | Control | Values |
 | --- | --- |
 | Runtime mode | YouTube Live, Virtual Broadcast, 1:1 Chat |
-| Experiment cases | `case_1_grounded_serial`, `case_2_emotion_only_serial`, `case_3_intent_only_serial`, `case_4_neutral_random_serial`, `case_5_grounded_parallel`, `case_6_slowtrack_only` |
-| Scenario playback | Shared `shared_2m30` Graduate School Survival Counseling Center scenario with `Start Scenario` / `Stop Scenario` |
+| Experiment cases | `case_1_grounded_serial`, `case_2_emotion_only_serial`, `case_3_intent_only_serial`, `case_4_neutral_random_serial`, `case_5_slowtrack_only` |
+| Scenario playback | Shared `shared_2m30` Lab Maid Donation Reality Check scenario with `Start Scenario` / `Stop Scenario` |
 | Contextual mapping | Grounded, Emotion Only, Intent Only, Context-Free |
-| Scheduling architecture | Parallel SlowTrack prefetch, Serial generation, No FastTrack |
+| Scheduling architecture | Serial generation, No FastTrack |
 
 Each latency event is labeled with these values in
 `AI_NPC_System/latency_logs/module_events.csv`.
@@ -70,19 +70,20 @@ absolute control and is recorded as `component_mode=none`,
 The old live path played a prebuilt Fish Speech wav selected from the persona
 bundle and attempted a high-quality Fish SlowTrack. The latter measured roughly
 `49.7 s` for a 20-word line (`51.1 s` total turn), so the live design now uses
-StyleBERT-VITS2 for language FastTrack and SlowTrack, while preserving a compact
-prebuilt short interjection bundle for immediate motion/audio reactions.
+StyleBERT-VITS2 for language FastTrack and SlowTrack.
 
-- Prebuilt wav playback is active only for the nonverbal+motion component.
+- Standalone interjection playback is sealed for the current experiment set.
 - Static persona text manifests are disabled in the active language path.
 - The active language source is the separated GoEmotions/SWDA dataset pool.
-- `spaCy` keywords remain analysis metadata in the primary study; keyword echo
-  is disabled.
-- If SlowTrack remains pending, a short thinking line such as
-  `Let me think about that.` is synthesized by the active realtime voice;
-  it no longer depends on a deleted prebuilt spoken bundle.
+- `spaCy` keywords remain available for metadata/source bias, but the spoken
+  keyword echo prefix is paused for the current study.
+- If SlowTrack remains pending, the active path avoids standalone nonverbal
+  filler and keeps the viewer-emotion expression layer on the speaking response.
 - Fish live synthesis is excluded; the active interjection bundle is generated
-  with StyleBERT to keep the voice color consistent.
+  with StyleBERT but remains archived while playback is sealed.
+- Targeted viewer-facing SlowTrack/proactive speech may address one focused
+  viewer as `<nickname> kyo-shu-zin-sa-ma`; multi-chat summaries should address
+  the room without listing every nickname.
 
 ## Active Services
 
@@ -91,7 +92,7 @@ Local LLM:       http://127.0.0.1:8001/v1   qwen2.5:7b
 StyleBERT-VITS2: http://127.0.0.1:5000
 Open-LLM-VTuber: http://127.0.0.1:12393
 Language TTS:    StyleBERT-VITS2 credo_voice_sample_en
-Interjections:   prebuilt StyleBERT wav, short carriers only
+Interjections:   sealed; archived generated wav bundle only
 ```
 
 The default `live` profile starts StyleBERT-VITS2, local LLM, and

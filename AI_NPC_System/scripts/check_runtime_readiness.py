@@ -275,6 +275,64 @@ def check_fast_track_audio_cache(cfg: Any) -> CheckResult:
     return ok("FastTrack audio cache", f"{manifest_path}; reference={reference_id}; usable_items={usable}", required=False)
 
 
+def check_prebuilt_stylebert_fasttrack_manifest(cfg: Any) -> CheckResult:
+    """Verify the active pre-generated StyleBERT FastTrack wav manifest."""
+    manifest_path = Path(getattr(cfg, "FASTTRACK_PREBUILT_MANIFEST_PATH", ""))
+    if not manifest_path.exists():
+        return fail("Prebuilt StyleBERT FastTrack manifest", f"missing: {manifest_path}")
+    try:
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        return fail("Prebuilt StyleBERT FastTrack manifest", f"invalid json: {manifest_path} ({exc})")
+
+    items = list(payload.get("items") or [])
+    if not items:
+        return fail("Prebuilt StyleBERT FastTrack manifest", f"no items in {manifest_path}")
+
+    root = manifest_path.parent
+    usable_audio = 0
+    source_counts: dict[str, int] = {}
+    missing_examples: list[str] = []
+    for item in items:
+        source = str(item.get("source_dataset") or "unknown")
+        source_counts[source] = source_counts.get(source, 0) + 1
+        raw_audio_path = str(item.get("audio_path") or "").strip()
+        if not raw_audio_path:
+            if len(missing_examples) < 3:
+                missing_examples.append(str(item.get("id") or "missing-audio-path"))
+            continue
+        audio_path = Path(raw_audio_path)
+        if not audio_path.is_absolute():
+            audio_path = root / audio_path
+        if audio_path.exists() and audio_path.stat().st_size > 44:
+            usable_audio += 1
+        elif len(missing_examples) < 3:
+            missing_examples.append(raw_audio_path)
+
+    if usable_audio == 0:
+        return fail("Prebuilt StyleBERT FastTrack manifest", f"no usable wav files in {manifest_path}")
+    if usable_audio != len(items):
+        return fail(
+            "Prebuilt StyleBERT FastTrack manifest",
+            f"{manifest_path}; usable_audio={usable_audio}/{len(items)}; missing_examples={missing_examples}",
+        )
+
+    expected_voice = str(getattr(cfg, "STYLEBERT_VITS2_MODEL_NAME", "") or "")
+    manifest_voice = str((payload.get("tts_reference") or {}).get("voice_model") or "")
+    voice_detail = f"; voice_model={manifest_voice}" if manifest_voice else ""
+    if expected_voice and manifest_voice and manifest_voice != expected_voice:
+        return fail(
+            "Prebuilt StyleBERT FastTrack manifest",
+            f"voice mismatch: manifest={manifest_voice!r}, expected={expected_voice!r}",
+        )
+
+    source_detail = ", ".join(f"{key}={value}" for key, value in sorted(source_counts.items()))
+    return ok(
+        "Prebuilt StyleBERT FastTrack manifest",
+        f"{manifest_path}; usable_audio={usable_audio}/{len(items)}; {source_detail}{voice_detail}",
+    )
+
+
 def check_persona_reaction_bundle(cfg: Any) -> CheckResult:
     """Verify that the configured FastTrack text source can serve selection."""
     pool_path = getattr(cfg, "FAST_TRACK_DATASET_POOL_PATH", None)
@@ -448,6 +506,8 @@ def collect_checks() -> list[CheckResult]:
                 check_http("Style-Bert-VITS2 endpoint", cfg.STYLEBERT_VITS2_HEALTH_URL, required=False),
             ]
         )
+    elif cfg.FAST_TRACK_TTS_MODE == "prebuilt_stylebert_manifest":
+        checks.append(check_prebuilt_stylebert_fasttrack_manifest(cfg))
     else:
         checks.append(skip("FastTrack realtime TTS", f"disabled by FAST_TRACK_TTS_MODE={cfg.FAST_TRACK_TTS_MODE}"))
     return checks

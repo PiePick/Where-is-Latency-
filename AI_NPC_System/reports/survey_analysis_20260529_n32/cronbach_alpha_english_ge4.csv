@@ -1,0 +1,43 @@
+sample,scope,scale,n_rows,items,cronbach_alpha
+english_ge4,stacked_all_cases,Overall_14_items,95,14,0.9195877375714586
+english_ge4,case_1_Grounded,Overall_14_items,19,14,0.9004155436019495
+english_ge4,case_2_Emotion Only,Overall_14_items,19,14,0.9222213204012201
+english_ge4,case_3_Intent Only,Overall_14_items,19,14,0.8879391868331125
+english_ge4,case_4_Neutral Random,Overall_14_items,19,14,0.939407481891142
+english_ge4,case_5_SlowTrack Only,Overall_14_items,19,14,0.9258223518760688
+english_ge4,stacked_all_cases,Perceived Latency,95,3,0.6599711538461537
+english_ge4,case_1_Grounded,Perceived Latency,19,3,0.5865603644646922
+english_ge4,case_2_Emotion Only,Perceived Latency,19,3,0.712744299674267
+english_ge4,case_3_Intent Only,Perceived Latency,19,3,0.33727810650887546
+english_ge4,case_4_Neutral Random,Perceived Latency,19,3,0.49967469095640854
+english_ge4,case_5_SlowTrack Only,Perceived Latency,19,3,0.7883742052679381
+english_ge4,stacked_all_cases,Conversational Naturalness,95,2,0.7441757047211999
+english_ge4,case_1_Grounded,Conversational Naturalness,19,2,0.6646106399383189
+english_ge4,case_2_Emotion Only,Conversational Naturalness,19,2,0.8805704099821743
+english_ge4,case_3_Intent Only,Conversational Naturalness,19,2,0.7363704256908137
+english_ge4,case_4_Neutral Random,Conversational Naturalness,19,2,0.5222591362126248
+english_ge4,case_5_SlowTrack Only,Conversational Naturalness,19,2,0.8198198198198201
+english_ge4,stacked_all_cases,Reaction Appropriateness,95,3,0.4389185790631877
+english_ge4,case_1_Grounded,Reaction Appropriateness,19,3,0.355594405594406
+english_ge4,case_2_Emotion Only,Reaction Appropriateness,19,3,0.45931758530183725
+english_ge4,case_3_Intent Only,Reaction Appropriateness,19,3,0.21494845360824766
+english_ge4,case_4_Neutral Random,Reaction Appropriateness,19,3,0.6198422330097088
+english_ge4,case_5_SlowTrack Only,Reaction Appropriateness,19,3,0.2838665759019742
+english_ge4,stacked_all_cases,Social Presence,95,2,0.9191727727954284
+english_ge4,case_1_Grounded,Social Presence,19,2,0.9151414309484194
+english_ge4,case_2_Emotion Only,Social Presence,19,2,0.88955223880597
+english_ge4,case_3_Intent Only,Social Presence,19,2,0.95470884255931
+english_ge4,case_4_Neutral Random,Social Presence,19,2,0.8898927159796726
+english_ge4,case_5_SlowTrack Only,Social Presence,19,2,0.9384288747346072
+english_ge4,stacked_all_cases,Character Appeal,95,2,0.8089097303634232
+english_ge4,case_1_Grounded,Character Appeal,19,2,0.5448963929393709
+english_ge4,case_2_Emotion Only,Character Appeal,19,2,0.8596401028277634
+english_ge4,case_3_Intent Only,Character Appeal,19,2,0.7492354740061162
+english_ge4,case_4_Neutral Random,Character Appeal,19,2,0.8736789129340714
+english_ge4,case_5_SlowTrack Only,Character Appeal,19,2,0.9143897996357013
+english_ge4,stacked_all_cases,Engagement,95,2,0.7748590410420035
+english_ge4,case_1_Grounded,Engagement,19,2,0.6385390428211588
+english_ge4,case_2_Emotion Only,Engagement,19,2,0.6560102301790278
+english_ge4,case_3_Intent Only,Engagement,19,2,0.8017303532804612
+english_ge4,case_4_Neutral Random,Engagement,19,2,0.8440629470672387
+english_ge4,case_5_SlowTrack Only,Engagement,19,2,0.8684817720350715

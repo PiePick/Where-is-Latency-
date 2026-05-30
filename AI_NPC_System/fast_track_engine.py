@@ -63,12 +63,7 @@ LABEL_TO_CATEGORY = {
     "neutral": "Neutral",
 }
 
-FALLBACK_REACTIONS = {
-    "Positive": ["Nice.", "Huge W.", "Glad to hear it."],
-    "Negative": ["That's rough.", "I hear you.", "That hurts."],
-    "Ambiguous": ["Wait, really?", "Interesting.", "What happened?"],
-    "Neutral": ["Got it.", "I see.", "Okay."],
-}
+FALLBACK_REACTIONS: dict[str, list[str]] = {}
 
 SOURCE_KEYWORD_HINTS = {
     "stream": {
@@ -104,7 +99,7 @@ class HybridFastTrackConfig:
 
 @dataclass(frozen=True)
 class CoverChoice:
-    """One FastTrack cover selected from cache or live text fallback."""
+    """One FastTrack cover selected from cache or live text."""
 
     reaction: str
     source: str
@@ -146,7 +141,7 @@ def choose_device(torch: Any, requested: str) -> int:
 
 
 def load_reaction_db(path: Path) -> dict[str, Any]:
-    """Load the prebuilt reaction list, or let runtime fallbacks handle misses."""
+    """Load the prebuilt reaction list; misses produce no language reaction."""
     if not path.exists():
         return {}
     return json.loads(path.read_text(encoding="utf-8"))
@@ -287,7 +282,9 @@ class HybridFastTrack:
                 if candidates:
                     return self.rng.choice(candidates), source
 
-        candidates = FALLBACK_REACTIONS.get(category, FALLBACK_REACTIONS["Neutral"])
+        candidates = FALLBACK_REACTIONS.get(category, [])
+        if not candidates:
+            return "", "missing_dataset"
         return self.rng.choice(candidates), "fallback"
 
     def choose_cover(self, category: str, keywords: list[str]) -> tuple[CoverChoice, str | None]:
